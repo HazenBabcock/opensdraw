@@ -12,7 +12,7 @@ import sys
 
 
 # Find all the possible part directories & cache this.
-all_part_dirs = ["", "./"]
+all_part_dirs = ["", "C:/Users/Hazen/openlcad/test/"]
 ldraw_path = "c:/Program Files (x86)/LDraw/" 
 for dir in ["p", "parts"]:
     for [path_original, dirs, files] in os.walk(ldraw_path + dir):
@@ -35,7 +35,7 @@ def findPartFile(filename):
 #
 # @return A list of the part directories
 #
-def getPartDirectories ():
+def getPartDirectories():
     global all_part_dirs
     return all_part_dirs
 
@@ -46,7 +46,7 @@ def getPartDirectories ():
 # @param parser A part file parser object.
 # @param filanem The filename of the part file.
 #
-def parsePartFile (parser, filename):
+def parsePartFile(parser, filename):
     with open(findPartFile(filename)) as filep:
         parsePartFileP(parser, filep, 0)
 
