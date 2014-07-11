@@ -23,11 +23,13 @@ vertex = """
 in vec3 vin_position;
 in vec3 vin_color;
 out vec3 vout_color;
+uniform mat4 MVP;
 
 void main(void)
 {
     vout_color = vin_color;
-    gl_Position = vec4(vin_position, 1.0);
+    vec4 v = vec4(vin_position, 1.0);
+    gl_Position = MVP * v;
 }
 """
 
@@ -55,7 +57,7 @@ class GLParser(datFileParser.Parser):
 
     ## __init__
     #
-    # @param matrix A 4x4 numpy matrix to use as the transformation matrix for this file.
+    # @param matrix A 4x4 numpy matrix to use as the transformation matrix for this file. If this is None then the identity matrix is used.
     # @param main_color The main color.
     # @param edge_color The edge color.
     # @param shader (Optional) The GLShader object to use for this file. If None a GLShader object will be created.
@@ -64,6 +66,7 @@ class GLParser(datFileParser.Parser):
         datFileParser.Parser.__init__(self, main_color, edge_color)
 
         self.children = []
+        self.depth = 0
         self.gl_shader = gl_shader
         self.matrix = matrix
         self.vao_lines = GLVao(GL.GL_LINES, edge_color)
@@ -143,10 +146,16 @@ class GLParser(datFileParser.Parser):
     #
     # Draw the object and all its child objects.
     #
-    def render(self):
+    # @param mvp The model - view - projection matrix or None.
+    #
+    def render(self, mvp):
 
         # Draw object.
         GL.glUseProgram(self.gl_shader.program_id)
+
+        matrix_id = self.gl_shader.uniform_location('MVP')
+        GL.glUniformMatrix4fv(matrix_id, 1, GL.GL_FALSE, mvp)
+
         if (self.vao_lines.size > 0):
             GL.glBindVertexArray(self.vao_lines.gl_id)
             GL.glDrawArrays(self.vao_lines.gl_type, 0, self.vao_lines.size)
@@ -158,7 +167,7 @@ class GLParser(datFileParser.Parser):
 
         # Draw children.
         for child in self.children:
-            child.render()
+            child.render(mvp)
                         
     ## quadrilateral
     #
