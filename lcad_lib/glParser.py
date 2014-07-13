@@ -2,8 +2,8 @@
 #
 ## @file
 #
-# A parser for outputting OpenGL. This is based on this example:
-# https://gist.github.com/deepankarsharma/3494203
+# A parser for outputting OpenGL. This is based in part on this 
+# example: https://gist.github.com/deepankarsharma/3494203
 #
 # Hazen 07/14
 #
@@ -57,17 +57,20 @@ class GLParser(datFileParser.Parser):
 
     ## __init__
     #
-    # @param matrix A 4x4 numpy matrix to use as the transformation matrix for this file. If this is None then the identity matrix is used.
     # @param main_color The main color.
     # @param edge_color The edge color.
+    # @param matrix (Optional) A 4x4 numpy matrix to use as the transformation matrix for this file. If this is None then the identity matrix is used.
     # @param shader (Optional) The GLShader object to use for this file. If None a GLShader object will be created.
+    # @param inverted_w (Optional) Specify if the winding direction should be inverted. Default is False.
     #
-    def __init__(self, matrix, main_color, edge_color, gl_shader = None):
+    def __init__(self, main_color, edge_color, matrix = None, gl_shader = None, inverted_w = False):
         datFileParser.Parser.__init__(self, main_color, edge_color)
 
+        self.cw_winding = False
         self.children = []
         self.depth = 0
         self.gl_shader = gl_shader
+        self.inverted_w = inverted_w
         self.matrix = matrix
         self.vao_lines = GLVao(GL.GL_LINES, edge_color)
         self.vao_triangles = GLVao(GL.GL_TRIANGLES, main_color)
@@ -78,12 +81,44 @@ class GLParser(datFileParser.Parser):
         if self.matrix is None:
             self.matrix = numpy.identity(4)
 
+    ## addTriangle
+    #
+    # Add a triangle, winding is always counter-clockwise.
+    #
+    # @param p1 1st vertex.
+    # @param p2 2nd vertex.
+    # @param p3 3rd vertex.
+    #
+    def addTriangle(self, p1, p2, p3):
+        self.vao_triangles.addVertex(p1)
+        self.vao_triangles.addVertex(p2)
+        self.vao_triangles.addVertex(p3)
+
     ## command
     #
     # @param parsed_line A list containing the contents of one line of a parsed file.
     #
     def command(self, parsed_line):
-        pass
+        return
+
+        if (len(parsed_line) > 1):
+
+            # Handle winding commands.
+            if (parsed_line[1] == "BFC"):
+                if (parsed_line[2] == "INVERTNEXT"):
+                    self.inverted_w = not self.inverted_w
+                elif (parsed_line[2] == "CERTIFY"):
+                    if (len(parsed_line) == 3):
+                        self.cw_winding = False
+                    else:
+                        if (parsed_line[3] == "CCW"):
+                            self.cw_winding = False
+                        else:
+                            self.cw_winding = True
+                if self.inverted_w:
+                    self.cw_winding = not self.cw_winding
+
+                print parsed_line, self.cw_winding
 
     ## endFile
     #
@@ -91,6 +126,13 @@ class GLParser(datFileParser.Parser):
         self.vao_lines.finalize(self.gl_shader)
         self.vao_triangles.finalize(self.gl_shader)
     
+    ## getInvertedW
+    #
+    # @return The current value of the inverted_w property.
+    #
+    def getInvertedW(self):
+        return self.inverted_w
+
     ## line
     #
     # @param parsed_line A list containing the contents of one line of a parsed file.
@@ -108,6 +150,7 @@ class GLParser(datFileParser.Parser):
     # @return A Parser object.
     #
     def newFile(self, parsed_line):
+        #print "newFile", self.depth, parsed_line[-1]
 
         # Parse transformation matrix.
         [x, y, z, a, b, c, d, e, f, g, h, i] = map(float, parsed_line[2:14])
@@ -116,7 +159,11 @@ class GLParser(datFileParser.Parser):
                               [  g,   h,   i,   z], 
                               [0.0, 0.0, 0.0, 1.0]])
 
-        child = GLParser(numpy.dot(self.matrix, matrix), self.main_color, self.edge_color, self.gl_shader)
+        child = GLParser(self.main_color, 
+                         self.edge_color, 
+                         matrix,
+                         self.gl_shader,
+                         self.getInvertedW())
         self.children.append(child)
         return child
 
@@ -125,7 +172,8 @@ class GLParser(datFileParser.Parser):
     # @param parsed_line A list containing the contents of one line of a parsed file.
     #
     def optionalLine(self, parsed_line):
-        self.line(parsed_line)
+        pass
+        #self.line(parsed_line)
 
     ## parsePoint
     #
@@ -142,6 +190,35 @@ class GLParser(datFileParser.Parser):
         pf = numpy.dot(self.matrix, pi)
         return pf.tolist()[:-1]
 
+    ## quadrilateral
+    #
+    # @param parsed_line A list containing the contents of one line of a parsed file.
+    #
+    def quadrilateral(self, parsed_line):
+        p1 = self.parsePoint(parsed_line[2:5])
+        p2 = self.parsePoint(parsed_line[5:8])
+        p3 = self.parsePoint(parsed_line[8:11])
+        p4 = self.parsePoint(parsed_line[11:14])
+
+        if False:
+            self.vao_lines.addVertex(p1)
+            self.vao_lines.addVertex(p2)
+            self.vao_lines.addVertex(p2)
+            self.vao_lines.addVertex(p3)
+            self.vao_lines.addVertex(p3)
+            self.vao_lines.addVertex(p4)
+            self.vao_lines.addVertex(p4)
+            self.vao_lines.addVertex(p1)
+
+        if self.cw_winding:
+            self.addTriangle(p1,p2,p3)
+            self.addTriangle(p1,p3,p4)
+        else:
+            self.addTriangle(p1,p3,p2)
+            self.addTriangle(p1,p4,p3)
+
+        #self.vao_lines.addVertex(p1)
+
     ## render
     #
     # Draw the object and all its child objects.
@@ -156,12 +233,14 @@ class GLParser(datFileParser.Parser):
         matrix_id = self.gl_shader.uniform_location('MVP')
         GL.glUniformMatrix4fv(matrix_id, 1, GL.GL_FALSE, mvp)
 
-        if (self.vao_lines.size > 0):
-            GL.glBindVertexArray(self.vao_lines.gl_id)
-            GL.glDrawArrays(self.vao_lines.gl_type, 0, self.vao_lines.size)
         if (self.vao_triangles.size > 0):
             GL.glBindVertexArray(self.vao_triangles.gl_id)
             GL.glDrawArrays(self.vao_triangles.gl_type, 0, self.vao_triangles.size)
+
+        if (self.vao_lines.size > 0):
+            GL.glBindVertexArray(self.vao_lines.gl_id)
+            GL.glDrawArrays(self.vao_lines.gl_type, 0, self.vao_lines.size)
+
         GL.glBindVertexArray(0)
         GL.glUseProgram(0)
 
@@ -169,18 +248,6 @@ class GLParser(datFileParser.Parser):
         for child in self.children:
             child.render(mvp)
                         
-    ## quadrilateral
-    #
-    # @param parsed_line A list containing the contents of one line of a parsed file.
-    #
-    def quadrilateral(self, parsed_line):
-        p1 = self.parsePoint(parsed_line[2:5])
-        p2 = self.parsePoint(parsed_line[5:8])
-        p3 = self.parsePoint(parsed_line[8:11])
-        p4 = self.parsePoint(parsed_line[11:14])
-
-        #self.vao_lines.addVertex(p1)
-
     ## startFile
     #
     # @param depth The current recursion depth.
@@ -196,6 +263,11 @@ class GLParser(datFileParser.Parser):
         p1 = self.parsePoint(parsed_line[2:5])
         p2 = self.parsePoint(parsed_line[5:8])
         p3 = self.parsePoint(parsed_line[8:11])
+
+        if self.cw_winding:
+            self.addTriangle(p1,p2,p3)
+        else:
+            self.addTriangle(p1,p3,p2)
 
 
 ## GLShader
@@ -357,3 +429,26 @@ class GLVao(object):
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
         GL.glBindVertexArray(0)
 
+#
+# The MIT License
+#
+# Copyright (c) 2014 Hazen Babcock
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
