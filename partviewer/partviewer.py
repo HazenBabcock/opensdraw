@@ -14,6 +14,28 @@ from PyQt4 import QtCore, QtGui, QtOpenGL
 
 import partviewer_ui
 
+
+## PartProxyModel
+#
+# A PyQt QSortFilterProxyModel adapted for sorting and filtering parts.
+#
+class PartProxyModel(QtGui.QSortFilterProxyModel):
+
+    def __init__(self, parent):
+        QtGui.QSortFilterProxyModel.__init__(self, parent)
+
+    def filterAcceptsRow(self, source_row, source_parent):
+        model = self.sourceModel()
+        index0 = model.index(source_row, 0, source_parent)
+        index1 = model.index(source_row, 1, source_parent)
+
+        if (model.data(index0).toString().contains(self.filterRegExp()) or
+            model.data(index1).toString().contains(self.filterRegExp())):
+            return True
+        else:
+            return False
+
+
 ## PartStandardItem
 #
 # A PyQt QStandardItem specialized to hold the information related to a part.
@@ -42,7 +64,10 @@ class PartViewer(QtGui.QMainWindow):
     def __init__(self, xml_part_file):
         QtGui.QMainWindow.__init__(self)
 
-        self.part_model = QtGui.QStandardItemModel()
+        # Setup models.
+        self.part_model = QtGui.QStandardItemModel(self)
+        self.proxy_model = PartProxyModel(self)
+        self.proxy_model.setSourceModel(self.part_model)
 
         # Setup UI.
         self.ui = partviewer_ui.Ui_MainWindow()
@@ -57,17 +82,25 @@ class PartViewer(QtGui.QMainWindow):
                 self.part_model.appendRow([PartStandardItem(part_entry.attrib["category"]),
                                            PartStandardItem(part_entry.attrib["description"])])
 
+        # Connect signals.
+        self.ui.filterLineEdit.textChanged.connect(self.handleTextChange)
+        
         # Configure parts table view.
-        self.ui.partsTableView.setModel(self.part_model)
+        self.ui.partsTableView.setModel(self.proxy_model)
         self.ui.partsTableView.verticalHeader().setDefaultSectionSize(18)
         self.ui.partsTableView.verticalHeader().setVisible(False)
         self.ui.partsTableView.resizeColumnsToContents()
+        self.ui.partsTableView.setSortingEnabled(True)
 
-        self.part_model.setHeaderData(0, QtCore.Qt.Horizontal, "Category")
-        self.part_model.setHeaderData(1, QtCore.Qt.Horizontal, "Description")
+        self.proxy_model.setHeaderData(0, QtCore.Qt.Horizontal, "Category")
+        self.proxy_model.setHeaderData(1, QtCore.Qt.Horizontal, "Description")
+
+    def handleTextChange(self, new_text):
+        self.proxy_model.setFilterRegExp(new_text)
 
     def handleQuit(self, boolean):
         self.close()
+
 
 if (__name__ == '__main__'):
     app = QtGui.QApplication(sys.argv)
