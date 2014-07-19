@@ -46,9 +46,10 @@ class PartStandardItem(QtGui.QStandardItem):
     #
     # @param text The item text.
     #
-    def __init__(self, text):
+    def __init__(self, text, part_name):
         QtGui.QStandardItem.__init__(self, text)
         self.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+        self.setData(part_name)
 
 
 ## PartViewer
@@ -79,8 +80,9 @@ class PartViewer(QtGui.QMainWindow):
         xml = ElementTree.parse(xml_part_file).getroot()
         for part_entry in xml.find("parts"):
             if (part_entry.attrib["category"] != "Moved"):
-                self.part_model.appendRow([PartStandardItem(part_entry.attrib["category"]),
-                                           PartStandardItem(part_entry.attrib["description"])])
+                part_name = part_entry.attrib["file"]
+                self.part_model.appendRow([PartStandardItem(part_entry.attrib["category"], part_name),
+                                           PartStandardItem(part_entry.attrib["description"], part_name)])
 
         # Connect signals.
         self.ui.filterLineEdit.textChanged.connect(self.handleTextChange)
@@ -91,9 +93,24 @@ class PartViewer(QtGui.QMainWindow):
         self.ui.partsTableView.verticalHeader().setVisible(False)
         self.ui.partsTableView.resizeColumnsToContents()
         self.ui.partsTableView.setSortingEnabled(True)
+        self.ui.partsTableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.ui.partsTableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+
+        self.selection_model = self.ui.partsTableView.selectionModel()
+        self.selection_model.currentRowChanged.connect(self.handleCurrentRowChange)
 
         self.proxy_model.setHeaderData(0, QtCore.Qt.Horizontal, "Category")
         self.proxy_model.setHeaderData(1, QtCore.Qt.Horizontal, "Description")
+
+    def handleCurrentRowChange(self, new_row, old_row):
+        cur_item = self.part_model.itemFromIndex(self.proxy_model.mapToSource(new_row))
+        self.ui.partFileLabel.setText(cur_item.data().toString())
+        print "New row:", new_row.row()
+        print cur_item.text(), cur_item.data().toString()
+        print ""
+
+        #print "Old row:", old_row.row()
+        #print ""
 
     def handleTextChange(self, new_text):
         self.proxy_model.setFilterRegExp(new_text)
