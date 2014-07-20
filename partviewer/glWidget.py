@@ -40,8 +40,6 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.v_matrix = None                                                     # View matrix.
         self.v_r_matrix = numpy.identity(4, dtype = numpy.float32)               # View rotation matrix.
         self.verbose = True
-        #self.x_offset = 0.0
-        #self.y_offset = 0.0
 
         self.m_s_matrix[3,3] = 1.0
 
@@ -61,16 +59,13 @@ class GLWidget(QtOpenGL.QGLWidget):
             print ' Renderer: %s' % (GL.glGetString(GL.GL_RENDERER))
 
         GL.glClearColor(1.0, 1.0, 1.0, 1.0)
-        #GL.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, [5.0, 5.0, 10.0, 0.0])
-        #GL.glEnable(GL.GL_LIGHTING)
-        #GL.glEnable(GL.GL_LIGHT0)
-        #GL.glEnable(GL.GL_DEPTH_TEST)
-        #GL.glEnable(GL.GL_CULL_FACE)
-        #GL.glEnable(GL.GL_LINE_SMOOTH)
-        #GL.glLineWidth(2.0)
 
-        self.loadPart("C:/Program Files (x86)/LDraw/parts/15.dat")
-        #self.loadPart("../test/test5.dat")
+        # FIXME: Get backface culling to work properly.
+        #
+        #GL.glFrontFace(GL.GL_CCW)
+        #GL.glEnable(GL.GL_CULL_FACE)
+
+        GL.glEnable(GL.GL_DEPTH_TEST)
 
     ## loadPart
     #
@@ -79,6 +74,7 @@ class GLWidget(QtOpenGL.QGLWidget):
     def loadPart(self, filename):
         self.part = glParser.GLParser([1.0, 0.0, 0.0], [0.0, 0.0, 0.0])
         datFileParser.parsePartFile(self.part, filename)
+        self.updateGL()
 
     ## mousePressEvent
     #
@@ -206,11 +202,15 @@ class GLWidget(QtOpenGL.QGLWidget):
 class GLWidgetTest(QtGui.QMainWindow):
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
+        self.gl_widget = GLWidget(self)
+        self.setCentralWidget(self.gl_widget)
+        QtCore.QTimer.singleShot(0, self.loadPart)
 
-        widget = GLWidget(self)
-        #widget = GLWidget("test.dat", self)
-        self.setCentralWidget(widget)
-        #widget.loadPart("C:/Program Files (x86)/LDraw/parts/1.dat")
+    def loadPart(self):
+        #self.gl_widget.loadPart("C:/Program Files (x86)/LDraw/parts/1.dat")
+        self.gl_widget.loadPart("C:/Program Files (x86)/LDraw/parts/32523.dat")
+        #self.gl_widget.loadPart("C:/Program Files (x86)/LDraw/parts/u8001a.dat")
+
 
 if (__name__ == '__main__'):
     app = QtGui.QApplication(sys.argv)
