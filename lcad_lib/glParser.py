@@ -61,16 +61,18 @@ class GLParser(datFileParser.Parser):
     # @param edge_color The edge color.
     # @param matrix (Optional) A 4x4 numpy matrix to use as the transformation matrix for this file. If this is None then the identity matrix is used.
     # @param shader (Optional) The GLShader object to use for this file. If None a GLShader object will be created.
-    # @param inverted_w (Optional) Specify if the winding direction should be inverted. Default is False.
+    # @param invert_winding (Optional) Specify if the winding direction should be inverted. Default is False.
     #
-    def __init__(self, main_color, edge_color, matrix = None, gl_shader = None, inverted_w = False):
+    def __init__(self, main_color, edge_color, matrix = None, gl_shader = None, invert_winding = False):
         datFileParser.Parser.__init__(self, main_color, edge_color)
 
         self.cw_winding = False
         self.children = []
         self.depth = 0
         self.gl_shader = gl_shader
-        self.inverted_w = inverted_w
+        self.invert_next = False
+        self.invert_winding = invert_winding
+        self.lines_only = False  # This is mostly for debugging.
         self.matrix = matrix
         self.vao_lines = GLVao(GL.GL_LINES, edge_color)
         self.vao_triangles = GLVao(GL.GL_TRIANGLES, main_color)
@@ -90,23 +92,35 @@ class GLParser(datFileParser.Parser):
     # @param p3 3rd vertex.
     #
     def addTriangle(self, p1, p2, p3):
-        self.vao_triangles.addVertex(p1)
-        self.vao_triangles.addVertex(p2)
-        self.vao_triangles.addVertex(p3)
+
+        if self.lines_only:
+            self.vao_lines.addVertex(p1)
+            self.vao_lines.addVertex(p2)
+            self.vao_lines.addVertex(p2)
+            self.vao_lines.addVertex(p3)
+            self.vao_lines.addVertex(p3)
+            self.vao_lines.addVertex(p1)
+
+        else:
+            self.vao_triangles.addVertex(p1)
+            self.vao_triangles.addVertex(p2)
+            self.vao_triangles.addVertex(p3)
 
     ## command
     #
     # @param parsed_line A list containing the contents of one line of a parsed file.
     #
     def command(self, parsed_line):
-        return
-
         if (len(parsed_line) > 1):
 
+            # FIXME:
+            #  This doesn't work properly in that if you enable face culling then
+            #  things will look a bit strange.
+            #
             # Handle winding commands.
             if (parsed_line[1] == "BFC"):
                 if (parsed_line[2] == "INVERTNEXT"):
-                    self.inverted_w = not self.inverted_w
+                    self.invert_next = True
                 elif (parsed_line[2] == "CERTIFY"):
                     if (len(parsed_line) == 3):
                         self.cw_winding = False
@@ -115,10 +129,10 @@ class GLParser(datFileParser.Parser):
                             self.cw_winding = False
                         else:
                             self.cw_winding = True
-                if self.inverted_w:
+                if self.invert_winding:
                     self.cw_winding = not self.cw_winding
 
-                print parsed_line, self.cw_winding
+                #print "  ", self.depth, parsed_line, self.cw_winding
 
     ## endFile
     #
@@ -130,8 +144,8 @@ class GLParser(datFileParser.Parser):
     #
     # @return The current value of the inverted_w property.
     #
-    def getInvertedW(self):
-        return self.inverted_w
+    #def getInvertedW(self):
+    #    return self.inverted_w
 
     ## line
     #
@@ -158,12 +172,20 @@ class GLParser(datFileParser.Parser):
                               [  d,   e,   f,   y], 
                               [  g,   h,   i,   z], 
                               [0.0, 0.0, 0.0, 1.0]])
+        matrix = numpy.dot(self.matrix, matrix)
+
+        # Figure out windings.
+        if self.invert_next:
+            invert_winding = not self.invert_winding
+        else:
+            invert_winding = self.invert_winding
 
         child = GLParser(self.main_color, 
                          self.edge_color, 
-                         matrix,
-                         self.gl_shader,
-                         self.getInvertedW())
+                         matrix = matrix,
+                         gl_shader = self.gl_shader,
+                         invert_winding = invert_winding)
+        self.invert_next = False
         self.children.append(child)
         return child
 
@@ -200,7 +222,7 @@ class GLParser(datFileParser.Parser):
         p3 = self.parsePoint(parsed_line[8:11])
         p4 = self.parsePoint(parsed_line[11:14])
 
-        if False:
+        if self.lines_only:
             self.vao_lines.addVertex(p1)
             self.vao_lines.addVertex(p2)
             self.vao_lines.addVertex(p2)
@@ -210,14 +232,13 @@ class GLParser(datFileParser.Parser):
             self.vao_lines.addVertex(p4)
             self.vao_lines.addVertex(p1)
 
-        if self.cw_winding:
-            self.addTriangle(p1,p2,p3)
-            self.addTriangle(p1,p3,p4)
         else:
-            self.addTriangle(p1,p3,p2)
-            self.addTriangle(p1,p4,p3)
-
-        #self.vao_lines.addVertex(p1)
+            if self.cw_winding:
+                self.addTriangle(p1,p2,p3)
+                self.addTriangle(p1,p3,p4)
+            else:
+                self.addTriangle(p1,p3,p2)
+                self.addTriangle(p1,p4,p3)
 
     ## render
     #
@@ -233,9 +254,10 @@ class GLParser(datFileParser.Parser):
         matrix_id = self.gl_shader.uniform_location('MVP')
         GL.glUniformMatrix4fv(matrix_id, 1, GL.GL_FALSE, mvp)
 
-        if (self.vao_triangles.size > 0):
-            GL.glBindVertexArray(self.vao_triangles.gl_id)
-            GL.glDrawArrays(self.vao_triangles.gl_type, 0, self.vao_triangles.size)
+        if not self.lines_only:
+            if (self.vao_triangles.size > 0):
+                GL.glBindVertexArray(self.vao_triangles.gl_id)
+                GL.glDrawArrays(self.vao_triangles.gl_type, 0, self.vao_triangles.size)
 
         if (self.vao_lines.size > 0):
             GL.glBindVertexArray(self.vao_lines.gl_id)
@@ -362,14 +384,6 @@ class GLVao(object):
         self.gl_id = 0
         self.size = 0
         self.vertices = []
-
-        #self.n_components = 0
-        #if (gl_type == GL.GL_LINES):
-        #    self.n_components = 2
-        #elif (gl_type ==GL.GL_TRIANGLES):
-        #    self.n_components = 3
-        #else:
-        #    print "Unrecognized GL type:", gl_type
 
     ## addVertex.
     #
