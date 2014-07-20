@@ -62,13 +62,13 @@ def parsePartFile(parser, filename):
 def parsePartFileP (parser, filep, depth):
     parser.startFile(depth)
     for line in filep:
-
+        
         parsed_line = filter(None, line.strip().split(" "))
         if (len(parsed_line) == 0):
             continue
-
+            
         cmd_type = int(parsed_line[0])
-
+            
         # Command.
         if (cmd_type == 0):
             parser.command(parsed_line)
@@ -76,8 +76,9 @@ def parsePartFileP (parser, filep, depth):
         # Part file.
         elif (cmd_type == 1):
             new_parser = parser.newFile(parsed_line)
-            with open(findPartFile(parsed_line[-1])) as new_part_filep:
-                parsePartFileP(new_parser, new_part_filep, depth + 1)
+            if new_parser is not None:
+                with open(findPartFile(parsed_line[-1])) as new_part_filep:
+                    parsePartFileP(new_parser, new_part_filep, depth + 1)
 
         # Line.
         elif (cmd_type == 2):
