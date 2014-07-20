@@ -78,6 +78,7 @@ class PartViewer(QtGui.QMainWindow):
 
         # Parse part file.
         xml = ElementTree.parse(xml_part_file).getroot()
+        self.part_path = xml.find("path").attrib["path"]
         for part_entry in xml.find("parts"):
             if (part_entry.attrib["category"] != "Moved"):
                 part_name = part_entry.attrib["file"]
@@ -103,14 +104,12 @@ class PartViewer(QtGui.QMainWindow):
         self.proxy_model.setHeaderData(1, QtCore.Qt.Horizontal, "Description")
 
     def handleCurrentRowChange(self, new_row, old_row):
-        cur_item = self.part_model.itemFromIndex(self.proxy_model.mapToSource(new_row))
-        self.ui.partFileLabel.setText(cur_item.data().toString())
-        print "New row:", new_row.row()
-        print cur_item.text(), cur_item.data().toString()
+        part_file = self.part_model.itemFromIndex(self.proxy_model.mapToSource(new_row)).data().toString()
+        self.ui.partFileLabel.setText(part_file)
+        self.ui.openGLWidget.loadPart(self.part_path + part_file)
+        
+        print part_file
         print ""
-
-        #print "Old row:", old_row.row()
-        #print ""
 
     def handleTextChange(self, new_text):
         self.proxy_model.setFilterRegExp(new_text)
