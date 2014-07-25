@@ -30,6 +30,8 @@ class GLWidget(QtOpenGL.QGLWidget):
     def __init__(self, parent):
         QtOpenGL.QGLWidget.__init__(self, parent)
 
+        self.edge_color = [0, 0, 0, 1]
+        self.face_color = [1, 0, 0, 1]
         self.last_pos = QtCore.QPoint()
         self.offset = numpy.array([[0], [0], [0], [0]], dtype = numpy.float32)
         self.p_matrix = None           # Projection matrix.
@@ -122,7 +124,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         if self.part is not None:
             m = numpy.dot(self.m_s_matrix, numpy.dot(self.m_t_matrix, self.m_r_matrix))
             mvp = numpy.dot(m, numpy.dot(self.v_matrix, self.p_matrix))
-            self.part.render(mvp, [0,1,0,1])
+            self.part.render(mvp, self.face_color, self.edge_color)
 
         GL.glFlush()
 
