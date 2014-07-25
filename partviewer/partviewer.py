@@ -10,7 +10,7 @@
 import sys
 from xml.etree import ElementTree
 
-from PyQt4 import QtCore, QtGui, QtOpenGL
+from PyQt4 import QtCore, QtGui
 
 import partviewer_ui
 
