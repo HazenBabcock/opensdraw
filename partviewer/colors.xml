@@ -2,170 +2,170 @@
 <ldraw-colors>
  <colors>
   <group description="Solid Colours">
-   <color code="0" edge="5,19,29,256" lego_color="Black" lego_id="26" name="Black" value="5,19,29,256"/>
-   <color code="1" edge="0,85,191,256" lego_color="Bright Blue" lego_id="23" name="Blue" value="0,85,191,256"/>
-   <color code="2" edge="37,122,62,256" lego_color="Dark Green" lego_id="28" name="Green" value="37,122,62,256"/>
-   <color code="3" edge="0,131,143,256" lego_color="Bright Bluish Green" lego_id="107" name="Dark_Turquoise" value="0,131,143,256"/>
-   <color code="4" edge="201,26,9,256" lego_color="Bright Red" lego_id="21" name="Red" value="201,26,9,256"/>
-   <color code="5" edge="200,112,160,256" lego_color="Bright Purple" lego_id="221" name="Dark_Pink" value="200,112,160,256"/>
-   <color code="6" edge="88,57,39,256" lego_color="Brown" lego_id="217" name="Brown" value="88,57,39,256"/>
-   <color code="7" edge="155,161,157,256" lego_color="Grey" lego_id="2" name="Light_Gray" value="155,161,157,256"/>
-   <color code="8" edge="109,110,92,256" lego_color="Dark Grey" lego_id="27" name="Dark_Gray" value="109,110,92,256"/>
-   <color code="9" edge="180,210,227,256" lego_color="Light Blue" lego_id="45" name="Light_Blue" value="180,210,227,256"/>
-   <color code="10" edge="75,159,74,256" lego_color="Bright Green" lego_id="37" name="Bright_Green" value="75,159,74,256"/>
-   <color code="11" edge="85,165,175,256" lego_color="Medium Bluish Green" lego_id="116" name="Light_Turquoise" value="85,165,175,256"/>
-   <color code="12" edge="242,112,94,256" lego_color="Brick Red" lego_id="4" name="Salmon" value="242,112,94,256"/>
-   <color code="13" edge="252,151,172,256" lego_color="Light Reddish Violet" lego_id="9" name="Pink" value="252,151,172,256"/>
-   <color code="14" edge="242,205,55,256" lego_color="Bright Yellow" lego_id="24" name="Yellow" value="242,205,55,256"/>
-   <color code="15" edge="255,255,255,256" lego_color="White" lego_id="1" name="White" value="255,255,255,256"/>
-   <color code="17" edge="194,218,184,256" lego_color="Light Green" lego_id="6" name="Light_Green" value="194,218,184,256"/>
-   <color code="18" edge="251,230,150,256" lego_color="Light Yellow" lego_id="3" name="Light_Yellow" value="251,230,150,256"/>
-   <color code="19" edge="228,205,158,256" lego_color="Brick Yellow" lego_id="5" name="Tan" value="228,205,158,256"/>
-   <color code="20" edge="201,202,226,256" lego_color="Light Bluish Violet" lego_id="39" name="Light_Violet" value="201,202,226,256"/>
-   <color code="22" edge="129,0,123,256" lego_color="Bright Violet" lego_id="104" name="Purple" value="129,0,123,256"/>
-   <color code="23" edge="32,50,176,256" lego_color="Dark Royal Blue" lego_id="196" name="Dark_Blue_Violet" value="32,50,176,256"/>
-   <color code="25" edge="254,138,24,256" lego_color="Bright Orange" lego_id="106" name="Orange" value="254,138,24,256"/>
-   <color code="26" edge="146,57,120,256" lego_color="Bright Reddish Violet" lego_id="124" name="Magenta" value="146,57,120,256"/>
-   <color code="27" edge="187,233,11,256" lego_color="Bright Yellowish Green" lego_id="119" name="Lime" value="187,233,11,256"/>
-   <color code="28" edge="149,138,115,256" lego_color="Sand Yellow" lego_id="138" name="Dark_Tan" value="149,138,115,256"/>
-   <color code="29" edge="228,173,200,256" lego_color="Light Purple" lego_id="222" name="Bright_Pink" value="228,173,200,256"/>
-   <color code="30" edge="172,120,186,256" lego_color="Medium Lavender" lego_id="324" name="Medium_Lavender" value="172,120,186,256"/>
-   <color code="31" edge="225,213,237,256" lego_color="Lavender" lego_id="325" name="Lavender" value="225,213,237,256"/>
-   <color code="68" edge="243,207,155,256" lego_color="Light Yellowish Orange" lego_id="36" name="Very_Light_Orange" value="243,207,155,256"/>
-   <color code="69" edge="205,98,152,256" lego_color="Bright Reddish Lilac" lego_id="198" name="Light_Purple" value="205,98,152,256"/>
-   <color code="70" edge="88,42,18,256" lego_color="Reddish Brown" lego_id="192" name="Reddish_Brown" value="88,42,18,256"/>
-   <color code="71" edge="160,165,169,256" lego_color="Medium Stone Grey" lego_id="194" name="Light_Bluish_Gray" value="160,165,169,256"/>
-   <color code="72" edge="108,110,104,256" lego_color="Dark Stone Grey" lego_id="199" name="Dark_Bluish_Gray" value="108,110,104,256"/>
-   <color code="73" edge="92,157,209,256" lego_color="Medium Blue" lego_id="102" name="Medium_Blue" value="92,157,209,256"/>
-   <color code="74" edge="115,220,161,256" lego_color="Medium Green" lego_id="29" name="Medium_Green" value="115,220,161,256"/>
-   <color code="77" edge="254,204,207,256" lego_color="Light Pink" lego_id="223" name="Light_Pink" value="254,204,207,256"/>
-   <color code="78" edge="246,215,179,256" lego_color="Light Nougat" lego_id="283" name="Light_Flesh" value="246,215,179,256"/>
-   <color code="84" edge="204,112,42,256" lego_color="Dark Orange" lego_id="38" name="Medium_Dark_Flesh" value="204,112,42,256"/>
-   <color code="85" edge="63,54,145,256" lego_color="Medium Lilac" lego_id="268" name="Dark_Purple" value="63,54,145,256"/>
-   <color code="86" edge="124,80,58,256" lego_color="Medium Nougat" lego_id="312" name="Dark_Flesh" value="124,80,58,256"/>
-   <color code="89" edge="76,97,219,256" lego_color="Medium Royal Blue" lego_id="195" name="Blue_Violet" value="76,97,219,256"/>
-   <color code="92" edge="208,145,104,256" lego_color="Nougat" lego_id="18" name="Flesh" value="208,145,104,256"/>
-   <color code="100" edge="254,186,189,256" lego_color="Light Red" lego_id="100" name="Light_Salmon" value="254,186,189,256"/>
-   <color code="110" edge="67,84,163,256" lego_color="Bright Bluish Violet" lego_id="110" name="Violet" value="67,84,163,256"/>
-   <color code="112" edge="104,116,202,256" lego_color="Medium Bluish Violet" lego_id="112" name="Medium_Violet" value="104,116,202,256"/>
-   <color code="115" edge="199,210,60,256" lego_color="Medium Yellowish Green" lego_id="115" name="Medium_Lime" value="199,210,60,256"/>
-   <color code="118" edge="179,215,209,256" lego_color="Light Bluish Green" lego_id="118" name="Aqua" value="179,215,209,256"/>
-   <color code="120" edge="217,228,167,256" lego_color="Light Yellowish Green" lego_id="120" name="Light_Lime" value="217,228,167,256"/>
-   <color code="125" edge="249,186,97,256" lego_color="Light Orange" lego_id="125" name="Light_Orange" value="249,186,97,256"/>
-   <color code="151" edge="230,227,224,256" lego_color="Light Stone Grey" lego_id="208" name="Very_Light_Bluish_Gray" value="230,227,224,256"/>
-   <color code="191" edge="248,187,61,256" lego_color="Flame Yellowish Orange" lego_id="191" name="Bright_Light_Orange" value="248,187,61,256"/>
-   <color code="212" edge="134,193,225,256" lego_color="Light Royal Blue" lego_id="212" name="Bright_Light_Blue" value="134,193,225,256"/>
-   <color code="216" edge="179,16,4,256" lego_color="Rust" lego_id="216" name="Rust" value="179,16,4,256"/>
-   <color code="226" edge="255,240,58,256" lego_color="Cool Yellow" lego_id="226" name="Bright_Light_Yellow" value="255,240,58,256"/>
-   <color code="232" edge="86,190,214,256" lego_color="Dove Blue" lego_id="232" name="Sky_Blue" value="86,190,214,256"/>
-   <color code="272" edge="13,50,91,256" lego_color="Earth Blue" lego_id="140" name="Dark_Blue" value="13,50,91,256"/>
-   <color code="288" edge="24,70,50,256" lego_color="Earth Green" lego_id="141" name="Dark_Green" value="24,70,50,256"/>
-   <color code="308" edge="53,33,0,256" lego_color="Dark Brown" lego_id="308" name="Dark_Brown" value="53,33,0,256"/>
-   <color code="313" edge="84,169,200,256" lego_color="Pastel Blue" lego_id="11" name="Maersk_Blue" value="84,169,200,256"/>
-   <color code="320" edge="114,14,15,256" lego_color="New Dark Red" lego_id="154" name="Dark_Red" value="114,14,15,256"/>
-   <color code="321" edge="20,152,215,256" lego_color="Dark Azur" lego_id="321" name="Dark_Azure" value="20,152,215,256"/>
-   <color code="322" edge="62,194,221,256" lego_color="Medium Azur" lego_id="322" name="Medium_Azure" value="62,194,221,256"/>
-   <color code="323" edge="189,220,216,256" lego_color="Aqua" lego_id="323" name="Light_Aqua" value="189,220,216,256"/>
-   <color code="326" edge="223,238,165,256" lego_color="Spring Yellowish Green" lego_id="326" name="Yellowish_Green" value="223,238,165,256"/>
-   <color code="330" edge="155,154,90,256" lego_color="Olive Green" lego_id="330" name="Olive_Green" value="155,154,90,256"/>
-   <color code="335" edge="214,117,114,256" lego_color="Sand Red" lego_id="153" name="Sand_Red" value="214,117,114,256"/>
-   <color code="351" edge="247,133,177,256" lego_color="Medium Reddish Violet" lego_id="22" name="Medium_Dark_Pink" value="247,133,177,256"/>
-   <color code="366" edge="250,156,28,256" lego_color="Earth Orange" lego_id="25" name="Earth_Orange" value="250,156,28,256"/>
-   <color code="373" edge="132,94,132,256" lego_color="Sand Violet" lego_id="136" name="Sand_Purple" value="132,94,132,256"/>
-   <color code="378" edge="160,188,172,256" lego_color="Sand Green" lego_id="151" name="Sand_Green" value="160,188,172,256"/>
-   <color code="379" edge="89,113,132,256" lego_color="Sand Blue" lego_id="135" name="Sand_Blue" value="89,113,132,256"/>
-   <color code="450" edge="182,123,80,256" lego_color="Light Orange Brown" lego_id="12" name="Fabuland_Brown" value="182,123,80,256"/>
-   <color code="462" edge="255,167,11,256" lego_color="Bright Yellowish Orange" lego_id="105" name="Medium_Orange" value="255,167,11,256"/>
-   <color code="484" edge="169,85,0,256" lego_color="Dark Orange" lego_id="38" name="Dark_Orange" value="169,85,0,256"/>
-   <color code="503" edge="230,227,218,256" lego_color="Light Grey" lego_id="103" name="Very_Light_Gray" value="230,227,218,256"/>
+   <color code="0" edge="5,19,29,255" lego_color="Black" lego_id="26" name="Black" value="5,19,29,255"/>
+   <color code="1" edge="0,85,191,255" lego_color="Bright Blue" lego_id="23" name="Blue" value="0,85,191,255"/>
+   <color code="2" edge="37,122,62,255" lego_color="Dark Green" lego_id="28" name="Green" value="37,122,62,255"/>
+   <color code="3" edge="0,131,143,255" lego_color="Bright Bluish Green" lego_id="107" name="Dark_Turquoise" value="0,131,143,255"/>
+   <color code="4" edge="201,26,9,255" lego_color="Bright Red" lego_id="21" name="Red" value="201,26,9,255"/>
+   <color code="5" edge="200,112,160,255" lego_color="Bright Purple" lego_id="221" name="Dark_Pink" value="200,112,160,255"/>
+   <color code="6" edge="88,57,39,255" lego_color="Brown" lego_id="217" name="Brown" value="88,57,39,255"/>
+   <color code="7" edge="155,161,157,255" lego_color="Grey" lego_id="2" name="Light_Gray" value="155,161,157,255"/>
+   <color code="8" edge="109,110,92,255" lego_color="Dark Grey" lego_id="27" name="Dark_Gray" value="109,110,92,255"/>
+   <color code="9" edge="180,210,227,255" lego_color="Light Blue" lego_id="45" name="Light_Blue" value="180,210,227,255"/>
+   <color code="10" edge="75,159,74,255" lego_color="Bright Green" lego_id="37" name="Bright_Green" value="75,159,74,255"/>
+   <color code="11" edge="85,165,175,255" lego_color="Medium Bluish Green" lego_id="116" name="Light_Turquoise" value="85,165,175,255"/>
+   <color code="12" edge="242,112,94,255" lego_color="Brick Red" lego_id="4" name="Salmon" value="242,112,94,255"/>
+   <color code="13" edge="252,151,172,255" lego_color="Light Reddish Violet" lego_id="9" name="Pink" value="252,151,172,255"/>
+   <color code="14" edge="242,205,55,255" lego_color="Bright Yellow" lego_id="24" name="Yellow" value="242,205,55,255"/>
+   <color code="15" edge="255,255,255,255" lego_color="White" lego_id="1" name="White" value="255,255,255,255"/>
+   <color code="17" edge="194,218,184,255" lego_color="Light Green" lego_id="6" name="Light_Green" value="194,218,184,255"/>
+   <color code="18" edge="251,230,150,255" lego_color="Light Yellow" lego_id="3" name="Light_Yellow" value="251,230,150,255"/>
+   <color code="19" edge="228,205,158,255" lego_color="Brick Yellow" lego_id="5" name="Tan" value="228,205,158,255"/>
+   <color code="20" edge="201,202,226,255" lego_color="Light Bluish Violet" lego_id="39" name="Light_Violet" value="201,202,226,255"/>
+   <color code="22" edge="129,0,123,255" lego_color="Bright Violet" lego_id="104" name="Purple" value="129,0,123,255"/>
+   <color code="23" edge="32,50,176,255" lego_color="Dark Royal Blue" lego_id="196" name="Dark_Blue_Violet" value="32,50,176,255"/>
+   <color code="25" edge="254,138,24,255" lego_color="Bright Orange" lego_id="106" name="Orange" value="254,138,24,255"/>
+   <color code="26" edge="146,57,120,255" lego_color="Bright Reddish Violet" lego_id="124" name="Magenta" value="146,57,120,255"/>
+   <color code="27" edge="187,233,11,255" lego_color="Bright Yellowish Green" lego_id="119" name="Lime" value="187,233,11,255"/>
+   <color code="28" edge="149,138,115,255" lego_color="Sand Yellow" lego_id="138" name="Dark_Tan" value="149,138,115,255"/>
+   <color code="29" edge="228,173,200,255" lego_color="Light Purple" lego_id="222" name="Bright_Pink" value="228,173,200,255"/>
+   <color code="30" edge="172,120,186,255" lego_color="Medium Lavender" lego_id="324" name="Medium_Lavender" value="172,120,186,255"/>
+   <color code="31" edge="225,213,237,255" lego_color="Lavender" lego_id="325" name="Lavender" value="225,213,237,255"/>
+   <color code="68" edge="243,207,155,255" lego_color="Light Yellowish Orange" lego_id="36" name="Very_Light_Orange" value="243,207,155,255"/>
+   <color code="69" edge="205,98,152,255" lego_color="Bright Reddish Lilac" lego_id="198" name="Light_Purple" value="205,98,152,255"/>
+   <color code="70" edge="88,42,18,255" lego_color="Reddish Brown" lego_id="192" name="Reddish_Brown" value="88,42,18,255"/>
+   <color code="71" edge="160,165,169,255" lego_color="Medium Stone Grey" lego_id="194" name="Light_Bluish_Gray" value="160,165,169,255"/>
+   <color code="72" edge="108,110,104,255" lego_color="Dark Stone Grey" lego_id="199" name="Dark_Bluish_Gray" value="108,110,104,255"/>
+   <color code="73" edge="92,157,209,255" lego_color="Medium Blue" lego_id="102" name="Medium_Blue" value="92,157,209,255"/>
+   <color code="74" edge="115,220,161,255" lego_color="Medium Green" lego_id="29" name="Medium_Green" value="115,220,161,255"/>
+   <color code="77" edge="254,204,207,255" lego_color="Light Pink" lego_id="223" name="Light_Pink" value="254,204,207,255"/>
+   <color code="78" edge="246,215,179,255" lego_color="Light Nougat" lego_id="283" name="Light_Flesh" value="246,215,179,255"/>
+   <color code="84" edge="204,112,42,255" lego_color="Dark Orange" lego_id="38" name="Medium_Dark_Flesh" value="204,112,42,255"/>
+   <color code="85" edge="63,54,145,255" lego_color="Medium Lilac" lego_id="268" name="Dark_Purple" value="63,54,145,255"/>
+   <color code="86" edge="124,80,58,255" lego_color="Medium Nougat" lego_id="312" name="Dark_Flesh" value="124,80,58,255"/>
+   <color code="89" edge="76,97,219,255" lego_color="Medium Royal Blue" lego_id="195" name="Blue_Violet" value="76,97,219,255"/>
+   <color code="92" edge="208,145,104,255" lego_color="Nougat" lego_id="18" name="Flesh" value="208,145,104,255"/>
+   <color code="100" edge="254,186,189,255" lego_color="Light Red" lego_id="100" name="Light_Salmon" value="254,186,189,255"/>
+   <color code="110" edge="67,84,163,255" lego_color="Bright Bluish Violet" lego_id="110" name="Violet" value="67,84,163,255"/>
+   <color code="112" edge="104,116,202,255" lego_color="Medium Bluish Violet" lego_id="112" name="Medium_Violet" value="104,116,202,255"/>
+   <color code="115" edge="199,210,60,255" lego_color="Medium Yellowish Green" lego_id="115" name="Medium_Lime" value="199,210,60,255"/>
+   <color code="118" edge="179,215,209,255" lego_color="Light Bluish Green" lego_id="118" name="Aqua" value="179,215,209,255"/>
+   <color code="120" edge="217,228,167,255" lego_color="Light Yellowish Green" lego_id="120" name="Light_Lime" value="217,228,167,255"/>
+   <color code="125" edge="249,186,97,255" lego_color="Light Orange" lego_id="125" name="Light_Orange" value="249,186,97,255"/>
+   <color code="151" edge="230,227,224,255" lego_color="Light Stone Grey" lego_id="208" name="Very_Light_Bluish_Gray" value="230,227,224,255"/>
+   <color code="191" edge="248,187,61,255" lego_color="Flame Yellowish Orange" lego_id="191" name="Bright_Light_Orange" value="248,187,61,255"/>
+   <color code="212" edge="134,193,225,255" lego_color="Light Royal Blue" lego_id="212" name="Bright_Light_Blue" value="134,193,225,255"/>
+   <color code="216" edge="179,16,4,255" lego_color="Rust" lego_id="216" name="Rust" value="179,16,4,255"/>
+   <color code="226" edge="255,240,58,255" lego_color="Cool Yellow" lego_id="226" name="Bright_Light_Yellow" value="255,240,58,255"/>
+   <color code="232" edge="86,190,214,255" lego_color="Dove Blue" lego_id="232" name="Sky_Blue" value="86,190,214,255"/>
+   <color code="272" edge="13,50,91,255" lego_color="Earth Blue" lego_id="140" name="Dark_Blue" value="13,50,91,255"/>
+   <color code="288" edge="24,70,50,255" lego_color="Earth Green" lego_id="141" name="Dark_Green" value="24,70,50,255"/>
+   <color code="308" edge="53,33,0,255" lego_color="Dark Brown" lego_id="308" name="Dark_Brown" value="53,33,0,255"/>
+   <color code="313" edge="84,169,200,255" lego_color="Pastel Blue" lego_id="11" name="Maersk_Blue" value="84,169,200,255"/>
+   <color code="320" edge="114,14,15,255" lego_color="New Dark Red" lego_id="154" name="Dark_Red" value="114,14,15,255"/>
+   <color code="321" edge="20,152,215,255" lego_color="Dark Azur" lego_id="321" name="Dark_Azure" value="20,152,215,255"/>
+   <color code="322" edge="62,194,221,255" lego_color="Medium Azur" lego_id="322" name="Medium_Azure" value="62,194,221,255"/>
+   <color code="323" edge="189,220,216,255" lego_color="Aqua" lego_id="323" name="Light_Aqua" value="189,220,216,255"/>
+   <color code="326" edge="223,238,165,255" lego_color="Spring Yellowish Green" lego_id="326" name="Yellowish_Green" value="223,238,165,255"/>
+   <color code="330" edge="155,154,90,255" lego_color="Olive Green" lego_id="330" name="Olive_Green" value="155,154,90,255"/>
+   <color code="335" edge="214,117,114,255" lego_color="Sand Red" lego_id="153" name="Sand_Red" value="214,117,114,255"/>
+   <color code="351" edge="247,133,177,255" lego_color="Medium Reddish Violet" lego_id="22" name="Medium_Dark_Pink" value="247,133,177,255"/>
+   <color code="366" edge="250,156,28,255" lego_color="Earth Orange" lego_id="25" name="Earth_Orange" value="250,156,28,255"/>
+   <color code="373" edge="132,94,132,255" lego_color="Sand Violet" lego_id="136" name="Sand_Purple" value="132,94,132,255"/>
+   <color code="378" edge="160,188,172,255" lego_color="Sand Green" lego_id="151" name="Sand_Green" value="160,188,172,255"/>
+   <color code="379" edge="89,113,132,255" lego_color="Sand Blue" lego_id="135" name="Sand_Blue" value="89,113,132,255"/>
+   <color code="450" edge="182,123,80,255" lego_color="Light Orange Brown" lego_id="12" name="Fabuland_Brown" value="182,123,80,255"/>
+   <color code="462" edge="255,167,11,255" lego_color="Bright Yellowish Orange" lego_id="105" name="Medium_Orange" value="255,167,11,255"/>
+   <color code="484" edge="169,85,0,255" lego_color="Dark Orange" lego_id="38" name="Dark_Orange" value="169,85,0,255"/>
+   <color code="503" edge="230,227,218,255" lego_color="Light Grey" lego_id="103" name="Very_Light_Gray" value="230,227,218,255"/>
   </group>
   <group description="Transparent Colours">
-   <color code="47" edge="252,252,252,256" lego_color="Transparent" lego_id="40" name="Trans_Clear" value="252,252,252,128"/>
-   <color code="40" edge="99,95,82,256" lego_color="Transparent Brown" lego_id="111" name="Trans_Black" value="99,95,82,128"/>
-   <color code="36" edge="201,26,9,256" lego_color="Transparent Red" lego_id="41" name="Trans_Red" value="201,26,9,128"/>
-   <color code="38" edge="255,128,13,256" lego_color="Transparent Fluorescent Reddish Orange" lego_id="47" name="Trans_Neon_Orange" value="255,128,13,128"/>
-   <color code="57" edge="240,143,28,256" lego_color="Trans Bright Orange" lego_id="182" name="Trans_Orange" value="240,143,28,128"/>
-   <color code="54" edge="218,176,0,256" lego_color="Transparent Fluorescent Yellow" lego_id="157" name="Trans_Neon_Yellow" value="218,176,0,128"/>
-   <color code="46" edge="245,205,47,256" lego_color="Transparent Yellow" lego_id="44" name="Trans_Yellow" value="245,205,47,128"/>
-   <color code="42" edge="192,255,0,256" lego_color="Transparent Fluorescent Green" lego_id="49" name="Trans_Neon_Green" value="192,255,0,128"/>
-   <color code="35" edge="86,230,70,256" lego_color="Transparent Bright Green" lego_id="311" name="Trans_Bright_Green" value="86,230,70,128"/>
-   <color code="34" edge="35,120,65,256" lego_color="Transparent Green" lego_id="48" name="Trans_Green" value="35,120,65,128"/>
-   <color code="33" edge="0,32,160,256" lego_color="Transparent Blue" lego_id="43" name="Trans_Dark_Blue" value="0,32,160,128"/>
-   <color code="41" edge="85,154,183,256" lego_color="Transparent Fluorescent Blue" lego_id="143" name="Trans_Medium_Blue" value="85,154,183,128"/>
-   <color code="43" edge="174,233,239,256" lego_color="Transparent Light Blue" lego_id="42" name="Trans_Light_Blue" value="174,233,239,128"/>
-   <color code="39" edge="193,223,240,256" lego_color="Transparent Light Bluish Green" lego_id="229" name="Trans_Very_Light_Blue" value="193,223,240,128"/>
-   <color code="44" edge="150,112,159,256" lego_color="Transparent Bright Reddish Lilac" lego_id="236" name="Trans_Light_Purple" value="150,112,159,128"/>
-   <color code="52" edge="165,165,203,256" lego_color="Transparent Bright Bluish Violet" lego_id="126" name="Trans_Purple" value="165,165,203,128"/>
-   <color code="37" edge="223,102,149,256" lego_color="Transparent Medium Reddish Violet" lego_id="113" name="Trans_Dark_Pink" value="223,102,149,128"/>
-   <color code="45" edge="252,151,172,256" lego_color="Transparent Bright Pink" lego_id="230" name="Trans_Pink" value="252,151,172,128"/>
+   <color code="47" edge="252,252,252,255" lego_color="Transparent" lego_id="40" name="Trans_Clear" value="252,252,252,128"/>
+   <color code="40" edge="99,95,82,255" lego_color="Transparent Brown" lego_id="111" name="Trans_Black" value="99,95,82,128"/>
+   <color code="36" edge="201,26,9,255" lego_color="Transparent Red" lego_id="41" name="Trans_Red" value="201,26,9,128"/>
+   <color code="38" edge="255,128,13,255" lego_color="Transparent Fluorescent Reddish Orange" lego_id="47" name="Trans_Neon_Orange" value="255,128,13,128"/>
+   <color code="57" edge="240,143,28,255" lego_color="Trans Bright Orange" lego_id="182" name="Trans_Orange" value="240,143,28,128"/>
+   <color code="54" edge="218,176,0,255" lego_color="Transparent Fluorescent Yellow" lego_id="157" name="Trans_Neon_Yellow" value="218,176,0,128"/>
+   <color code="46" edge="245,205,47,255" lego_color="Transparent Yellow" lego_id="44" name="Trans_Yellow" value="245,205,47,128"/>
+   <color code="42" edge="192,255,0,255" lego_color="Transparent Fluorescent Green" lego_id="49" name="Trans_Neon_Green" value="192,255,0,128"/>
+   <color code="35" edge="86,230,70,255" lego_color="Transparent Bright Green" lego_id="311" name="Trans_Bright_Green" value="86,230,70,128"/>
+   <color code="34" edge="35,120,65,255" lego_color="Transparent Green" lego_id="48" name="Trans_Green" value="35,120,65,128"/>
+   <color code="33" edge="0,32,160,255" lego_color="Transparent Blue" lego_id="43" name="Trans_Dark_Blue" value="0,32,160,128"/>
+   <color code="41" edge="85,154,183,255" lego_color="Transparent Fluorescent Blue" lego_id="143" name="Trans_Medium_Blue" value="85,154,183,128"/>
+   <color code="43" edge="174,233,239,255" lego_color="Transparent Light Blue" lego_id="42" name="Trans_Light_Blue" value="174,233,239,128"/>
+   <color code="39" edge="193,223,240,255" lego_color="Transparent Light Bluish Green" lego_id="229" name="Trans_Very_Light_Blue" value="193,223,240,128"/>
+   <color code="44" edge="150,112,159,255" lego_color="Transparent Bright Reddish Lilac" lego_id="236" name="Trans_Light_Purple" value="150,112,159,128"/>
+   <color code="52" edge="165,165,203,255" lego_color="Transparent Bright Bluish Violet" lego_id="126" name="Trans_Purple" value="165,165,203,128"/>
+   <color code="37" edge="223,102,149,255" lego_color="Transparent Medium Reddish Violet" lego_id="113" name="Trans_Dark_Pink" value="223,102,149,128"/>
+   <color code="45" edge="252,151,172,255" lego_color="Transparent Bright Pink" lego_id="230" name="Trans_Pink" value="252,151,172,128"/>
   </group>
   <group description="Chrome Colours">
-   <color code="334" edge="187,165,61,256" lego_color="Warm Gold Drum Lacq" lego_id="299" name="Chrome_Gold" value="187,165,61,256"/>
-   <color code="383" edge="224,224,224,256" lego_color="Cool Silver Drum Lacq" lego_id="298" name="Chrome_Silver" value="224,224,224,256"/>
-   <color code="60" edge="100,90,76,256" lego_color="Metallic Earth Orange" lego_id="187" name="Chrome_Antique_Brass" value="100,90,76,256"/>
-   <color code="64" edge="27,42,52,256" lego_color="None" lego_id="None" name="Chrome_Black" value="27,42,52,256"/>
-   <color code="61" edge="108,150,191,256" lego_color="Metallic Bright Blue" lego_id="185" name="Chrome_Blue" value="108,150,191,256"/>
-   <color code="62" edge="60,179,113,256" lego_color="Metallic Dark Green" lego_id="147" name="Chrome_Green" value="60,179,113,256"/>
-   <color code="63" edge="170,77,142,256" lego_color="Metallic Bright Red" lego_id="147" name="Chrome_Pink" value="170,77,142,256"/>
+   <color code="334" edge="187,165,61,255" lego_color="Warm Gold Drum Lacq" lego_id="299" name="Chrome_Gold" value="187,165,61,255"/>
+   <color code="383" edge="224,224,224,255" lego_color="Cool Silver Drum Lacq" lego_id="298" name="Chrome_Silver" value="224,224,224,255"/>
+   <color code="60" edge="100,90,76,255" lego_color="Metallic Earth Orange" lego_id="187" name="Chrome_Antique_Brass" value="100,90,76,255"/>
+   <color code="64" edge="27,42,52,255" lego_color="None" lego_id="None" name="Chrome_Black" value="27,42,52,255"/>
+   <color code="61" edge="108,150,191,255" lego_color="Metallic Bright Blue" lego_id="185" name="Chrome_Blue" value="108,150,191,255"/>
+   <color code="62" edge="60,179,113,255" lego_color="Metallic Dark Green" lego_id="147" name="Chrome_Green" value="60,179,113,255"/>
+   <color code="63" edge="170,77,142,255" lego_color="Metallic Bright Red" lego_id="147" name="Chrome_Pink" value="170,77,142,255"/>
   </group>
   <group description="Pearl Colours">
-   <color code="183" edge="242,243,242,256" lego_color="Metallic White" lego_id="183" name="Pearl_White" value="242,243,242,256"/>
-   <color code="150" edge="187,189,188,256" lego_color="Metallic Light Grey" lego_id="150" name="Pearl_Very_Light_Gray" value="187,189,188,256"/>
-   <color code="135" edge="156,163,168,256" lego_color="Silver flip/flop" lego_id="179" name="Pearl_Light_Gray" value="156,163,168,256"/>
-   <color code="179" edge="137,135,136,256" lego_color="Silver" lego_id="131" name="Flat_Silver" value="137,135,136,256"/>
-   <color code="148" edge="87,88,87,256" lego_color="Metallic Dark Grey" lego_id="148" name="Pearl_Dark_Gray" value="87,88,87,256"/>
-   <color code="137" edge="86,119,186,256" lego_color="Sand Blue Metallic" lego_id="145" name="Metal_Blue" value="86,119,186,256"/>
-   <color code="142" edge="220,190,97,256" lego_color="Gold" lego_id="127" name="Pearl_Light_Gold" value="220,190,97,256"/>
-   <color code="297" edge="204,156,43,256" lego_color="Warm Gold" lego_id="297" name="Pearl_Gold" value="204,156,43,256"/>
-   <color code="178" edge="180,136,62,256" lego_color="Metallic Sand Yellow" lego_id="147" name="Flat_Dark_Gold" value="180,136,62,256"/>
-   <color code="134" edge="150,74,39,256" lego_color="Copper" lego_id="139" name="Copper" value="150,74,39,256"/>
+   <color code="183" edge="242,243,242,255" lego_color="Metallic White" lego_id="183" name="Pearl_White" value="242,243,242,255"/>
+   <color code="150" edge="187,189,188,255" lego_color="Metallic Light Grey" lego_id="150" name="Pearl_Very_Light_Gray" value="187,189,188,255"/>
+   <color code="135" edge="156,163,168,255" lego_color="Silver flip/flop" lego_id="179" name="Pearl_Light_Gray" value="156,163,168,255"/>
+   <color code="179" edge="137,135,136,255" lego_color="Silver" lego_id="131" name="Flat_Silver" value="137,135,136,255"/>
+   <color code="148" edge="87,88,87,255" lego_color="Metallic Dark Grey" lego_id="148" name="Pearl_Dark_Gray" value="87,88,87,255"/>
+   <color code="137" edge="86,119,186,255" lego_color="Sand Blue Metallic" lego_id="145" name="Metal_Blue" value="86,119,186,255"/>
+   <color code="142" edge="220,190,97,255" lego_color="Gold" lego_id="127" name="Pearl_Light_Gold" value="220,190,97,255"/>
+   <color code="297" edge="204,156,43,255" lego_color="Warm Gold" lego_id="297" name="Pearl_Gold" value="204,156,43,255"/>
+   <color code="178" edge="180,136,62,255" lego_color="Metallic Sand Yellow" lego_id="147" name="Flat_Dark_Gold" value="180,136,62,255"/>
+   <color code="134" edge="150,74,39,255" lego_color="Copper" lego_id="139" name="Copper" value="150,74,39,255"/>
   </group>
   <group description="Metallic Colours">
-   <color code="80" edge="165,169,180,256" lego_color="Silver Metallic" lego_id="315" name="Metallic_Silver" value="165,169,180,256"/>
-   <color code="81" edge="137,155,95,256" lego_color="Lemon Metallic" lego_id="200" name="Metallic_Green" value="137,155,95,256"/>
-   <color code="82" edge="219,172,52,256" lego_color="Titanium Metallic" lego_id="316" name="Metallic_Gold" value="219,172,52,256"/>
-   <color code="83" edge="26,40,49,256" lego_color="Metallic Black" lego_id="149" name="Metallic_Black" value="26,40,49,256"/>
-   <color code="87" edge="109,110,92,256" lego_color="Metalized Silver" lego_id="309" name="Metallic_Dark_Gray" value="109,110,92,256"/>
+   <color code="80" edge="165,169,180,255" lego_color="Silver Metallic" lego_id="315" name="Metallic_Silver" value="165,169,180,255"/>
+   <color code="81" edge="137,155,95,255" lego_color="Lemon Metallic" lego_id="200" name="Metallic_Green" value="137,155,95,255"/>
+   <color code="82" edge="219,172,52,255" lego_color="Titanium Metallic" lego_id="316" name="Metallic_Gold" value="219,172,52,255"/>
+   <color code="83" edge="26,40,49,255" lego_color="Metallic Black" lego_id="149" name="Metallic_Black" value="26,40,49,255"/>
+   <color code="87" edge="109,110,92,255" lego_color="Metalized Silver" lego_id="309" name="Metallic_Dark_Gray" value="109,110,92,255"/>
   </group>
   <group description="Milky Colours">
-   <color code="79" edge="255,255,255,256" lego_color="Nature" lego_id="20" name="Milky_White" value="255,255,255,224"/>
-   <color code="21" edge="224,255,176,256" lego_color="Phosphorescent Green" lego_id="294" name="Glow_In_Dark_Opaque" value="224,255,176,250"/>
-   <color code="294" edge="189,198,173,256" lego_color="Phosphorescent White" lego_id="50" name="Glow_In_Dark_Trans" value="189,198,173,250"/>
+   <color code="79" edge="255,255,255,255" lego_color="Nature" lego_id="20" name="Milky_White" value="255,255,255,224"/>
+   <color code="21" edge="224,255,176,255" lego_color="Phosphorescent Green" lego_id="294" name="Glow_In_Dark_Opaque" value="224,255,176,250"/>
+   <color code="294" edge="189,198,173,255" lego_color="Phosphorescent White" lego_id="50" name="Glow_In_Dark_Trans" value="189,198,173,250"/>
   </group>
   <group description="Glitter Colours">
-   <color code="114" edge="223,102,149,256" lego_color="Tr. Medium Reddish-Violet w. Glitter 2%" lego_id="114" name="Glitter_Trans_Dark_Pink" value="223,102,149,128"/>
-   <color code="117" edge="255,255,255,256" lego_color="Transparent Glitter" lego_id="117" name="Glitter_Trans_Clear" value="255,255,255,128"/>
-   <color code="129" edge="100,0,97,256" lego_color="Tr. Bright Bluish Violet w. Glitter 2%" lego_id="129" name="Glitter_Trans_Purple" value="100,0,97,128"/>
+   <color code="114" edge="223,102,149,255" lego_color="Tr. Medium Reddish-Violet w. Glitter 2%" lego_id="114" name="Glitter_Trans_Dark_Pink" value="223,102,149,128"/>
+   <color code="117" edge="255,255,255,255" lego_color="Transparent Glitter" lego_id="117" name="Glitter_Trans_Clear" value="255,255,255,128"/>
+   <color code="129" edge="100,0,97,255" lego_color="Tr. Bright Bluish Violet w. Glitter 2%" lego_id="129" name="Glitter_Trans_Purple" value="100,0,97,128"/>
   </group>
   <group description="Speckle Colours">
-   <color code="132" edge="0,0,0,256" lego_color="None" lego_id="None" name="Speckle_Black_Silver" value="0,0,0,256"/>
-   <color code="133" edge="0,0,0,256" lego_color="Black Glitter" lego_id="132" name="Speckle_Black_Gold" value="0,0,0,256"/>
-   <color code="75" edge="0,0,0,256" lego_color="None" lego_id="None" name="Speckle_Black_Copper" value="0,0,0,256"/>
-   <color code="76" edge="99,95,97,256" lego_color="None" lego_id="None" name="Speckle_Dark_Bluish_Gray_Silver" value="99,95,97,256"/>
+   <color code="132" edge="0,0,0,255" lego_color="None" lego_id="None" name="Speckle_Black_Silver" value="0,0,0,255"/>
+   <color code="133" edge="0,0,0,255" lego_color="Black Glitter" lego_id="132" name="Speckle_Black_Gold" value="0,0,0,255"/>
+   <color code="75" edge="0,0,0,255" lego_color="None" lego_id="None" name="Speckle_Black_Copper" value="0,0,0,255"/>
+   <color code="76" edge="99,95,97,255" lego_color="None" lego_id="None" name="Speckle_Dark_Bluish_Gray_Silver" value="99,95,97,255"/>
   </group>
   <group description="Rubber Colours">
-   <color code="65" edge="245,205,47,256" lego_color="None" lego_id="None" name="Rubber_Yellow" value="245,205,47,256"/>
-   <color code="66" edge="202,176,0,256" lego_color="None" lego_id="None" name="Rubber_Trans_Yellow" value="202,176,0,128"/>
-   <color code="67" edge="255,255,255,256" lego_color="None" lego_id="None" name="Rubber_Trans_Clear" value="255,255,255,128"/>
-   <color code="256" edge="33,33,33,256" lego_color="None" lego_id="None" name="Rubber_Black" value="33,33,33,256"/>
-   <color code="273" edge="0,51,178,256" lego_color="None" lego_id="None" name="Rubber_Blue" value="0,51,178,256"/>
-   <color code="324" edge="196,0,38,256" lego_color="None" lego_id="None" name="Rubber_Red" value="196,0,38,256"/>
-   <color code="350" edge="208,102,16,256" lego_color="None" lego_id="None" name="Rubber_Orange" value="208,102,16,256"/>
-   <color code="375" edge="193,194,193,256" lego_color="None" lego_id="None" name="Rubber_Light_Gray" value="193,194,193,256"/>
-   <color code="406" edge="0,29,104,256" lego_color="None" lego_id="None" name="Rubber_Dark_Blue" value="0,29,104,256"/>
-   <color code="449" edge="129,0,123,256" lego_color="None" lego_id="None" name="Rubber_Purple" value="129,0,123,256"/>
-   <color code="490" edge="215,240,0,256" lego_color="None" lego_id="None" name="Rubber_Lime" value="215,240,0,256"/>
-   <color code="496" edge="163,162,164,256" lego_color="None" lego_id="None" name="Rubber_Light_Bluish_Gray" value="163,162,164,256"/>
-   <color code="504" edge="137,135,136,256" lego_color="None" lego_id="None" name="Rubber_Flat_Silver" value="137,135,136,256"/>
-   <color code="511" edge="250,250,250,256" lego_color="None" lego_id="None" name="Rubber_White" value="250,250,250,256"/>
+   <color code="65" edge="245,205,47,255" lego_color="None" lego_id="None" name="Rubber_Yellow" value="245,205,47,255"/>
+   <color code="66" edge="202,176,0,255" lego_color="None" lego_id="None" name="Rubber_Trans_Yellow" value="202,176,0,128"/>
+   <color code="67" edge="255,255,255,255" lego_color="None" lego_id="None" name="Rubber_Trans_Clear" value="255,255,255,128"/>
+   <color code="256" edge="33,33,33,255" lego_color="None" lego_id="None" name="Rubber_Black" value="33,33,33,255"/>
+   <color code="273" edge="0,51,178,255" lego_color="None" lego_id="None" name="Rubber_Blue" value="0,51,178,255"/>
+   <color code="324" edge="196,0,38,255" lego_color="None" lego_id="None" name="Rubber_Red" value="196,0,38,255"/>
+   <color code="350" edge="208,102,16,255" lego_color="None" lego_id="None" name="Rubber_Orange" value="208,102,16,255"/>
+   <color code="375" edge="193,194,193,255" lego_color="None" lego_id="None" name="Rubber_Light_Gray" value="193,194,193,255"/>
+   <color code="406" edge="0,29,104,255" lego_color="None" lego_id="None" name="Rubber_Dark_Blue" value="0,29,104,255"/>
+   <color code="449" edge="129,0,123,255" lego_color="None" lego_id="None" name="Rubber_Purple" value="129,0,123,255"/>
+   <color code="490" edge="215,240,0,255" lego_color="None" lego_id="None" name="Rubber_Lime" value="215,240,0,255"/>
+   <color code="496" edge="163,162,164,255" lego_color="None" lego_id="None" name="Rubber_Light_Bluish_Gray" value="163,162,164,255"/>
+   <color code="504" edge="137,135,136,255" lego_color="None" lego_id="None" name="Rubber_Flat_Silver" value="137,135,136,255"/>
+   <color code="511" edge="250,250,250,255" lego_color="None" lego_id="None" name="Rubber_White" value="250,250,250,255"/>
   </group>
   <group description="Internal Common Material Colours">
-   <color code="16" edge="127,127,127,256" lego_color="None" lego_id="None" name="Main_Colour" value="127,127,127,256"/>
-   <color code="24" edge="127,127,127,256" lego_color="None" lego_id="None" name="Edge_Colour" value="127,127,127,256"/>
-   <color code="32" edge="0,0,0,256" lego_color="Black IR" lego_id="109" name="Trans_Black_IR_Lens" value="0,0,0,200"/>
-   <color code="493" edge="101,103,97,256" lego_color="None" lego_id="None" name="Magnet" value="101,103,97,256"/>
-   <color code="494" edge="208,208,208,256" lego_color="None" lego_id="None" name="Electric_Contact_Alloy" value="208,208,208,256"/>
-   <color code="495" edge="174,122,89,256" lego_color="None" lego_id="None" name="Electric_Contact_Copper" value="174,122,89,256"/>
+   <color code="16" edge="127,127,127,255" lego_color="None" lego_id="None" name="Main_Colour" value="127,127,127,255"/>
+   <color code="24" edge="127,127,127,255" lego_color="None" lego_id="None" name="Edge_Colour" value="127,127,127,255"/>
+   <color code="32" edge="0,0,0,255" lego_color="Black IR" lego_id="109" name="Trans_Black_IR_Lens" value="0,0,0,200"/>
+   <color code="493" edge="101,103,97,255" lego_color="None" lego_id="None" name="Magnet" value="101,103,97,255"/>
+   <color code="494" edge="208,208,208,255" lego_color="None" lego_id="None" name="Electric_Contact_Alloy" value="208,208,208,255"/>
+   <color code="495" edge="174,122,89,255" lego_color="None" lego_id="None" name="Electric_Contact_Copper" value="174,122,89,255"/>
   </group>
  </colors>
 </ldraw-colors>

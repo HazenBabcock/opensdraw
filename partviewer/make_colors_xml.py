@@ -66,7 +66,7 @@ with open(sys.argv[1]) as filep:
                 code = parsed_line[4]
                 value = parsed_line[6]
                 edge = parsed_line[8]
-                alpha = "256"
+                alpha = "255"
                 if (len(parsed_line) > 9):
                     if (parsed_line[9] == "ALPHA"):
                         alpha = parsed_line[10]
@@ -74,7 +74,7 @@ with open(sys.argv[1]) as filep:
                 color_xml.set("name", name)
                 color_xml.set("code", code)
                 color_xml.set("value", ",".join(parseColor(value) + [alpha]))
-                color_xml.set("edge", ",".join(parseColor(value) + ["256"]))
+                color_xml.set("edge", ",".join(parseColor(value) + ["255"]))
                 if lego_id is not None:
                     color_xml.set("lego_id", lego_id)
                     color_xml.set("lego_color", lego_color)
