@@ -27,17 +27,19 @@ def parseColor(color_string):
     g = int(color_string[3:5], 16)
     b = int(color_string[5:7], 16)
     
-    return [r, g, b]
+    return map(str, [r, g, b])
 
 # Generate XML.
-#file_xml = ElementTree.Element("ldraw-colors")
+file_xml = ElementTree.Element("ldraw-colors")
 
-# Save part information.
+# Save color information.
+colors_xml = ElementTree.SubElement(file_xml, "colors")
 with open(sys.argv[1]) as filep:
+    group_xml = None
     ldraw_group = ""
-    lego_id = ""
     lego_color = ""
-    
+    lego_id = ""
+
     for line in filep:
         parsed_line = filter(None, line.strip().split(" "))
         if (len(parsed_line) < 3):
@@ -48,41 +50,47 @@ with open(sys.argv[1]) as filep:
             # LDraw color group.
             if (parsed_line[2] == "LDraw"):
                 ldraw_group = " ".join(parsed_line[3:]).strip()
-                print ldraw_group
+                group_xml = ElementTree.SubElement(colors_xml, "group")
+                group_xml.set("description", ldraw_group)
+                #print ldraw_group
 
             # Lego ID information.
             elif (parsed_line[2] == "LEGOID"):
                 lego_id = parsed_line[3]
                 lego_color = " ".join(parsed_line[5:]).strip()
-                print " ", lego_id, lego_color
+                #print " ", lego_id, lego_color
                 
             # Color information
             elif (parsed_line[1] == "!COLOUR"):
-                color = parsed_line[2]
+                name = parsed_line[2]
                 code = parsed_line[4]
                 value = parsed_line[6]
                 edge = parsed_line[8]
-                alpha = 256
+                alpha = "256"
                 if (len(parsed_line) > 9):
                     if (parsed_line[9] == "ALPHA"):
                         alpha = parsed_line[10]
-                print "  ", color, code, value, parseColor(value), alpha
+                color_xml = ElementTree.SubElement(group_xml, "color")
+                color_xml.set("name", name)
+                color_xml.set("code", code)
+                color_xml.set("value", ",".join(parseColor(value) + [alpha]))
+                color_xml.set("edge", ",".join(parseColor(value) + ["256"]))
+                if lego_id is not None:
+                    color_xml.set("lego_id", lego_id)
+                    color_xml.set("lego_color", lego_color)
+                else:
+                    color_xml.set("lego_id", "None")
+                    color_xml.set("lego_color", "None")
+                lego_id = None
+                logo_color = None
+                #print "  ", color, code, value, parseColor(value), alpha
             
-            
-#            else:
-#                print parsed_line
-
 # Save results in a pretty-printed XML file.
-#print ""
-#print "saving.."
-#rough_string = ElementTree.tostring(file_xml, 'utf-8')
-#reparsed = minidom.parseString(rough_string)
-#
-#with open("parts.xml", "w") as out_fp:
-#    out_fp.write(reparsed.toprettyxml(indent=" ", encoding = "utf-8"))
-#
-#print "Found", len(part_files), "parts"
-#print "  ", len(categories.keys()), "categories"
+rough_string = ElementTree.tostring(file_xml, 'utf-8')
+reparsed = minidom.parseString(rough_string)
+
+with open("colors.xml", "w") as out_fp:
+    out_fp.write(reparsed.toprettyxml(indent=" "))
 
 #
 # The MIT License
