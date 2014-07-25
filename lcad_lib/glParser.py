@@ -21,13 +21,10 @@ import lcad_lib.datFileParser as datFileParser
 vertex = """
 #version 330
 in vec3 vin_position;
-in vec3 vin_color;
-out vec3 vout_color;
 uniform mat4 MVP;
 
 void main(void)
 {
-    vout_color = vin_color;
     vec4 v = vec4(vin_position, 1.0);
     gl_Position = MVP * v;
 }
@@ -36,14 +33,26 @@ void main(void)
 # Fragment Shader
 fragment = """
 #version 330
-in vec3 vout_color;
+uniform vec4 color;
 out vec4 fout_color;
 
 void main(void)
 {
-    fout_color = vec4(vout_color, 1.0);
+    fout_color = color;
 }
 """
+
+
+# Functions.
+
+## checkColor
+#
+# Prints a warning if the color is not an expected value (16 or 24).
+#
+def checkColor(parsed_line):
+    color = int(parsed_line[1])
+    if (color != 24) and (color != 16):
+        print "Got unexpected color:", color
 
 
 # Classes.
@@ -51,35 +60,35 @@ void main(void)
 ## GLParser
 #
 # Parser for creating GL objects. This is used to parse a DAT file and create
-# the necessary GL to be able to render the DAT file.
+# the necessary GL to be able to render the DAT file. This is also a GL object
+# so you can draw it in a GL context by calling the render() function. When
+# you are finished with it you need to call freeGL() to free the memory associated
+# with this object.
 #
 class GLParser(datFileParser.Parser):
+    gl_shader = None
 
     ## __init__
     #
-    # @param main_color The main color.
-    # @param edge_color The edge color.
     # @param matrix (Optional) A 4x4 numpy matrix to use as the transformation matrix for this file. If this is None then the identity matrix is used.
-    # @param shader (Optional) The GLShader object to use for this file. If None a GLShader object will be created.
     # @param invert_winding (Optional) Specify if the winding direction should be inverted. Default is False.
     #
-    def __init__(self, main_color, edge_color, matrix = None, gl_shader = None, invert_winding = False):
-        datFileParser.Parser.__init__(self, main_color, edge_color)
+    def __init__(self, matrix = None, invert_winding = False):
+        datFileParser.Parser.__init__(self, None, None)
 
         self.cw_winding = False
         self.children = []
         self.depth = 0
-        self.gl_shader = gl_shader
         self.invert_next = False
         self.invert_winding = invert_winding
         self.lines_only = False  # This is mostly for debugging.
         self.matrix = matrix
-        self.vao_lines = GLVao(GL.GL_LINES, edge_color)
-        self.vao_triangles = GLVao(GL.GL_TRIANGLES, main_color)
+        self.vao_lines = GLVao(GL.GL_LINES)
+        self.vao_triangles = GLVao(GL.GL_TRIANGLES)
 
-        if gl_shader is None:
-            self.gl_shader = GLShader(vertex, fragment)
-
+        if GLParser.gl_shader is None:
+            GLParser.gl_shader = GLShader(vertex, fragment)
+            
         if self.matrix is None:
             self.matrix = numpy.identity(4)
 
@@ -137,21 +146,28 @@ class GLParser(datFileParser.Parser):
     ## endFile
     #
     def endFile(self):
-        self.vao_lines.finalize(self.gl_shader)
-        self.vao_triangles.finalize(self.gl_shader)
+        self.vao_lines.finalize(GLParser.gl_shader)
+        self.vao_triangles.finalize(GLParser.gl_shader)
     
-    ## getInvertedW
+    ## freeGL
     #
-    # @return The current value of the inverted_w property.
+    # Call this when you are done with this object.
     #
-    #def getInvertedW(self):
-    #    return self.inverted_w
+    def freeGL(self):
+        if (self.vao_triangles.size > 0):
+            self.vao_triangles.freeBuffers()
+        if (self.vao_lines.size > 0):
+            self.vao_lines.freeBuffers()
+
+        for child in self.children:
+            child.freeGL()
 
     ## line
     #
     # @param parsed_line A list containing the contents of one line of a parsed file.
     #
     def line(self, parsed_line):
+        checkColor(parsed_line)
         p1 = self.parsePoint(parsed_line[2:5])
         p2 = self.parsePoint(parsed_line[5:8])
         self.vao_lines.addVertex(p1)
@@ -180,10 +196,7 @@ class GLParser(datFileParser.Parser):
         else:
             invert_winding = self.invert_winding
 
-        child = GLParser(self.main_color, 
-                         self.edge_color, 
-                         matrix = matrix,
-                         gl_shader = self.gl_shader,
+        child = GLParser(matrix = matrix,
                          invert_winding = invert_winding)
         self.invert_next = False
         self.children.append(child)
@@ -194,7 +207,7 @@ class GLParser(datFileParser.Parser):
     # @param parsed_line A list containing the contents of one line of a parsed file.
     #
     def optionalLine(self, parsed_line):
-        pass
+        checkColor(parsed_line)
         #self.line(parsed_line)
 
     ## parsePoint
@@ -217,6 +230,7 @@ class GLParser(datFileParser.Parser):
     # @param parsed_line A list containing the contents of one line of a parsed file.
     #
     def quadrilateral(self, parsed_line):
+        checkColor(parsed_line)
         p1 = self.parsePoint(parsed_line[2:5])
         p2 = self.parsePoint(parsed_line[5:8])
         p3 = self.parsePoint(parsed_line[8:11])
@@ -245,21 +259,26 @@ class GLParser(datFileParser.Parser):
     # Draw the object and all its child objects.
     #
     # @param mvp The model - view - projection matrix or None.
+    # @param color [r, g, b, a] - Color (0.0 - 1.0) range.
     #
-    def render(self, mvp):
+    def render(self, mvp, color):
 
         # Draw object.
-        GL.glUseProgram(self.gl_shader.program_id)
+        GL.glUseProgram(GLParser.gl_shader.program_id)
 
-        matrix_id = self.gl_shader.uniform_location('MVP')
+        color_id = GLParser.gl_shader.uniform_location('color')
+        matrix_id = GLParser.gl_shader.uniform_location('MVP')
+
         GL.glUniformMatrix4fv(matrix_id, 1, GL.GL_FALSE, mvp)
 
         if not self.lines_only:
             if (self.vao_triangles.size > 0):
+                GL.glUniform4fv(color_id, 1, numpy.array(color, dtype=numpy.float32))
                 GL.glBindVertexArray(self.vao_triangles.gl_id)
                 GL.glDrawArrays(self.vao_triangles.gl_type, 0, self.vao_triangles.size)
 
         if (self.vao_lines.size > 0):
+            GL.glUniform4fv(color_id, 1, numpy.array([0,0,0,1], dtype=numpy.float32))
             GL.glBindVertexArray(self.vao_lines.gl_id)
             GL.glDrawArrays(self.vao_lines.gl_type, 0, self.vao_lines.size)
 
@@ -268,7 +287,7 @@ class GLParser(datFileParser.Parser):
 
         # Draw children.
         for child in self.children:
-            child.render(mvp)
+            child.render(mvp, color)
                         
     ## startFile
     #
@@ -282,6 +301,7 @@ class GLParser(datFileParser.Parser):
     # @param parsed_line A list containing the contents of one line of a parsed file.
     #
     def triangle(self, parsed_line):
+        checkColor(parsed_line)
         p1 = self.parsePoint(parsed_line[2:5])
         p2 = self.parsePoint(parsed_line[5:8])
         p3 = self.parsePoint(parsed_line[8:11])
@@ -373,17 +393,17 @@ class GLVao(object):
     ## __init__
     #
     # @param gl_type The OpenGL object type.
-    # @param color The color [r, g, b] to use for this VAO.
+    # @param color (Optional) Defaults to None.
     #
-    def __init__(self, gl_type, color):
+    def __init__(self, gl_type, color = None):
 
         self.color = color
         self.gl_type = gl_type
 
-        self.colors = []
         self.gl_id = 0
         self.size = 0
         self.vertices = []
+        self.vbo_id = 0
 
     ## addVertex.
     #
@@ -391,7 +411,6 @@ class GLVao(object):
     #
     def addVertex(self, vertex):
         self.vertices.extend(vertex)
-        self.colors.extend(self.color)
         self.size += 3
 
     ## finalize
@@ -407,14 +426,13 @@ class GLVao(object):
         #print self.vertices, self.n_components
 
         vertex_data = numpy.array(self.vertices, dtype = numpy.float32)
-        color_data = numpy.array(self.colors, dtype = numpy.float32)
         
         self.gl_id = GL.glGenVertexArrays(1)
         GL.glBindVertexArray(self.gl_id)
         
-        vbo_id = GL.glGenBuffers(2)
+        self.vbo_id = GL.glGenBuffers(1)
 
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo_id[0])
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo_id)
         GL.glBufferData(GL.GL_ARRAY_BUFFER,
                         arrays.ArrayDatatype.arrayByteCount(vertex_data), 
                         vertex_data, 
@@ -427,21 +445,25 @@ class GLVao(object):
                                  None)
         GL.glEnableVertexAttribArray(0)
 
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo_id[1])
-        GL.glBufferData(GL.GL_ARRAY_BUFFER,
-                        arrays.ArrayDatatype.arrayByteCount(color_data),
-                        color_data,
-                        GL.GL_STATIC_DRAW)
-        GL.glVertexAttribPointer(gl_shader.attribute_location('vin_color'),
-                                 3,
-                                 GL.GL_FLOAT,
-                                 GL.GL_FALSE,
-                                 0,
-                                 None)
-        GL.glEnableVertexAttribArray(1)
-
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
         GL.glBindVertexArray(0)
+
+    ## freeBuffers
+    #
+    # Frees the OpenGL buffers used by this object.
+    #
+    def freeBuffers(self):
+        GL.glDeleteBuffers(1, self.vbo_id)
+        GL.glDeleteVertexArrays(1, self.gl_id)
+        self.size = 0
+
+    ## getColor
+    #
+    # @return The color (if any) to use when rendering.
+    #
+    def getColor(self):
+        return self.color
+
 
 #
 # The MIT License
