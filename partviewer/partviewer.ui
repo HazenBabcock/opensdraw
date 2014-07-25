@@ -41,7 +41,7 @@
            </sizepolicy>
           </property>
           <property name="title">
-           <string>Part file name</string>
+           <string>Part Information</string>
           </property>
           <layout class="QGridLayout" name="gridLayout">
            <item row="0" column="0">
@@ -188,17 +188,39 @@
         <item>
          <widget class="QWidget" name="colorWidget" native="true">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>5</horstretch>
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="minimumSize">
            <size>
-            <width>200</width>
-            <height>200</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
+          <layout class="QGridLayout" name="gridLayout_3">
+           <item row="0" column="0">
+            <widget class="QGroupBox" name="colorGroupBox">
+             <property name="title">
+              <string>Colors</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>

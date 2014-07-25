@@ -12,8 +12,9 @@ from xml.etree import ElementTree
 
 from PyQt4 import QtCore, QtGui
 
-import partviewer_ui
+import colorChooserWidget
 
+import partviewer_ui
 
 ## PartProxyModel
 #
@@ -65,6 +66,9 @@ class PartViewer(QtGui.QMainWindow):
     def __init__(self, xml_part_file):
         QtGui.QMainWindow.__init__(self)
 
+        self.part_color_text = ""
+        self.part_type_text = ""
+
         # Setup models.
         self.part_model = QtGui.QStandardItemModel(self)
         self.proxy_model = PartProxyModel(self)
@@ -85,8 +89,15 @@ class PartViewer(QtGui.QMainWindow):
                 self.part_model.appendRow([PartStandardItem(part_entry.attrib["category"], part_name),
                                            PartStandardItem(part_entry.attrib["description"], part_name)])
 
+        # Load colors.
+        self.color_chooser = colorChooserWidget.ColorChooserWidget("colors.xml")
+        layout = QtGui.QGridLayout(self.ui.colorGroupBox)
+        layout.addWidget(self.color_chooser)
+        self.ui.colorGroupBox.setLayout(layout)
+
         # Connect signals.
         self.ui.filterLineEdit.textChanged.connect(self.handleTextChange)
+        self.color_chooser.colorPicked.connect(self.handleColorChange)
         
         # Configure parts table view.
         self.ui.partsTableView.setModel(self.proxy_model)
@@ -105,17 +116,23 @@ class PartViewer(QtGui.QMainWindow):
 
     def handleCurrentRowChange(self, new_row, old_row):
         part_file = self.part_model.itemFromIndex(self.proxy_model.mapToSource(new_row)).data().toString()
-        self.ui.partFileLabel.setText(part_file)
+        self.part_type_text = part_file
         self.ui.openGLWidget.loadPart(self.part_path + part_file)
-        
-        print part_file
-        print ""
+        self.updatePartLabel()
+
+    def handleColorChange(self, color):
+        #self.ui.openGLWidget.setColor(color.getFaceColor(), color.getEdgeColor())
+        self.part_color_text = color.getDescription()
+        self.updatePartLabel()
 
     def handleTextChange(self, new_text):
         self.proxy_model.setFilterRegExp(new_text)
 
     def handleQuit(self, boolean):
         self.close()
+
+    def updatePartLabel(self):
+        self.ui.partFileLabel.setText(self.part_type_text + ", " + self.part_color_text)
 
 
 if (__name__ == '__main__'):
