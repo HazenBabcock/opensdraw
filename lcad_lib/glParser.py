@@ -259,9 +259,10 @@ class GLParser(datFileParser.Parser):
     # Draw the object and all its child objects.
     #
     # @param mvp The model - view - projection matrix or None.
-    # @param color [r, g, b, a] - Color (0.0 - 1.0) range.
+    # @param face_color [r, g, b, a] - Color (0.0 - 1.0) range.
+    # @param edge_color [r, g, b, a] - Color (0.0 - 1.0) range.
     #
-    def render(self, mvp, color):
+    def render(self, mvp, face_color, edge_color):
 
         # Draw object.
         GL.glUseProgram(GLParser.gl_shader.program_id)
@@ -273,12 +274,12 @@ class GLParser(datFileParser.Parser):
 
         if not self.lines_only:
             if (self.vao_triangles.size > 0):
-                GL.glUniform4fv(color_id, 1, numpy.array(color, dtype=numpy.float32))
+                GL.glUniform4fv(color_id, 1, numpy.array(face_color, dtype=numpy.float32))
                 GL.glBindVertexArray(self.vao_triangles.gl_id)
                 GL.glDrawArrays(self.vao_triangles.gl_type, 0, self.vao_triangles.size)
 
         if (self.vao_lines.size > 0):
-            GL.glUniform4fv(color_id, 1, numpy.array([0,0,0,1], dtype=numpy.float32))
+            GL.glUniform4fv(color_id, 1, numpy.array(edge_color, dtype=numpy.float32))
             GL.glBindVertexArray(self.vao_lines.gl_id)
             GL.glDrawArrays(self.vao_lines.gl_type, 0, self.vao_lines.size)
 
@@ -287,7 +288,7 @@ class GLParser(datFileParser.Parser):
 
         # Draw children.
         for child in self.children:
-            child.render(mvp, color)
+            child.render(mvp, face_color, edge_color)
                         
     ## startFile
     #
