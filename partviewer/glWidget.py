@@ -32,17 +32,16 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         self.last_pos = QtCore.QPoint()
         self.offset = numpy.array([[0], [0], [0], [0]], dtype = numpy.float32)
-        self.p_matrix = None                                                     # Projection matrix.
+        self.p_matrix = None           # Projection matrix.
         self.part = None
-        self.m_r_matrix = numpy.identity(4, dtype = numpy.float32)               # Model rotation matrix.
-        self.m_s_matrix = numpy.identity(4, dtype = numpy.float32)*0.01          # Model scale matrix.
-        self.m_t_matrix = numpy.identity(4, dtype = numpy.float32)               # Model translation matrix.
-        self.v_matrix = None                                                     # View matrix.
-        self.v_r_matrix = numpy.identity(4, dtype = numpy.float32)               # View rotation matrix.
+        self.m_r_matrix = None         # Model rotation matrix.
+        self.m_s_matrix = None         # Model scale matrix.
+        self.m_t_matrix = None         # Model translation matrix.
+        self.v_matrix = None           # View matrix.
+        self.v_r_matrix = None         # View rotation matrix.
         self.verbose = True
 
-        self.m_s_matrix[3,3] = 1.0
-
+        self.initializeMatrices()
         self.setMinimumSize(500, 500)
 
     ## initializeGL
@@ -67,13 +66,27 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         GL.glEnable(GL.GL_DEPTH_TEST)
 
+    ## initializeMatrices
+    #
+    # Set matrices to the correct initial values.
+    #
+    def initializeMatrices(self):
+        self.m_r_matrix = numpy.identity(4, dtype = numpy.float32)
+        self.m_s_matrix = numpy.identity(4, dtype = numpy.float32)*0.01
+        self.m_t_matrix = numpy.identity(4, dtype = numpy.float32)
+        self.v_r_matrix = numpy.identity(4, dtype = numpy.float32)
+        self.m_s_matrix[3,3] = 1.0
+
     ## loadPart
     #
     # @param filename The filename of the part to load.
     #
     def loadPart(self, filename):
-        self.part = glParser.GLParser([1.0, 0.0, 0.0], [0.0, 0.0, 0.0])
+        if self.part is not None:
+            self.part.freeGL()
+        self.part = glParser.GLParser()
         datFileParser.parsePartFile(self.part, filename)
+        self.initializeMatrices()
         self.updateGL()
 
     ## mousePressEvent
@@ -109,7 +122,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         if self.part is not None:
             m = numpy.dot(self.m_s_matrix, numpy.dot(self.m_t_matrix, self.m_r_matrix))
             mvp = numpy.dot(m, numpy.dot(self.v_matrix, self.p_matrix))
-            self.part.render(mvp)
+            self.part.render(mvp, [0,1,0,1])
 
         GL.glFlush()
 

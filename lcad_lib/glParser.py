@@ -429,9 +429,8 @@ class GLVao(object):
         
         self.gl_id = GL.glGenVertexArrays(1)
         GL.glBindVertexArray(self.gl_id)
-        
-        self.vbo_id = GL.glGenBuffers(1)
 
+        self.vbo_id = GL.glGenBuffers(1)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo_id)
         GL.glBufferData(GL.GL_ARRAY_BUFFER,
                         arrays.ArrayDatatype.arrayByteCount(vertex_data), 
@@ -453,8 +452,8 @@ class GLVao(object):
     # Frees the OpenGL buffers used by this object.
     #
     def freeBuffers(self):
-        GL.glDeleteBuffers(1, self.vbo_id)
-        GL.glDeleteVertexArrays(1, self.gl_id)
+        GL.glDeleteBuffers(1, [self.vbo_id])
+        GL.glDeleteVertexArrays(1, [self.gl_id])
         self.size = 0
 
     ## getColor
