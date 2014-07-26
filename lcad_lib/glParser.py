@@ -5,6 +5,18 @@
 # A parser for outputting OpenGL. This is based in part on this 
 # example: https://gist.github.com/deepankarsharma/3494203
 #
+# This works for most parts, but it is not known to be completely
+# conformant with the LDraw specification defined here:
+#
+# http://www.ldraw.org/article/218.html
+#
+# In particular it has at least the following issues:
+# 1. Optional lines are ignored.
+# 2. Culling is disabled as I could not figure out how to get it
+#    to work properly.
+# 3. Lines in general are not drawn very well, I feel they
+#    could be more continuous.
+#
 # Hazen 07/14
 #
 
