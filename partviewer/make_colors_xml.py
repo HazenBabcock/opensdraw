@@ -74,7 +74,7 @@ with open(sys.argv[1]) as filep:
                 color_xml.set("name", name)
                 color_xml.set("code", code)
                 color_xml.set("value", ",".join(parseColor(value) + [alpha]))
-                color_xml.set("edge", ",".join(parseColor(value) + ["255"]))
+                color_xml.set("edge", ",".join(parseColor(edge) + ["255"]))
                 if lego_id is not None:
                     color_xml.set("lego_id", lego_id)
                     color_xml.set("lego_color", lego_color)
