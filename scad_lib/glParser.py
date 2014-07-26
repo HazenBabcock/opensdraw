@@ -14,6 +14,7 @@
 # 1. Optional lines are ignored.
 # 2. Culling is disabled as I could not figure out how to get it
 #    to work properly.
+# 3. Does not support fixed colors.
 #
 # Hazen 07/14
 #
