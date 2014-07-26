@@ -4,6 +4,9 @@
 #
 # A PyQt OpenGL widget for rendering parts.
 #
+# Issues:
+# 1. Get part outlining to work?
+#
 # Hazen 07/14
 #
 
@@ -75,6 +78,8 @@ class GLWidget(QtOpenGL.QGLWidget):
         #GL.glEnable(GL.GL_CULL_FACE)
 
         GL.glEnable(GL.GL_DEPTH_TEST)
+        GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+
         #GL.glEnable(GL.GL_LINE_SMOOTH)
         #GL.glHint(GL.GL_LINE_SMOOTH_HINT, GL.GL_NICEST)
 
@@ -135,7 +140,34 @@ class GLWidget(QtOpenGL.QGLWidget):
         if self.part is not None:
             m = numpy.dot(self.m_s_matrix, numpy.dot(self.m_t_matrix, self.m_r_matrix))
             mvp = numpy.dot(m, numpy.dot(self.v_matrix, self.p_matrix))
-            self.part.render(mvp, self.face_color, self.edge_color)
+
+            if 0:
+                #
+                # An attempt to draw an outline around the part following:
+                # http://www.flipcode.com/archives/Object_Outlining.shtml
+                #
+                GL.glClearStencil(0)
+                GL.glClear(GL.GL_STENCIL_BUFFER_BIT)
+                GL.glEnable(GL.GL_STENCIL_TEST);
+                
+                GL.glStencilFunc(GL.GL_ALWAYS, 1, -1)
+                GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_REPLACE)
+                
+                GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+                self.part.render(mvp, self.face_color, self.edge_color)
+
+                GL.glStencilFunc(GL.GL_NOTEQUAL, 1, -1)
+                GL.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_REPLACE)
+                
+                GL.glLineWidth(2)
+                GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
+                self.part.render(mvp, self.face_color, self.edge_color)
+
+            else:
+                #
+                # Default rendering.
+                #
+                self.part.render(mvp, self.face_color, self.edge_color)
 
         GL.glFlush()
 
