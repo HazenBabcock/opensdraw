@@ -14,8 +14,6 @@
 # 1. Optional lines are ignored.
 # 2. Culling is disabled as I could not figure out how to get it
 #    to work properly.
-# 3. Lines in general are not drawn very well, I feel they
-#    could be more continuous.
 #
 # Hazen 07/14
 #

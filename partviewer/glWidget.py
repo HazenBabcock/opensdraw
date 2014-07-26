@@ -46,6 +46,12 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.initializeMatrices()
         self.setMinimumSize(500, 500)
 
+        gl_format = QtOpenGL.QGLFormat()
+        gl_format.setAlpha(True)
+        gl_format.setSamples(4)
+        gl_format.setSampleBuffers(True)
+        self.setFormat(gl_format)
+
     ## initializeGL
     #
     # Initialize OpenGL.
@@ -67,6 +73,8 @@ class GLWidget(QtOpenGL.QGLWidget):
         #GL.glEnable(GL.GL_CULL_FACE)
 
         GL.glEnable(GL.GL_DEPTH_TEST)
+        #GL.glEnable(GL.GL_LINE_SMOOTH)
+        #GL.glHint(GL.GL_LINE_SMOOTH_HINT, GL.GL_NICEST)
 
     ## initializeMatrices
     #
@@ -89,6 +97,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.part = glParser.GLParser()
         datFileParser.parsePartFile(self.part, filename)
         self.initializeMatrices()
+        self.updateView()
         self.updateGL()
 
     ## mousePressEvent
