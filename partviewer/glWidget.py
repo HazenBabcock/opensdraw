@@ -48,9 +48,11 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         gl_format = QtOpenGL.QGLFormat()
         gl_format.setAlpha(True)
-        gl_format.setSamples(4)
+        gl_format.setSamples(16)
         gl_format.setSampleBuffers(True)
         self.setFormat(gl_format)
+
+        self.setToolTip("Left click to rotate object.\nRight click to drag object.\nScroll wheel to zoom.")
 
     ## initializeGL
     #
