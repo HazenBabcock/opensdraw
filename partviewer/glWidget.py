@@ -166,6 +166,16 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.v_r_matrix = numpy.dot(self.v_r_matrix, numpy.dot(rot_x, rot_y))
         self.updateView()
 
+    ## setColor
+    #
+    # @param face_color The color to use triangle faces.
+    # @param edge_color The color to use for lines.
+    #
+    def setColor(self, face_color, edge_color):
+        self.face_color = face_color
+        self.edge_color = edge_color
+        self.updateGL()
+
     ## translateView
     #
     # @param dx The amount to translate the view by along the current x axis.

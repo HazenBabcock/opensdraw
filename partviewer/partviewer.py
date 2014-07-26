@@ -121,7 +121,7 @@ class PartViewer(QtGui.QMainWindow):
         self.updatePartLabel()
 
     def handleColorChange(self, color):
-        #self.ui.openGLWidget.setColor(color.getFaceColor(), color.getEdgeColor())
+        self.ui.openGLWidget.setColor(color.getFaceColor(), color.getEdgeColor())
         self.part_color_text = color.getDescription()
         self.updatePartLabel()
 
