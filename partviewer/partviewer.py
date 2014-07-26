@@ -66,6 +66,8 @@ class PartViewer(QtGui.QMainWindow):
     def __init__(self, xml_part_file):
         QtGui.QMainWindow.__init__(self)
 
+        self.settings = QtCore.QSettings("OpenLCAD", "PartViewer")
+
         self.part_color_text = ""
         self.part_type_text = ""
 
@@ -107,6 +109,8 @@ class PartViewer(QtGui.QMainWindow):
         self.ui.partsTableView.setSortingEnabled(True)
         self.ui.partsTableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.ui.partsTableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.ui.partsTableView.sortByColumn(1, QtCore.Qt.AscendingOrder)
+        self.ui.partsTableView.sortByColumn(0, QtCore.Qt.AscendingOrder)
 
         self.selection_model = self.ui.partsTableView.selectionModel()
         self.selection_model.currentRowChanged.connect(self.handleCurrentRowChange)
@@ -114,27 +118,62 @@ class PartViewer(QtGui.QMainWindow):
         self.proxy_model.setHeaderData(0, QtCore.Qt.Horizontal, "Category")
         self.proxy_model.setHeaderData(1, QtCore.Qt.Horizontal, "Description")
 
+        # Restore settings.
+        self.resize(self.settings.value("MainWindow/Size", self.size()).toSize())
+        self.move(self.settings.value("MainWindow/Position", self.pos()).toPoint())
+        self.ui.splitter.restoreState(self.settings.value("splitterSizes").toByteArray())
+
+    ## closeEvent
+    #
+    # @param event A QEvent object.
+    #
+    def closeEvent(self, event):
+        self.settings.setValue("MainWindow/Size", self.size())
+        self.settings.setValue("MainWindow/Position", self.pos())
+        self.settings.setValue("splitterSizes", self.ui.splitter.saveState())
+
+    ## handleCurrentRowChange
+    #
+    # @param new_row QModelIndex
+    # @param old_row QModelIndex
+    #
     def handleCurrentRowChange(self, new_row, old_row):
         part_file = self.part_model.itemFromIndex(self.proxy_model.mapToSource(new_row)).data().toString()
         self.part_type_text = part_file
         self.ui.openGLWidget.loadPart(self.part_path + part_file)
         self.updatePartLabel()
 
+    ## handleColorChange
+    #
+    # @param color A Color object (defined in colorChooserWidget.py)
+    #
     def handleColorChange(self, color):
         self.ui.openGLWidget.setColor(color.getFaceColor(), color.getEdgeColor())
         self.part_color_text = color.getDescription()
         self.updatePartLabel()
 
+    ## handleTextChange
+    #
+    # @param new_text The new text to use for filtering.
+    #
     def handleTextChange(self, new_text):
         self.proxy_model.setFilterRegExp(new_text)
 
+    ## handleQuit
+    #
+    # @param boolean This is ignored.
+    #
     def handleQuit(self, boolean):
         self.close()
 
+    ## updatePartLabel
+    #
+    # Update the part label text based on the current part & color.
     def updatePartLabel(self):
         self.ui.partFileLabel.setText(self.part_type_text + ", " + self.part_color_text)
 
 
+# Main
 if (__name__ == '__main__'):
     app = QtGui.QApplication(sys.argv)
 
@@ -144,6 +183,7 @@ if (__name__ == '__main__'):
         window = PartViewer("parts.xml")
     window.show()
     app.exec_()
+
 
 #
 # The MIT License
