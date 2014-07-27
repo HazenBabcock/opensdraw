@@ -17,8 +17,8 @@ import sys
 from OpenGL import GL, GLU
 from PyQt4 import QtCore, QtGui, QtOpenGL
 
-import scad_lib.datFileParser as datFileParser
-import scad_lib.glParser as glParser
+import lcad_lib.datFileParser as datFileParser
+import lcad_lib.glParser as glParser
 
 ## GLWidget
 #
