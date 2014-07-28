@@ -66,10 +66,14 @@ class PartViewer(QtGui.QMainWindow):
     def __init__(self, xml_part_file):
         QtGui.QMainWindow.__init__(self)
 
+        self.load_part_timer = QtCore.QTimer()
+        self.part_color = ""
+        self.part_file = ""
         self.settings = QtCore.QSettings("OpenLCAD", "PartViewer")
 
-        self.part_color_text = ""
-        self.part_type_text = ""
+        # Setup part loading timer.
+        self.load_part_timer.setSingleShot(True)
+        self.load_part_timer.setInterval(100)
 
         # Setup models.
         self.part_model = QtGui.QStandardItemModel(self)
@@ -92,7 +96,7 @@ class PartViewer(QtGui.QMainWindow):
                                            PartStandardItem(part_entry.attrib["description"], part_name)])
 
         # Load colors.
-        self.color_chooser = colorChooserWidget.ColorChooserWidget("colors.xml")
+        self.color_chooser = colorChooserWidget.ColorChooserWidget("../colors.xml")
         layout = QtGui.QGridLayout(self.ui.colorGroupBox)
         layout.addWidget(self.color_chooser)
         self.ui.colorGroupBox.setLayout(layout)
@@ -100,6 +104,7 @@ class PartViewer(QtGui.QMainWindow):
         # Connect signals.
         self.ui.filterLineEdit.textChanged.connect(self.handleTextChange)
         self.color_chooser.colorPicked.connect(self.handleColorChange)
+        self.load_part_timer.timeout.connect(self.handleLoadPart)
         
         # Configure parts table view.
         self.ui.partsTableView.setModel(self.proxy_model)
@@ -138,10 +143,11 @@ class PartViewer(QtGui.QMainWindow):
     # @param old_row QModelIndex
     #
     def handleCurrentRowChange(self, new_row, old_row):
-        part_file = self.part_model.itemFromIndex(self.proxy_model.mapToSource(new_row)).data().toString()
-        self.part_type_text = part_file
-        self.ui.openGLWidget.loadPart(self.part_path + part_file)
-        self.updatePartLabel()
+        item = self.part_model.itemFromIndex(self.proxy_model.mapToSource(new_row))
+        if item is not None:
+            self.part_file = item.data().toString()
+            self.load_part_timer.start()
+            self.updatePartLabel()
 
     ## handleColorChange
     #
@@ -149,7 +155,7 @@ class PartViewer(QtGui.QMainWindow):
     #
     def handleColorChange(self, color):
         self.ui.openGLWidget.setColor(color.getFaceColor(), color.getEdgeColor())
-        self.part_color_text = color.getDescription()
+        self.part_color = color.getDescription()
         self.updatePartLabel()
 
     ## handleTextChange
@@ -166,11 +172,17 @@ class PartViewer(QtGui.QMainWindow):
     def handleQuit(self, boolean):
         self.close()
 
+    ## handleLoadPartTimeout
+    #
+    #
+    def handleLoadPart(self):
+        self.ui.openGLWidget.loadPart(self.part_path + self.part_file)
+
     ## updatePartLabel
     #
     # Update the part label text based on the current part & color.
     def updatePartLabel(self):
-        self.ui.partFileLabel.setText(self.part_type_text + ", " + self.part_color_text)
+        self.ui.partFileLabel.setText(self.part_file+ ", " + self.part_color)
 
 
 # Main
@@ -180,7 +192,7 @@ if (__name__ == '__main__'):
     if (len(sys.argv) == 2):
         window = PartViewer(sys.argv[1])
     else:
-        window = PartViewer("parts.xml")
+        window = PartViewer("../parts.xml")
     window.show()
     app.exec_()
 
