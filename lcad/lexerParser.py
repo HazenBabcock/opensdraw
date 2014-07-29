@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 #
-## @file
-#
 # Lexer, Parser and abstract syntax tree model for lcad.
 #
 # Hazen 07/14
@@ -108,6 +106,7 @@ def error_handler(token):
 parser = pg.build()
 
 
+# For testing.
 if (__name__ == '__main__'):
     import sys
 
