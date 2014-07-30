@@ -5,20 +5,31 @@
 # Hazen 07/14
 #
 
-class ArgumentsException(Exception):
-    def __init__(self, function_name, expected_number, received_number, line_no):
-        message = "Wrong number of arguments to " + function_name + " at line " + str(line_no)
-        message += ", got " + str(received_number) + " expected " + str(expected_number)
-        Exception.__init__(self, message)
-
 class ExpressionException(Exception):
     def __init__(self, line_no):
         message = "Expected a function as the first element of the list at line " + str(line_no)
         Exception.__init__(self, message)
 
+class IncorrectTypeException(Exception):
+    def __init__(self, function_name, expected, got, line_no):
+        message = "Wrong arguments type '" + function_name + "' at line " + str(line_no)
+        message += ", got '" + got + "' expected '" + expected + "'"
+        Exception.__init__(self, message)
+
 class NoSuchFunctionException(Exception):
     def __init__(self, function_name, line_no):
-        message = "No such function " + function_name + " at line " + str(line_no)
+        message = "No such function '" + function_name + "' at line " + str(line_no)
+        Exception.__init__(self, message)
+
+class NumberArgumentsException(Exception):
+    def __init__(self, function_name, expected, got, line_no):
+        message = "Wrong number of arguments to '" + function_name + "' at line " + str(line_no)
+        message += ", got " + str(got) + " expected " + str(expected)
+        Exception.__init__(self, message)
+
+class VariableNotDefined(Exception):
+    def __init__(self, variable_name, line_no):
+        message = "Variable '" + variable_name + "' not defined at line " + str(line_no)
         Exception.__init__(self, message)
 
 #
