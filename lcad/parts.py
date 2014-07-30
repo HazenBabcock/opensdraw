@@ -5,6 +5,8 @@
 # Hazen 07/14
 #
 
+import numpy
+
 class Part(object):
 
     def __init__(self, model_matrix, part_id, part_color):
@@ -12,7 +14,10 @@ class Part(object):
         self.part_color = part_color
         self.part_id = part_id
 
-        print "Added part", self.part_id, "with color", self.part_color
+        self.loc = numpy.array([0.0, 0.0, 0.0, 1.0])
+        self.loc = numpy.dot(self.model_matrix, self.loc)
+
+        print "Added part", self.part_id, "with color", self.part_color, "at", self.loc
 
 #
 # The MIT License
