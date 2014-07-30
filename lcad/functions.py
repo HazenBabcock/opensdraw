@@ -37,6 +37,8 @@ def define(env, lcad_expression):
      (def x 15) - Create the variable x with the value 15.
      (def x 15 y 20) - Create x with value 15, y with value 20.
      (def incf (x) (+ x 1)) - Create the function incf.
+
+    Note that you cannot create multiple functions at the same time.
     """
     args = lcad_expression.value[1:]
     if (len(args) < 2):
@@ -45,14 +47,16 @@ def define(env, lcad_expression):
     # Variables.
     if ((len(args)%2) == 0):
         ret = None
+        cur_env = env.make_copy()
         kv_pairs = izip(*[iter(args)]*2)
         for key, value in kv_pairs:
             if not isinstance(key, lexerParser.LCadSymbol):
-                raise lce.IncorrectTypeException("define()", 
-                                                 lexerParser.LCadSymbol("na").simple_type_name,
-                                                 key.simple_type_name,
-                                                 lcad_expression.start_line)
-            val = interpret(env.make_copy(), value)
+                raise lce.CannotSetException("def()", 
+                                             key.simple_type_name,
+                                             lcad_expression.start_line)
+            val = interpret(cur_env, value)
+            # This is so that later variable definitions can "see" earlier ones.
+            cur_env.variables[key.value] = val
             env.variables[key.value] = val
             ret = val
         return ret
@@ -135,25 +139,24 @@ def setlc(env, lcad_expression):
      (set x fn) - Set x to value of the symbol fn.
     """
     args = lcad_expression.value[1:]
-    if (len(args) != 2):
+    if (len(args) < 2):
         raise NumberArgumentsException("set", "2+", len(args), lcad_expression.start_line)
 
-    # Variable.
-    if (len(args) == 2):
-        if not isinstance(args[0], lexerParser.LCadSymbol):
+    ret = None
+    cur_env = env.make_copy()
+    kv_pairs = izip(*[iter(args)]*2)
+    for key, value in kv_pairs:
+        if not isinstance(key, lexerParser.LCadSymbol):
             raise lce.IncorrectTypeException("define()", 
                                              lexerParser.LCadSymbol("na").simple_type_name,
-                                             args[0].simple_type_name,
+                                             key.simple_type_name,
                                              lcad_expression.start_line)
-        value = interpret(env.make_copy(), args[1])
-        env.variables[args[0].value] = value
-        return value
-
-    # Function..
-    else:
-        pass
-
-    return None
+        val = interpret(cur_env, value)
+        # This is so that later variable definitions can "see" earlier ones.
+        cur_env.variables[key.value] = val
+        env.variables[key.value] = val
+        ret = val
+    return ret
 
 fn["set"] = setlc
 

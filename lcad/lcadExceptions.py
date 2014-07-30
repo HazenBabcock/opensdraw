@@ -5,6 +5,12 @@
 # Hazen 07/14
 #
 
+class CannotSetException(Exception):
+    def __init__(self, function_name, item_type, line_no):
+        message = "In '" + function_name + "' at line " + str(line_no)
+        message += " type '" + item_type + "' is not settable."
+        Exception.__init__(self, message)
+
 class ExpressionException(Exception):
     def __init__(self, line_no):
         message = "Expected a function as the first element of the list at line " + str(line_no)

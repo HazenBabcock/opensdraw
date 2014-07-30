@@ -32,8 +32,7 @@ class LCadObject(object):
     pass
 
 class LCadConstant(LCadObject):
-    def __init__(self):
-        self.simple_type_name = "Constant"
+    pass
 
 class LCadExpression(LCadObject):
     def __init__(self, expression):
@@ -42,17 +41,17 @@ class LCadExpression(LCadObject):
 
 class LCadFloat(LCadConstant):
     def __init__(self, value):
-        LCadConstant.__init__(self)
+        self.simple_type_name = "Float"
         self.value = float(value)
 
 class LCadInteger(LCadConstant):
     def __init__(self, value):
-        LCadConstant.__init__(self)
+        self.simple_type_name = "Integer"
         self.value = int(value)
 
 class LCadString(LCadConstant):
     def __init__(self, value):
-        LCadConstant.__init__(self)
+        self.simple_type_name = "String"
         self.value = str(value)
 
 class LCadSymbol(LCadObject):
