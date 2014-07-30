@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 #
-# Lexer, Parser and abstract syntax tree model for lcad.
+# Lexer, Parser and abstract syntax tree model for lcad. Much of
+# inspiration for this comes from the lexer / parser in the hy 
+# project, available here:
+#
+# https://github.com/hylang/hy/tree/master/hy/lex
 #
 # Hazen 07/14
 #
@@ -50,6 +54,23 @@ class LCadSymbol(LCadObject):
 # Parser.
 from rply import ParserGenerator
 
+def set_boundaries(fun):
+    @wraps(fun)
+    def wrapped(p):
+        start = p[0].source_pos
+        end = p[-1].source_pos
+        ret = fun(p)
+        ret.start_line = start.lineno
+        ret.start_column = start.colno
+        if start is not end:
+            ret.end_line = end.lineno
+            ret.end_column = end.colno
+        else:
+            ret.end_line = start.lineno
+            ret.end_column = start.colno + len(p[0].value)
+        return ret
+    return wrapped
+
 pg = ParserGenerator(
     [rule.name for rule in lexer.rules],
     cache_id="lcad_parser"
@@ -74,10 +95,12 @@ def term(p):
     return p[0]
 
 @pg.production("string : STRING")
+@set_boundaries
 def string(p):
     return LCadString(p[0].getstr())
 
 @pg.production("identifier : IDENTIFIER")
+@set_boundaries
 def identifier(p):
     text = p[0].getstr()
 
@@ -94,6 +117,7 @@ def identifier(p):
     return LCadSymbol(text)
 
 @pg.production('parens : LPAREN list RPAREN')
+@set_boundaries
 def parens(p):
     return LCadExpression(p[1])
 
