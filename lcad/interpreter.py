@@ -26,6 +26,7 @@ class Env(object):
     """
 
     def __init__(self, debug = False):
+        self.cur_fn_name = None
         self.debug = debug
         self.functions = functions.fn
         self.m = numpy.identity(4)
@@ -34,6 +35,7 @@ class Env(object):
 
     def make_copy(self):
         a_copy = Env()
+        a_copy.cur_fn_name = self.cur_fn_name
         a_copy.debug = self.debug
         a_copy.functions = self.functions.copy()
         a_copy.m = self.m
@@ -66,7 +68,7 @@ def interpret(env, tree):
         try:
             return env.variables[tree.value]
         except KeyError:
-            raise lce.VariableNotDefined(tree.value, tree.start_line)
+            raise lce.VariableNotDefined(tree.value, env.cur_fn_name, tree.start_line)
 
 #        # Variable?
 #        try:
