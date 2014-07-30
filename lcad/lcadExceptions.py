@@ -34,8 +34,12 @@ class NumberArgumentsException(Exception):
         Exception.__init__(self, message)
 
 class VariableNotDefined(Exception):
-    def __init__(self, variable_name, line_no):
-        message = "Variable '" + variable_name + "' not defined at line " + str(line_no)
+    def __init__(self, variable_name, function_name, line_no):
+        if function_name is not None:
+            message = "Variable '" + variable_name + "' not defined in function '" + function_name + "' "
+            message + "at line " + str(line_no)
+        else:
+            message = "Variable '" + variable_name + "' not defined at line " + str(line_no)
         Exception.__init__(self, message)
 
 #
