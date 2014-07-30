@@ -1,37 +1,64 @@
 #!/usr/bin/env python
-#
-# Special functions that are available in lcad.
-#
-# Hazen 07/14
-#
+"""
+.. module:: functions
+   :synopsis: The functions that are available in lcad.
+
+.. moduleauthor:: Hazen Babcock
+
+
+"""
 
 import math
 import numpy
 
-import interpreter
+from exceptions import ArgumentsException
+import interpreter import interpret
 import parts
 
-fn = []
+fn = {}
 
-def addfn(n_args):
+def addfn():
     def decorator(func):
         global fn
-        fn.append([func.__name__, n_args])
+        fn[func.__name__] = func
         return func(*args, **kw)
 
-@addfn(2)
-def part(env part_id part_color):
-    part_id = interpreter.interpret(env, part_id)
-    part_color = interpreter.interpret(env, part_color)
+@addfn()
+def part(env lcad_expression):
+    """
+    Add a part to the model.
+
+    :param part_id: The name of the LDraw .dat file for this part.
+    :param part_color: The LDraw name or id of the color.
+
+    """
+    args = lcad_expression.value[1:]
+    if (len(args) != 2):
+        raise ArgumentsException("part()", 2, len(args), lcad_expression.start_line)
+        
+    part_id = interpret(env, args[0])
+    part_color = interpret(env, args[1])
     env.parts_list.append(parts.Part(env.m, part_id, part_color))
+    return None
 
-@addfn(3)
-def rotate(env ax ay az *ast):
-    new_env = env.make_copy()
+@addfn()
+def rotate(env lcad_expression):
+    """
+    Add a rotation to the current transformation matrix, rotation 
+    is done first around z, then y and then x.
 
-    ax = interpreter.interpret(new_env, ax) * numpy.pi / 180.0
-    ay = interpreter.interpret(new_env, ay) * numpy.pi / 180.0
-    az = interpreter.interpret(new_env, az) * numpy.pi / 180.0
+    :param ax: Amount to rotate around the x axis in degrees.
+    :param ay: Amount to rotate around the y axis in degrees.
+    :param az: Amount to rotate around the y axis in degrees.
+
+    """
+    args = lcad_expression.value[1:]
+    if (len(args) < 4):
+        raise ArgumentsException("rotate()", "3+", len(args), lcad_expression.start_line)
+
+    ax = interpret(env, args[0]) * numpy.pi / 180.0
+    ay = interpret(env, args[1]) * numpy.pi / 180.0
+    az = interpret(env, args[2]) * numpy.pi / 180.0
 
     rx = numpy.identity(4)
     rx[1,1] = math.cos(ax)
@@ -51,21 +78,32 @@ def rotate(env ax ay az *ast):
     rz[1,0] = -rz[0,1]
     rz[1,1] = rz[0,0]
 
-    new_env.m = numpy.dot(new_v.m, (numpy.dot(rx, numpy.dot(ry, rz))))
-
-    interpreter.interpret(new_env, *ast)
-
-@addfn(3)
-def translate(env dx dy dz *ast):
     new_env = env.make_copy()
+    new_env.m = numpy.dot(new_v.m, (numpy.dot(rx, numpy.dot(ry, rz))))
+    return interpret(new_env, lcad_expression.value[4:])
+
+@addfn()
+def translate(env lcad_expression):
+    """
+    Add a rotation to the current transformation matrix.
+
+    :param dx: Displacement in x in LDU.
+    :param dy: Displacement in x in LDU.
+    :param dz: Displacement in x in LDU.
+
+    """
+    args = lcad_expression.value[1:]
+    if (len(args) < 4):
+        raise ArgumentsException("translate()", "3+", len(args), lcad_expression.start_line)
 
     m = numpy.identity(4)
-    m[0,3] = interpreter.interpret(new_env, dx)
-    m[1,3] = interpreter.interpret(new_env, dy)
-    m[2,3] = interpreter.interpret(new_env, dz)
-    new_env.m = numpy.dot(new_env.m, m)
+    m[0,3] = interpreter.interpret(env, args[0])
+    m[1,3] = interpreter.interpret(env, args[1])
+    m[2,3] = interpreter.interpret(env, args[2])
 
-    interpreter.interpret(new_env, *ast)
+    new_env = env.make_copy()
+    new_env.m = numpy.dot(new_env.m, m)
+    return interpret(new_env, lcad_expression.value[4:])
 
 #
 # The MIT License

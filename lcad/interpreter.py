@@ -30,6 +30,10 @@ class Env(object):
         return copy.copy(self)
 
 def interpret(env, tree):
+    """
+    The interpreter recursively walks the AST evaluating the nodes
+    in the context of the current environment.
+    """
 
     # Fixed value terminal node.
     if (type(tree) in [type(lexerParser.LCadFloat),
@@ -37,24 +41,45 @@ def interpret(env, tree):
                        type(lexerParser.LCadString)]):
         return tree.value
 
-    # Variable or single argument function
+    # Symbol.
     elif (type(tree) == type(lexerParser.LCadSymbol)):
+
+        # Variable?
         try:
             return env.variables[tree.value].value
         except ValueError:
             pass
 
-        return eval(tree.value)
+        # User defined function?
+        #try:
+        #    return 
 
-        # Evaluate function arguments first.
-        fn_args = []
-        for node in enumerate(ast[1:]):
-            fn_args.append(interpret(env, node))
+    # Expression.
+    #
+    # The first value in the list is the name of the function.
+    #
+    else:
+        flist = tree.value
 
-            # Check if it is a lcad function.
-            if node[0] in functions.fn:
-                
+        # Another expression?
+        if (type(flist[0]) == type(lexerParser.LCadExpression)):
+            fname = interpret(env, flist[0])
+
+        elif (type(flist[0]) == type(lexerParser.LCadSymbol)):
+            fname = flist[0].value
+
+        else:
+            raise ExpressionException(tree.start_line)
+            
+        # Built-in?
+        if (fname in functions.fn):
+            functions.fn[fname](env, tree)
+
+        # Module..
         
+        else:
+            raise NoSuchFunctionException(fname, tree.start_line)
+
 
 #
 # The MIT License
