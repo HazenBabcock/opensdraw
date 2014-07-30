@@ -9,6 +9,7 @@
 # Hazen 07/14
 #
 
+from functools import wraps
 
 # Lexer.
 from rply import LexerGenerator
@@ -30,24 +31,33 @@ lexer = lg.build()
 class LCadObject(object):
     pass
 
+class LCadConstant(LCadObject):
+    def __init__(self):
+        self.simple_type_name = "Constant"
+
 class LCadExpression(LCadObject):
     def __init__(self, expression):
+        self.simple_type_name = "Expression"
         self.value = expression
 
-class LCadFloat(LCadObject):
+class LCadFloat(LCadConstant):
     def __init__(self, value):
+        LCadConstant.__init__(self)
         self.value = float(value)
 
-class LCadInteger(LCadObject):
+class LCadInteger(LCadConstant):
     def __init__(self, value):
+        LCadConstant.__init__(self)
         self.value = int(value)
 
-class LCadString(LCadObject):
+class LCadString(LCadConstant):
     def __init__(self, value):
+        LCadConstant.__init__(self)
         self.value = str(value)
 
 class LCadSymbol(LCadObject):
     def __init__(self, value):
+        self.simple_type_name = "Symbol"
         self.value = str(value)
 
 
@@ -130,7 +140,7 @@ def error_handler(token):
 parser = pg.build()
 
 
-# For testing.
+# For testing purposes.
 if (__name__ == '__main__'):
     import sys
 
