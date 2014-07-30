@@ -9,6 +9,7 @@
 """
 
 from functools import wraps
+from itertools import izip
 import math
 import numpy
 
@@ -43,14 +44,18 @@ def define(env, lcad_expression):
 
     # Variables.
     if ((len(args)%2) == 0):
-        if not isinstance(args[0], lexerParser.LCadSymbol):
-            raise lce.IncorrectTypeException("define()", 
-                                             lexerParser.LCadSymbol("na").simple_type_name,
-                                             args[0].simple_type_name,
-                                             lcad_expression.start_line)
-        value = interpret(env.make_copy(), args[1])
-        env.variables[args[0].value] = value
-        return value
+        ret = None
+        kv_pairs = izip(*[iter(args)]*2)
+        for key, value in kv_pairs:
+            if not isinstance(key, lexerParser.LCadSymbol):
+                raise lce.IncorrectTypeException("define()", 
+                                                 lexerParser.LCadSymbol("na").simple_type_name,
+                                                 key.simple_type_name,
+                                                 lcad_expression.start_line)
+            val = interpret(env.make_copy(), value)
+            env.variables[key.value] = val
+            ret = val
+        return ret
 
     # Function..
     else:
