@@ -8,23 +8,60 @@
 
 """
 
+from functools import wraps
 import math
 import numpy
 
-from exceptions import ArgumentsException
-import interpreter import interpret
+import lcadExceptions as lce
+import lexerParser
+from interpreter import interpret
 import parts
 
 fn = {}
 
-def addfn():
-    def decorator(func):
-        global fn
-        fn[func.__name__] = func
-        return func(*args, **kw)
+def addfn(func):
+    global fn
+    fn[func.__name__] = func
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        func(*args, **kwargs)
+    return wrapped
 
-@addfn()
-def part(env lcad_expression):
+# Work around that def already exists in Python.
+def define(env, lcad_expression):
+    """
+    Create a variable or function.
+
+    Usage:
+     (def x 15) - Create the variable x with the value 15.
+     (def x 15 y 20) - Create x with value 15, y with value 20.
+     (def incf (x) (+ x 1)) - Create the function incf.
+    """
+    args = lcad_expression.value[1:]
+    if (len(args) < 2):
+        raise NumberArgumentsException("def()", "2+", len(args), lcad_expression.start_line)
+
+    # Variables.
+    if ((len(args)%2) == 0):
+        if not isinstance(args[0], lexerParser.LCadSymbol):
+            raise lce.IncorrectTypeException("define()", 
+                                             lexerParser.LCadSymbol("na").simple_type_name,
+                                             args[0].simple_type_name,
+                                             lcad_expression.start_line)
+        value = interpret(env.make_copy(), args[1])
+        env.variables[args[0].value] = value
+        return value
+
+    # Function..
+    else:
+        pass
+
+    return None
+
+fn["def"] = define
+
+@addfn
+def part(env, lcad_expression):
     """
     Add a part to the model.
 
@@ -34,15 +71,15 @@ def part(env lcad_expression):
     """
     args = lcad_expression.value[1:]
     if (len(args) != 2):
-        raise ArgumentsException("part()", 2, len(args), lcad_expression.start_line)
+        raise lce.NumberArgumentsException("part()", 2, len(args), lcad_expression.start_line)
         
     part_id = interpret(env, args[0])
     part_color = interpret(env, args[1])
     env.parts_list.append(parts.Part(env.m, part_id, part_color))
     return None
 
-@addfn()
-def rotate(env lcad_expression):
+@addfn
+def rotate(env, lcad_expression):
     """
     Add a rotation to the current transformation matrix, rotation 
     is done first around z, then y and then x.
@@ -54,11 +91,12 @@ def rotate(env lcad_expression):
     """
     args = lcad_expression.value[1:]
     if (len(args) < 4):
-        raise ArgumentsException("rotate()", "3+", len(args), lcad_expression.start_line)
+        raise lce.NumberArgumentsException("rotate()", "3+", len(args), lcad_expression.start_line)
 
-    ax = interpret(env, args[0]) * numpy.pi / 180.0
-    ay = interpret(env, args[1]) * numpy.pi / 180.0
-    az = interpret(env, args[2]) * numpy.pi / 180.0
+    cur_env = env.make_copy()
+    ax = interpret(cur_env, args[0]) * numpy.pi / 180.0
+    ay = interpret(cur_env, args[1]) * numpy.pi / 180.0
+    az = interpret(cur_env, args[2]) * numpy.pi / 180.0
 
     rx = numpy.identity(4)
     rx[1,1] = math.cos(ax)
@@ -78,12 +116,44 @@ def rotate(env lcad_expression):
     rz[1,0] = -rz[0,1]
     rz[1,1] = rz[0,0]
 
-    new_env = env.make_copy()
-    new_env.m = numpy.dot(new_v.m, (numpy.dot(rx, numpy.dot(ry, rz))))
-    return interpret(new_env, lcad_expression.value[4:])
+    cur_env.m = numpy.dot(cur_env.m, (numpy.dot(rx, numpy.dot(ry, rz))))
+    return interpret(cur_env, lcad_expression.value[4:])
 
-@addfn()
-def translate(env lcad_expression):
+# Work around that set already exists in Python.
+def setlc(env, lcad_expression):
+    """
+    Set the value of an existing symbol.
+
+    Usage:
+     (set x 15) - Set the value of x to 15.
+     (set x 15 y 20) - Set x to 15 and y to 20.
+     (set x fn) - Set x to value of the symbol fn.
+    """
+    args = lcad_expression.value[1:]
+    if (len(args) != 2):
+        raise NumberArgumentsException("set", "2+", len(args), lcad_expression.start_line)
+
+    # Variable.
+    if (len(args) == 2):
+        if not isinstance(args[0], lexerParser.LCadSymbol):
+            raise lce.IncorrectTypeException("define()", 
+                                             lexerParser.LCadSymbol("na").simple_type_name,
+                                             args[0].simple_type_name,
+                                             lcad_expression.start_line)
+        value = interpret(env.make_copy(), args[1])
+        env.variables[args[0].value] = value
+        return value
+
+    # Function..
+    else:
+        pass
+
+    return None
+
+fn["set"] = setlc
+
+@addfn
+def translate(env, lcad_expression):
     """
     Add a rotation to the current transformation matrix.
 
@@ -94,16 +164,16 @@ def translate(env lcad_expression):
     """
     args = lcad_expression.value[1:]
     if (len(args) < 4):
-        raise ArgumentsException("translate()", "3+", len(args), lcad_expression.start_line)
+        raise lce.NumberArgumentsException("translate()", "3+", len(args), lcad_expression.start_line)
 
+    cur_env = env.make_copy()
     m = numpy.identity(4)
-    m[0,3] = interpreter.interpret(env, args[0])
-    m[1,3] = interpreter.interpret(env, args[1])
-    m[2,3] = interpreter.interpret(env, args[2])
+    m[0,3] = interpret(cur_env, args[0])
+    m[1,3] = interpret(cur_env, args[1])
+    m[2,3] = interpret(cur_env, args[2])
 
-    new_env = env.make_copy()
-    new_env.m = numpy.dot(new_env.m, m)
-    return interpret(new_env, lcad_expression.value[4:])
+    cur_env.m = numpy.dot(cur_env.m, m)
+    return interpret(cur_env, lcad_expression.value[4:])
 
 #
 # The MIT License
