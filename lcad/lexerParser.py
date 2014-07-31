@@ -2,7 +2,7 @@
 #
 # Lexer, Parser and abstract syntax tree model for lcad. Much of
 # inspiration for this comes from the lexer / parser in the hy 
-# project, available here:
+# project:
 #
 # https://github.com/hylang/hy/tree/master/hy/lex
 #
