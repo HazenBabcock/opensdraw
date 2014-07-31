@@ -6,40 +6,44 @@
 #
 
 class CannotSetException(Exception):
-    def __init__(self, function_name, item_type, line_no):
-        message = "In '" + function_name + "' at line " + str(line_no)
+    def __init__(self, env, item_type):
+        message = "In '" + env.fn_name + "' at line " + str(env.fn_line)
         message += " type '" + item_type + "' is not settable."
         Exception.__init__(self, message)
 
 class ExpressionException(Exception):
-    def __init__(self, line_no):
-        message = "Expected a function as the first element of the list at line " + str(line_no)
+    def __init__(self, env):
+        message = "Expected a function as the first element of the list at line " + str(env.fn_line)
+        if env.fn_name is not None:
+            message += " in function '" + env.fn_name + "'"
         Exception.__init__(self, message)
 
 class IncorrectTypeException(Exception):
-    def __init__(self, function_name, expected, got, line_no):
-        message = "Wrong arguments type '" + function_name + "' at line " + str(line_no)
+    def __init__(self, env, expected, got):
+        message = "Wrong arguments type for '" + env.fn_name + "' at line " + str(env.fn_line)
         message += ", got '" + got + "' expected '" + expected + "'"
         Exception.__init__(self, message)
 
 class NoSuchFunctionException(Exception):
-    def __init__(self, function_name, line_no):
-        message = "No such function '" + function_name + "' at line " + str(line_no)
+    def __init__(self, env, unknown_function):
+        message = "No such function '" + unknown_function + "' at line " + str(env.fn_line)
+        if env.fn_name is not None:
+            message += " in function '" + env.fn_name + "'"
         Exception.__init__(self, message)
 
 class NumberArgumentsException(Exception):
-    def __init__(self, function_name, expected, got, line_no):
-        message = "Wrong number of arguments to '" + function_name + "' at line " + str(line_no)
+    def __init__(self, env, expected, got):
+        message = "Wrong number of arguments to '" + env.fn_name + "' at line " + str(env.fn_line)
         message += ", got " + str(got) + " expected " + str(expected)
         Exception.__init__(self, message)
 
 class VariableNotDefined(Exception):
-    def __init__(self, variable_name, function_name, line_no):
-        if function_name is not None:
-            message = "Variable '" + variable_name + "' not defined in function '" + function_name + "' "
-            message + "at line " + str(line_no)
+    def __init__(self, env, variable_name):
+        if env.fn_name is not None:
+            message = "Variable '" + variable_name + "' not defined in function '" + env.fn_name + "' "
+            message += "at line " + str(env.fn_line)
         else:
-            message = "Variable '" + variable_name + "' not defined at line " + str(line_no)
+            message = "Variable '" + variable_name + "' not defined at line " + str(env.fn_line)
         Exception.__init__(self, message)
 
 #

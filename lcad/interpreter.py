@@ -12,9 +12,9 @@ import lcadExceptions as lce
 import functions
 import lexerParser
 
-class Variable(object):
+class Box(object):
     """
-    Variables are objects so that they don't get copied.
+    Box variables so that they don't get copied.
     """
     def __init__(self, value):
         self.value = value
@@ -26,8 +26,9 @@ class Env(object):
     """
 
     def __init__(self, debug = False):
-        self.cur_fn_name = None
         self.debug = debug
+        self.fn_line = 0
+        self.fn_name = None
         self.functions = functions.fn
         self.m = numpy.identity(4)
         self.parts_list = []
@@ -35,13 +36,49 @@ class Env(object):
 
     def make_copy(self):
         a_copy = Env()
-        a_copy.cur_fn_name = self.cur_fn_name
         a_copy.debug = self.debug
+        a_copy.fn_name = self.fn_name
         a_copy.functions = self.functions.copy()
         a_copy.m = self.m
         a_copy.parts_list = self.parts_list
         a_copy.variables = self.variables.copy()
         return a_copy
+
+def dispatch(fn, env, tree):
+    """
+    This handles function calls to both user-defined and built-in functions.
+    """
+    
+    args = []
+    if (len(tree.value) > 1):
+        args = tree.value[1:]
+
+    #
+    # For builtin functions the function signature information is stored
+    # as part of the function.
+    #
+    # These functions handle argument interpretation on their own so that we
+    # can do things like loops and branching.
+    #
+    if hasattr(fn, "builtin"):
+        args_number = fn.args_number
+        if fn.args_gt:
+            if (len(args) < args_number):
+                raise lce.NumberArgumentsException(env,
+                                                   str(args_number) + " or more",
+                                                   len(args))
+        else:
+            if (len(args) != args_number):
+                raise lce.NumberArgumentsException(env,
+                                                   str(args_number), 
+                                                   len(args))
+        return fn(env, args)
+
+    #
+    # User defined functions get "pre-interpreted" arguments.
+    #
+    else:
+        pass
 
 def interpret(env, tree):
     """
@@ -54,6 +91,9 @@ def interpret(env, tree):
     if env.debug:
         print ""
         print tree
+        
+    if hasattr(tree, "start_line"):
+        env.fn_line = tree.start_line
 
     # Fixed value terminal node.
     if isinstance(tree, lexerParser.LCadConstant):
@@ -66,17 +106,9 @@ def interpret(env, tree):
         if env.debug:
             print tree.value
         try:
-            return env.variables[tree.value]
+            return env.variables[tree.value].value
         except KeyError:
-            raise lce.VariableNotDefined(tree.value, env.cur_fn_name, tree.start_line)
-
-#        # Variable?
-#        try:
-#            return env.variables[tree.value].value
-#        except ValueError:
-#            pass
-
-        # User defined function?
+            raise lce.VariableNotDefined(env, tree.value)
 
     # Expression.
     #
@@ -95,12 +127,15 @@ def interpret(env, tree):
             fname = flist[0].value
 
         else:
-            raise lce.ExpressionException(tree.start_line)
+            raise lce.ExpressionException(env)
 
+        old_fn_name = env.fn_name
+        env.fn_name = fname
         try:
-            return env.functions[fname](env, tree)
+            return dispatch(env.functions[fname], env, tree)
         except KeyError:
-            raise lce.NoSuchFunctionException(fname, tree.start_line)
+            env.fn_name = old_fn_name
+            raise lce.NoSuchFunctionException(env, fname)
 
     # List
     else:
@@ -123,6 +158,7 @@ if (__name__ == '__main__'):
     with open(sys.argv[1]) as fp:
         interpret(env, parser.parse(lexer.lex(fp.read())))
 
+    print ""
     print "Functions", env.functions.keys()
     print "Variables", env.variables.keys()
     print "Total parts", len(env.parts_list)

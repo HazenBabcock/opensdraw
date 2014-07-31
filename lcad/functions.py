@@ -15,21 +15,30 @@ import numpy
 
 import lcadExceptions as lce
 import lexerParser
-from interpreter import interpret
+from interpreter import Box, interpret
 import parts
 
 fn = {}
 
-def addfn(func):
+def addfn(func, args_number, args_gt = False, name = None):
+    """
+    This adds the function to the list of (built-in) functions and
+    it decorates the function with some additional information
+    that we can use later to verify that the function was called
+    properly.
+    """
     global fn
-    fn[func.__name__] = func
-    @wraps(func)
-    def wrapped(*args, **kwargs):
-        func(*args, **kwargs)
-    return wrapped
+    func.builtin = True
+    func.args_number = args_number
+    func.args_gt = args_gt
+    if name is not None:
+        fn[name] = func
+    else:
+        fn[func.__name__] = func
+
 
 # Work around that def already exists in Python.
-def define(env, lcad_expression):
+def deflc(env, args):
     """
     Create a variable or function.
 
@@ -40,10 +49,6 @@ def define(env, lcad_expression):
 
     Note that you cannot create multiple functions at the same time.
     """
-    args = lcad_expression.value[1:]
-    if (len(args) < 2):
-        raise NumberArgumentsException("def()", "2+", len(args), lcad_expression.start_line)
-
     # Variables.
     if ((len(args)%2) == 0):
         ret = None
@@ -51,57 +56,59 @@ def define(env, lcad_expression):
         kv_pairs = izip(*[iter(args)]*2)
         for key, value in kv_pairs:
             if not isinstance(key, lexerParser.LCadSymbol):
-                raise lce.CannotSetException("def()", 
-                                             key.simple_type_name,
-                                             lcad_expression.start_line)
+                raise lce.CannotSetException(env,
+                                             key.simple_type_name)
+
             val = interpret(cur_env, value)
             # This is so that later variable definitions can "see" earlier ones.
-            cur_env.variables[key.value] = val
-            env.variables[key.value] = val
+            cur_env.variables[key.value] = Box(val)
+
+            # Warn about variable shadowing?
+            if key.value in env.variables:
+                print "!Warning in '" + env.fn_name + "' at line", env.fn_line, ",", key.value, "is already defined"
+            env.variables[key.value] = Box(val)
             ret = val
         return ret
 
-    # Function..
+    # Functions.
     else:
         pass
 
     return None
+addfn(deflc, 2, True, "def")
 
-fn["def"] = define
-
-@addfn
-def part(env, lcad_expression):
+def part(env, args):
     """
     Add a part to the model.
 
     :param part_id: The name of the LDraw .dat file for this part.
     :param part_color: The LDraw name or id of the color.
 
+    Usage:
+     (part "32524" 13)
+     (part '32524' "yellow")
+
     """
-    args = lcad_expression.value[1:]
-    if (len(args) != 2):
-        raise lce.NumberArgumentsException("part()", 2, len(args), lcad_expression.start_line)
-        
     part_id = interpret(env, args[0])
     part_color = interpret(env, args[1])
     env.parts_list.append(parts.Part(env.m, part_id, part_color))
     return None
+addfn(part, 2, True)
 
-@addfn
-def rotate(env, lcad_expression):
+def rotate(env, args):
     """
     Add a rotation to the current transformation matrix, rotation 
-    is done first around z, then y and then x.
+    is done first around z, then y and then x. Parts added inside
+    a rotate block have this transformation applied to them.
 
     :param ax: Amount to rotate around the x axis in degrees.
     :param ay: Amount to rotate around the y axis in degrees.
     :param az: Amount to rotate around the y axis in degrees.
 
-    """
-    args = lcad_expression.value[1:]
-    if (len(args) < 4):
-        raise lce.NumberArgumentsException("rotate()", "3+", len(args), lcad_expression.start_line)
+    Usage:
+     (rotate 0 0 90 .. )
 
+    """
     cur_env = env.make_copy()
     ax = interpret(cur_env, args[0]) * numpy.pi / 180.0
     ay = interpret(cur_env, args[1]) * numpy.pi / 180.0
@@ -126,10 +133,14 @@ def rotate(env, lcad_expression):
     rz[1,1] = rz[0,0]
 
     cur_env.m = numpy.dot(cur_env.m, (numpy.dot(rx, numpy.dot(ry, rz))))
-    return interpret(cur_env, lcad_expression.value[4:])
+    if (len(args) > 3):
+        return interpret(cur_env, args[3:])
+    else:
+        return None
+addfn(rotate, 3, True)
 
 # Work around that set already exists in Python.
-def setlc(env, lcad_expression):
+def setlc(env, args):
     """
     Set the value of an existing symbol.
 
@@ -138,42 +149,36 @@ def setlc(env, lcad_expression):
      (set x 15 y 20) - Set x to 15 and y to 20.
      (set x fn) - Set x to value of the symbol fn.
     """
-    args = lcad_expression.value[1:]
-    if (len(args) < 2):
-        raise NumberArgumentsException("set", "2+", len(args), lcad_expression.start_line)
-
     ret = None
     cur_env = env.make_copy()
     kv_pairs = izip(*[iter(args)]*2)
     for key, value in kv_pairs:
         if not isinstance(key, lexerParser.LCadSymbol):
-            raise lce.IncorrectTypeException("define()", 
-                                             lexerParser.LCadSymbol("na").simple_type_name,
-                                             key.simple_type_name,
-                                             lcad_expression.start_line)
+            raise lce.CannotSetException(env,
+                                         key.simple_type_name)
+
+        if not key.value in env.variables:
+            raise lce.VariableNotDefined(env,
+                                         key.value)
         val = interpret(cur_env, value)
-        # This is so that later variable definitions can "see" earlier ones.
-        cur_env.variables[key.value] = val
-        env.variables[key.value] = val
+        env.variables[key.value].value = val
         ret = val
     return ret
+addfn(setlc, 2, True, "set")
 
-fn["set"] = setlc
-
-@addfn
-def translate(env, lcad_expression):
+def translate(env, args):
     """
-    Add a rotation to the current transformation matrix.
+    Add a rotation to the current transformation matrix. Parts inside a translate
+    block have this transformation applied to them.
 
     :param dx: Displacement in x in LDU.
     :param dy: Displacement in x in LDU.
     :param dz: Displacement in x in LDU.
 
-    """
-    args = lcad_expression.value[1:]
-    if (len(args) < 4):
-        raise lce.NumberArgumentsException("translate()", "3+", len(args), lcad_expression.start_line)
+    Usage:
+     (translate 0 0 5 .. )
 
+    """
     cur_env = env.make_copy()
     m = numpy.identity(4)
     m[0,3] = interpret(cur_env, args[0])
@@ -181,7 +186,11 @@ def translate(env, lcad_expression):
     m[2,3] = interpret(cur_env, args[2])
 
     cur_env.m = numpy.dot(cur_env.m, m)
-    return interpret(cur_env, lcad_expression.value[4:])
+    if (len(args) > 3):
+        return interpret(cur_env, args[3:])
+    else:
+        return None
+addfn(translate, 3, True)
 
 #
 # The MIT License
