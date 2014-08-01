@@ -12,12 +12,6 @@ import lcadExceptions as lce
 import functions
 import lexerParser
 
-class Box(object):
-    """
-    Box variables so that they don't get copied.
-    """
-    def __init__(self, value):
-        self.value = value
 
 class Env(object):
     """
@@ -29,8 +23,8 @@ class Env(object):
         self.debug = debug
         self.fn_line = 0
         self.fn_name = None
-        self.functions = functions.fn
-        self.m = numpy.identity(4)
+        self.functions = {}
+        self.special_forms = functions.special_forms
         self.parts_list = []
         self.variables = {}
 
@@ -39,10 +33,41 @@ class Env(object):
         a_copy.debug = self.debug
         a_copy.fn_name = self.fn_name
         a_copy.functions = self.functions.copy()
-        a_copy.m = self.m
+        a_copy.special_forms = self.special_forms
         a_copy.parts_list = self.parts_list
         a_copy.variables = self.variables.copy()
         return a_copy
+
+class Matrix(object):
+    """
+    This class keeps track of the current transformation matrix.
+    """
+    def __init(self, debug = False):
+        self.m = numpy.identity(4)
+
+    def make_copy(self):
+        a_copy.m = self.m.copy()
+
+class Variable(object):
+    """
+    Box variables so that they don't get copied when the environment gets copied.
+    """
+    def __init__(self, name):
+        self.name = name
+        self.set = False
+        self.used = False
+        self.value = None
+
+    def getv(self, env = None):
+        if not self.set:
+            raise VariableNotSetException(env, self.name)
+        self.used = True
+        return self.value
+
+    def setv(self, value):
+        self.set = True
+        self.value = value
+
 
 def dispatch(fn, env, tree):
     """
@@ -80,10 +105,70 @@ def dispatch(fn, env, tree):
     else:
         pass
 
-def interpret(env, tree):
+def symbolTable(env, tree):
     """
-    The interpreter recursively walks the AST evaluating the nodes
-    in the context of the current environment.
+    Recursively walk the AST to determine the lexical environment creating
+    variables and functions, along with environment in which the function
+    will be called.
+    """
+    
+    if hasattr(tree, "start_line"):
+        env.fn_line = tree.start_line
+
+    if isinstance(tree, lexerParser.LCadExpression):
+
+        flist = tree.value
+        if isinstance(flist[0], lexerParser.LCadExpression):
+            pass
+
+        elif isinstance(flist[0], lexerParser.LCadSymbol):
+
+            # Is something defined?
+            if (flist[0].value == "def"):
+                env.fn_name = "def"
+
+                # def needs at least 3 arguments.
+                if (len(flist)<3):
+                    raise lce.NumberArgumentsException(env, "2 or more", len(flist) - 1)
+
+                # 4 arguments means this is a function definition.
+                if (len(flist)==4):
+                    env.functions[flist[1].value] = functions.UserFunction(env, tree)
+
+                # Must be divisible by 2.
+                elif ((len(flist)%2)!=1):
+                    raise lce.NumberArgumentsException(env, "an even number of arguments", len(flist) - 1)
+
+                # Otherwise it is a variable.
+                else:
+                    i = 1
+                    while(i < len(flist)):
+                        if not isinstance(flist[i], lexerParser.LCadSymbol):
+                            raise lce.CannotSetException(env, flist[i].simple_type_name)
+                        symbolTable(env, flist[0])
+                        env.variables[flist[i].value] = Variable(flist[i])
+                        i += 2
+
+            # If not it must be a function that is already defined.
+            else:
+                env.fn_name = flist[0].value
+                if (len(flist) > 1):
+                    for node in flist[1:]:
+                        new_env = env.make_copy()
+                        symbolTable(new_env, node)
+
+        # The first element of list has to be a symbol or another expression.
+        else:
+            raise lce.ExpressionException(env)
+
+    elif isinstance(tree, list):
+        for node in tree:
+            symbolTable(env, node)
+
+def interpret(matrix, env, tree):
+    """
+    Recursively walks the AST evaluating the nodes in the context 
+    of the current environment and transform matrix.
 
     Variables and functions have lexical scope.
     """
@@ -121,7 +206,7 @@ def interpret(env, tree):
 
         # Another expression?
         if isinstance(flist[0], lexerParser.LCadExpression):
-            fname = interpret(env, flist[0])
+            fname = interpret(matrix, env, flist[0])
 
         elif isinstance(flist[0], lexerParser.LCadSymbol):
             fname = flist[0].value
@@ -129,12 +214,9 @@ def interpret(env, tree):
         else:
             raise lce.ExpressionException(env)
 
-        old_fn_name = env.fn_name
-        env.fn_name = fname
         try:
-            return dispatch(env.functions[fname], env, tree)
+            return dispatch(env.functions[fname], matrix, env, tree)
         except KeyError:
-            env.fn_name = old_fn_name
             raise lce.NoSuchFunctionException(env, fname)
 
     # List
@@ -156,12 +238,13 @@ if (__name__ == '__main__'):
 
     env = Env(debug = False)
     with open(sys.argv[1]) as fp:
-        interpret(env, parser.parse(lexer.lex(fp.read())))
+        ast = parser.parse(lexer.lex(fp.read()))
+        symbolTable(env, ast)
 
     print ""
     print "Functions", env.functions.keys()
     print "Variables", env.variables.keys()
-    print "Total parts", len(env.parts_list)
+    #print "Total parts", len(env.parts_list)
 
 #
 # The MIT License

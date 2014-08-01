@@ -15,26 +15,47 @@ import numpy
 
 import lcadExceptions as lce
 import lexerParser
-from interpreter import Box, interpret
+from interpreter import interpret
 import parts
 
-fn = {}
+special_forms = {}
 
-def addfn(func, args_number, args_gt = False, name = None):
+
+class UserFunction(object):
+    def __init__(self, env, tree):
+        self.env = env
+        
+        flist = tree.value[1:]
+        self.name = flist[0].value
+        self.arg_list = flist[1].value
+        self.body = flist[2].value
+
+    def call(self, args):
+        pass
+
+
+def add_special_form(func, args_number, args_gt = False, name = None):
     """
-    This adds the function to the list of (built-in) functions and
+    This adds the function to the list of special forms and
     it decorates the function with some additional information
     that we can use later to verify that the function was called
     properly.
+
+    These are functions that cannot be written in the language itself
+    and that are evaluated in a dynamic context and not a lexical
+    context, i.e. they can see variables and functions in the
+    enclosing blocks in which they were called. This is not the case 
+    with the user functions which can only see the variables and
+    functions in their lexical context, i.e. where they were defined.
     """
-    global fn
+    global special_forms
     func.builtin = True
     func.args_number = args_number
     func.args_gt = args_gt
     if name is not None:
-        fn[name] = func
+        special_forms[name] = func
     else:
-        fn[func.__name__] = func
+        special_forms[func.__name__] = func
 
 
 # Work around that def already exists in Python.
@@ -52,30 +73,30 @@ def deflc(env, args):
     # Variables.
     if ((len(args)%2) == 0):
         ret = None
-        cur_env = env.make_copy()
         kv_pairs = izip(*[iter(args)]*2)
         for key, value in kv_pairs:
-            if not isinstance(key, lexerParser.LCadSymbol):
-                raise lce.CannotSetException(env,
-                                             key.simple_type_name)
+            #if not isinstance(key, lexerParser.LCadSymbol):
+            #    raise lce.CannotSetException(env,
+            #                                 key.simple_type_name)
 
-            val = interpret(cur_env, value)
+            val = interpret(env, value)
             # This is so that later variable definitions can "see" earlier ones.
-            cur_env.variables[key.value] = Box(val)
+            #cur_env.variables[key.value] = Box(val)
 
             # Warn about variable shadowing?
-            if key.value in env.variables:
-                print "!Warning in '" + env.fn_name + "' at line", env.fn_line, ",", key.value, "is already defined"
-            env.variables[key.value] = Box(val)
+            #if key.value in env.variables:
+            #    print "!Warning in '" + env.fn_name + "' at line", env.fn_line, ",", key.value, "is already defined."
+
+            # If the symbol is not already defined for this environment then something has gone seriously amiss.
+            if not hasattr(env.variables[key.value]):
+                raise Exception("My hovercraft is full of eels!!")
+
+            env.variables[key.value].setv(val)
             ret = val
         return ret
 
-    # Functions.
-    else:
-        pass
-
     return None
-addfn(deflc, 2, True, "def")
+add_special_form(deflc, 2, True, "def")
 
 def part(env, args):
     """
@@ -93,7 +114,7 @@ def part(env, args):
     part_color = interpret(env, args[1])
     env.parts_list.append(parts.Part(env.m, part_id, part_color))
     return None
-addfn(part, 2, True)
+add_special_form(part, 2, True)
 
 def rotate(env, args):
     """
@@ -109,10 +130,9 @@ def rotate(env, args):
      (rotate 0 0 90 .. )
 
     """
-    cur_env = env.make_copy()
-    ax = interpret(cur_env, args[0]) * numpy.pi / 180.0
-    ay = interpret(cur_env, args[1]) * numpy.pi / 180.0
-    az = interpret(cur_env, args[2]) * numpy.pi / 180.0
+    ax = interpret(env, args[0]) * numpy.pi / 180.0
+    ay = interpret(env, args[1]) * numpy.pi / 180.0
+    az = interpret(env, args[2]) * numpy.pi / 180.0
 
     rx = numpy.identity(4)
     rx[1,1] = math.cos(ax)
@@ -137,7 +157,7 @@ def rotate(env, args):
         return interpret(cur_env, args[3:])
     else:
         return None
-addfn(rotate, 3, True)
+add_special_form(rotate, 3, True)
 
 # Work around that set already exists in Python.
 def setlc(env, args):
@@ -150,7 +170,6 @@ def setlc(env, args):
      (set x fn) - Set x to value of the symbol fn.
     """
     ret = None
-    cur_env = env.make_copy()
     kv_pairs = izip(*[iter(args)]*2)
     for key, value in kv_pairs:
         if not isinstance(key, lexerParser.LCadSymbol):
@@ -160,11 +179,11 @@ def setlc(env, args):
         if not key.value in env.variables:
             raise lce.VariableNotDefined(env,
                                          key.value)
-        val = interpret(cur_env, value)
-        env.variables[key.value].value = val
+        val = interpret(env, value)
+        env.variables[key.value].setv(val)
         ret = val
     return ret
-addfn(setlc, 2, True, "set")
+add_special_form(setlc, 2, True, "set")
 
 def translate(env, args):
     """
@@ -179,18 +198,18 @@ def translate(env, args):
      (translate 0 0 5 .. )
 
     """
-    cur_env = env.make_copy()
+    env = env.make_copy()
     m = numpy.identity(4)
-    m[0,3] = interpret(cur_env, args[0])
-    m[1,3] = interpret(cur_env, args[1])
-    m[2,3] = interpret(cur_env, args[2])
+    m[0,3] = interpret(env, args[0])
+    m[1,3] = interpret(env, args[1])
+    m[2,3] = interpret(env, args[2])
 
     cur_env.m = numpy.dot(cur_env.m, m)
     if (len(args) > 3):
         return interpret(cur_env, args[3:])
     else:
         return None
-addfn(translate, 3, True)
+add_special_form(translate, 3, True)
 
 #
 # The MIT License

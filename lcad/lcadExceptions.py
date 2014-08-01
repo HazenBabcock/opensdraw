@@ -46,6 +46,14 @@ class VariableNotDefined(Exception):
             message = "Variable '" + variable_name + "' not defined at line " + str(env.fn_line)
         Exception.__init__(self, message)
 
+class VariableNotSetException(Exception):
+    def __init__(self, env, variable_name):
+        if env is not None:
+            message = "Variable '" + variable_name + "' used before initialization in function '" + env.fn_name + "' "
+            message += "at line " + str(env.fn_line)
+        else:
+            message = "Variable '" + variable_name + "' used before initialization."
+
 #
 # The MIT License
 #
