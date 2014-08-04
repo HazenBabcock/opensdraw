@@ -5,54 +5,38 @@
 # Hazen 07/14
 #
 
-class CannotSetException(Exception):
-    def __init__(self, env, item_type):
-        message = "In '" + env.fn_name + "' at line " + str(env.fn_line)
-        message += " type '" + item_type + "' is not settable."
+class LCadException(Exception):
+    def __init__(self, expr, message):
+        message = "In expression '" + expr.value[0] + "' at line " + expr.start_line + ", " + message
         Exception.__init__(self, message)
 
-class ExpressionException(Exception):
-    def __init__(self, env):
-        message = "Expected a function as the first element of the list at line " + str(env.fn_line)
-        if env.fn_name is not None:
-            message += " in function '" + env.fn_name + "'"
-        Exception.__init__(self, message)
+class CannotSetException(LCadException):
+    def __init__(self, expr, item_type):
+        LCadException.__init__(self, "type '" + item_type + "' is not settable.")
 
-class IncorrectTypeException(Exception):
-    def __init__(self, env, expected, got):
-        message = "Wrong arguments type for '" + env.fn_name + "' at line " + str(env.fn_line)
-        message += ", got '" + got + "' expected '" + expected + "'"
-        Exception.__init__(self, message)
+class ExpressionException(LCadException):
+    def __init__(self, expr):
+        LCadException.__init__(self, "the first element of the list must be a function.")
 
-class NoSuchFunctionException(Exception):
-    def __init__(self, env, unknown_function):
-        message = "No such function '" + unknown_function + "' at line " + str(env.fn_line)
-        if env.fn_name is not None:
-            message += " in function '" + env.fn_name + "'"
-        Exception.__init__(self, message)
+class IncorrectTypeException(LCadException):
+    def __init__(self, expr, expected, got):
+        LCadException.__init__(self, "wrong argument type, got '" + got + "' expected '" + expected + "'")
 
-class NumberArgumentsException(Exception):
-    def __init__(self, env, expected, got):
-        message = "Wrong number of arguments to '" + env.fn_name + "' at line " + str(env.fn_line)
-        message += ", got " + str(got) + " expected " + str(expected)
-        Exception.__init__(self, message)
+class NoSuchFunctionException(LCadException):
+    def __init__(self, expr, unknown_function):
+        LCadException.__init__(self, "unknown function '" + unknown_function + "'")
 
-class VariableNotDefined(Exception):
-    def __init__(self, env, variable_name):
-        if env.fn_name is not None:
-            message = "Variable '" + variable_name + "' not defined in function '" + env.fn_name + "' "
-            message += "at line " + str(env.fn_line)
-        else:
-            message = "Variable '" + variable_name + "' not defined at line " + str(env.fn_line)
-        Exception.__init__(self, message)
+class NumberArgumentsException(LCadException):
+    def __init__(self, expr, expected, got):
+        LCadException.__init__(self, "wrong number of arguments, got " + str(got) + " expected " + str(expected))
 
-class VariableNotSetException(Exception):
-    def __init__(self, env, variable_name):
-        if env is not None:
-            message = "Variable '" + variable_name + "' used before initialization in function '" + env.fn_name + "' "
-            message += "at line " + str(env.fn_line)
-        else:
-            message = "Variable '" + variable_name + "' used before initialization."
+class SymbolNotDefined(LCadException):
+    def __init__(self, expr, variable_name):
+        LCadException.__init__(self, "symbol '" + variable_name + "' not defined.")
+
+class VariableNotSetException(LCadException):
+    def __init__(self, expr, variable_name):
+        LCadException.__init__(self, "variable '" + variable_name + "' used before initialization.")
 
 #
 # The MIT License
