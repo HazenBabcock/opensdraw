@@ -36,6 +36,7 @@ class LCadConstant(LCadObject):
 
 class LCadExpression(LCadObject):
     def __init__(self, expression):
+        self.lenv = None
         self.simple_type_name = "Expression"
         self.value = expression
 
@@ -56,6 +57,7 @@ class LCadString(LCadConstant):
 
 class LCadSymbol(LCadObject):
     def __init__(self, value):
+        self.lenv = None
         self.simple_type_name = "Symbol"
         self.value = str(value)
 
