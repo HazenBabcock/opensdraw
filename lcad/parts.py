@@ -18,6 +18,8 @@ class Part(object):
         self.loc = numpy.dot(self.model_matrix, self.loc)
 
         print "Added part", self.part_id, "with color", self.part_color, "at", self.loc
+        #print model_matrix
+        #print ""
 
 #
 # The MIT License

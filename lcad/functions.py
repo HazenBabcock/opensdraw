@@ -167,14 +167,14 @@ class LCadRotate(SpecialFunction):
         rx[2,2] = rx[1,1]
 
         ry = numpy.identity(4)
-        ry[0,0] = math.cos(ax)
-        ry[0,2] = -math.sin(ax)
+        ry[0,0] = math.cos(ay)
+        ry[0,2] = -math.sin(ay)
         ry[2,0] = -ry[0,2]
         ry[2,2] = ry[0,0]
 
         rz = numpy.identity(4)
-        rz[0,0] = math.cos(ax)
-        rz[0,1] = -math.sin(ax)
+        rz[0,0] = math.cos(az)
+        rz[0,1] = -math.sin(az)
         rz[1,0] = -rz[0,1]
         rz[1,1] = rz[0,0]
 
