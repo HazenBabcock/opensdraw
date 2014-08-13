@@ -13,53 +13,49 @@ from itertools import izip
 import math
 import numpy
 
+import interpreter as interp
 import lcadExceptions as lce
 import lexerParser
-from interpreter import interpret
 import parts
 
-special_forms = {}
+special_functions = {}
 
+class LCadFunction(object):
+    def __init__(self, name):
+        self.name = name
 
-class UserFunction(object):
-    def __init__(self, env, tree):
-        self.env = env
-        
+    def argCheck(self, tree):
+        pass
+
+    def call(self, model, tree):
+        pass
+
+class Function(LCadFunction):
+    def __init__(self, tree):
         flist = tree.value[1:]
         self.name = flist[0].value
         self.arg_list = flist[1].value
         self.body = flist[2].value
 
-    def call(self, args):
+    def argCheck(self, args):
+        if (len(self.arg_list) != len(args)):
+            # throw exception.
+            pass
+
+    def call(self, model, tree):
         pass
 
 
-def add_special_form(func, args_number, args_gt = False, name = None):
+class SpecialFunction(LCadFunction):
     """
-    This adds the function to the list of special forms and
-    it decorates the function with some additional information
-    that we can use later to verify that the function was called
-    properly.
-
-    These are functions that cannot be written in the language itself
-    and that are evaluated in a dynamic context and not a lexical
-    context, i.e. they can see variables and functions in the
-    enclosing blocks in which they were called. This is not the case 
-    with the user functions which can only see the variables and
-    functions in their lexical context, i.e. where they were defined.
+    These are functions that cannot be written in the language itself.
     """
-    global special_forms
-    func.builtin = True
-    func.args_number = args_number
-    func.args_gt = args_gt
-    if name is not None:
-        special_forms[name] = func
-    else:
-        special_forms[func.__name__] = func
+    pass
 
 
-# Work around that def already exists in Python.
-def deflc(env, args):
+#class LCadBlock(SpecialFunction):
+
+class LCadDef(SpecialFunction):
     """
     Create a variable or function.
 
@@ -70,35 +66,39 @@ def deflc(env, args):
 
     Note that you cannot create multiple functions at the same time.
     """
-    # Variables.
-    if ((len(args)%2) == 0):
-        ret = None
-        kv_pairs = izip(*[iter(args)]*2)
-        for key, value in kv_pairs:
-            #if not isinstance(key, lexerParser.LCadSymbol):
-            #    raise lce.CannotSetException(env,
-            #                                 key.simple_type_name)
+    def __init__(self):
+        self.name = "def"
 
-            val = interpret(env, value)
-            # This is so that later variable definitions can "see" earlier ones.
-            #cur_env.variables[key.value] = Box(val)
+    # The assumption is that incorrect arguments to def were
+    # caught in createLexicalEnv().
+    def argCheck(self, tree):
+        pass
 
-            # Warn about variable shadowing?
-            #if key.value in env.variables:
-            #    print "!Warning in '" + env.fn_name + "' at line", env.fn_line, ",", key.value, "is already defined."
+    # This only sets variables. Functions are created in createLexicalEnv().
+    def call(self, model, tree):
+        args = tree.value[1:]
+        if ((len(args)%2) == 0):
+            ret = None
+            kv_pairs = izip(*[iter(args)]*2)
+            for key, value in kv_pairs:
+                val = interp.interpret(model, value)
 
-            # If the symbol is not already defined for this environment then something has gone seriously amiss.
-            if not hasattr(env.variables[key.value]):
-                raise Exception("My hovercraft is full of eels!!")
+                # If the symbol is not already defined for this environment then something has gone seriously amiss.
+                if not key.value in tree.lenv.symbols:
+                    raise Exception("My hovercraft is full of eels!!")
 
-            env.variables[key.value].setv(val)
-            ret = val
-        return ret
+                tree.lenv.symbols[key.value].setv(val)
+                ret = val
+            return ret
+        return None
 
-    return None
-add_special_form(deflc, 2, True, "def")
+special_functions["def"] = LCadDef()
 
-def part(env, args):
+
+#class LCadMirror(SpecialFunction):
+
+
+class LCadPart(SpecialFunction):
     """
     Add a part to the model.
 
@@ -110,13 +110,25 @@ def part(env, args):
      (part '32524' "yellow")
 
     """
-    part_id = interpret(env, args[0])
-    part_color = interpret(env, args[1])
-    env.parts_list.append(parts.Part(env.m, part_id, part_color))
-    return None
-add_special_form(part, 2, True)
+    def __init__(self):
+        self.name = "part"
 
-def rotate(env, args):
+    def argCheck(self, tree):
+        flist = tree.value
+        if (len(flist) != 3):
+            raise lce.NumberArgumentsException(tree, 2, len(flist) - 1)
+
+    def call(self, model, tree):
+        args = tree.value[1:]
+        part_id = interp.interpret(model, args[0])
+        part_color = interp.interpret(model, args[1])
+        model.parts_list.append(parts.Part(model.m, part_id, part_color))
+        return None
+
+special_functions["part"] = LCadPart()
+
+
+class LCadRotate(SpecialFunction):
     """
     Add a rotation to the current transformation matrix, rotation 
     is done first around z, then y and then x. Parts added inside
@@ -127,40 +139,56 @@ def rotate(env, args):
     :param az: Amount to rotate around the y axis in degrees.
 
     Usage:
-     (rotate 0 0 90 .. )
+     (rotate (0 0 90) .. )
 
     """
-    ax = interpret(env, args[0]) * numpy.pi / 180.0
-    ay = interpret(env, args[1]) * numpy.pi / 180.0
-    az = interpret(env, args[2]) * numpy.pi / 180.0
+    def __init__(self):
+        self.name = "rotate"
 
-    rx = numpy.identity(4)
-    rx[1,1] = math.cos(ax)
-    rx[1,2] = -math.sin(ax)
-    rx[2,1] = -rx[1,2]
-    rx[2,2] = rx[1,1]
+    def argCheck(self, tree):
+        flist = tree.value
+        if (len(flist)<2):
+            raise lce.NumberArgumentsException(tree, "3", 0)
+        if (len(flist[1].value) != 3):
+            raise lce.NumberArgumentsException(tree, "3", len(flist[1].value))
 
-    ry = numpy.identity(4)
-    ry[0,0] = math.cos(ax)
-    ry[0,2] = -math.sin(ax)
-    ry[2,0] = -ry[0,2]
-    ry[2,2] = ry[0,0]
+    def call(self, model, tree):
+        args = tree.value[1].value
 
-    rz = numpy.identity(4)
-    rz[0,0] = math.cos(ax)
-    rz[0,1] = -math.sin(ax)
-    rz[1,0] = -rz[0,1]
-    rz[1,1] = rz[0,0]
+        new_model = model.makeCopy()        
+        ax = interp.interpret(new_model, args[0]) * numpy.pi / 180.0
+        ay = interp.interpret(new_model, args[1]) * numpy.pi / 180.0
+        az = interp.interpret(new_model, args[2]) * numpy.pi / 180.0
 
-    cur_env.m = numpy.dot(cur_env.m, (numpy.dot(rx, numpy.dot(ry, rz))))
-    if (len(args) > 3):
-        return interpret(cur_env, args[3:])
-    else:
-        return None
-add_special_form(rotate, 3, True)
+        rx = numpy.identity(4)
+        rx[1,1] = math.cos(ax)
+        rx[1,2] = -math.sin(ax)
+        rx[2,1] = -rx[1,2]
+        rx[2,2] = rx[1,1]
 
-# Work around that set already exists in Python.
-def setlc(env, args):
+        ry = numpy.identity(4)
+        ry[0,0] = math.cos(ax)
+        ry[0,2] = -math.sin(ax)
+        ry[2,0] = -ry[0,2]
+        ry[2,2] = ry[0,0]
+
+        rz = numpy.identity(4)
+        rz[0,0] = math.cos(ax)
+        rz[0,1] = -math.sin(ax)
+        rz[1,0] = -rz[0,1]
+        rz[1,1] = rz[0,0]
+
+        new_model.m = numpy.dot(new_model.m, (numpy.dot(rx, numpy.dot(ry, rz))))
+
+        if (len(tree.value) > 2):
+            return interp.interpret(new_model, tree.value[2:])
+        else:
+            return None
+
+special_functions["rotate"] = LCadRotate()
+
+
+class LCadSet(SpecialFunction):
     """
     Set the value of an existing symbol.
 
@@ -169,23 +197,32 @@ def setlc(env, args):
      (set x 15 y 20) - Set x to 15 and y to 20.
      (set x fn) - Set x to value of the symbol fn.
     """
-    ret = None
-    kv_pairs = izip(*[iter(args)]*2)
-    for key, value in kv_pairs:
-        if not isinstance(key, lexerParser.LCadSymbol):
-            raise lce.CannotSetException(env,
-                                         key.simple_type_name)
+    def __init__(self):
+        self.name = "set"
 
-        if not key.value in env.variables:
-            raise lce.VariableNotDefined(env,
-                                         key.value)
-        val = interpret(env, value)
-        env.variables[key.value].setv(val)
-        ret = val
-    return ret
-add_special_form(setlc, 2, True, "set")
+    def argCheck(self, tree):
+        flist = tree.value
+        if (len(flist) < 3) or ((len(flist[1:])%2) != 0):
+            raise lce.NumberArgumentsException(tree, "A multiple of 2", len(flist[1:]))
 
-def translate(env, args):
+    def call(self, model, tree):
+        args = tree.value[1:]
+        ret = None
+        kv_pairs = izip(*[iter(args)]*2)
+        for key, node in kv_pairs:
+            if not isinstance(key, lexerParser.LCadSymbol):
+                raise lce.CannotSetException(tree, key.simple_type_name)
+            if not key.value in tree.lenv.symbols:
+                raise lce.VariableNotDefined(tree, key.value)
+            val = interp.interpret(model, node)
+            tree.lenv.symbols[key.value].setv(val)
+            ret = val
+        return ret
+
+special_functions["set"] = LCadSet()
+
+
+class LCadTranslate(SpecialFunction):
     """
     Add a rotation to the current transformation matrix. Parts inside a translate
     block have this transformation applied to them.
@@ -195,21 +232,36 @@ def translate(env, args):
     :param dz: Displacement in x in LDU.
 
     Usage:
-     (translate 0 0 5 .. )
+     (translate (0 0 5) .. )
 
     """
-    env = env.make_copy()
-    m = numpy.identity(4)
-    m[0,3] = interpret(env, args[0])
-    m[1,3] = interpret(env, args[1])
-    m[2,3] = interpret(env, args[2])
+    def __init__(self):
+        self.name = "translate"
 
-    cur_env.m = numpy.dot(cur_env.m, m)
-    if (len(args) > 3):
-        return interpret(cur_env, args[3:])
-    else:
-        return None
-add_special_form(translate, 3, True)
+    def argCheck(self, tree):
+        flist = tree.value
+        if (len(flist)<2):
+            raise lce.NumberArgumentsException(tree, "3", 0)
+        if (len(flist[1].value) != 3):
+            raise lce.NumberArgumentsException(tree, "3", len(flist[1].value))
+
+    def call(self, model, tree):
+        args = tree.value[1].value
+
+        new_model = model.makeCopy()
+        m = numpy.identity(4)
+        m[0,3] = interp.interpret(new_model, args[0])
+        m[1,3] = interp.interpret(new_model, args[1])
+        m[2,3] = interp.interpret(new_model, args[2])
+
+        new_model.m = numpy.dot(new_model.m, m)
+        if (len(tree.value) > 2):
+            return interp.interpret(new_model, tree.value[2:])
+        else:
+            return None
+
+special_functions["translate"] = LCadTranslate()
+
 
 #
 # The MIT License
