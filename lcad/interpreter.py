@@ -171,12 +171,13 @@ def interpret(model, tree):
         else:
             raise lce.ExpressionException(tree)
 
-#        try:
-#            val = dispatch(func, model, tree)
-#        except LCadException:
-#            print "Error in expression '" + 
+        try:
+            val = dispatch(func, model, tree)
+        except lce.LCadException:
+            print ""
+            print "Error in function", func.name, "at line", tree.start_line, ":"
+            raise
 
-        val = dispatch(func, model, tree)
         return val
 
     # List
