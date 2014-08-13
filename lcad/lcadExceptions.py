@@ -7,36 +7,36 @@
 
 class LCadException(Exception):
     def __init__(self, expr, message):
-        message = "In expression '" + expr.value[0] + "' at line " + expr.start_line + ", " + message
+        message = "Error at line " + str(expr.start_line) + ", " + message
         Exception.__init__(self, message)
 
 class CannotSetException(LCadException):
     def __init__(self, expr, item_type):
-        LCadException.__init__(self, "type '" + item_type + "' is not settable.")
+        LCadException.__init__(self, expr, "type '" + item_type + "' is not settable.")
 
 class ExpressionException(LCadException):
     def __init__(self, expr):
-        LCadException.__init__(self, "the first element of the list must be a function.")
+        LCadException.__init__(self, expr, "the first element of the list must be a function.")
 
 class IncorrectTypeException(LCadException):
     def __init__(self, expr, expected, got):
-        LCadException.__init__(self, "wrong argument type, got '" + got + "' expected '" + expected + "'")
+        LCadException.__init__(self, expr, "wrong argument type, got '" + got + "' expected '" + expected + "'")
 
 class NoSuchFunctionException(LCadException):
     def __init__(self, expr, unknown_function):
-        LCadException.__init__(self, "unknown function '" + unknown_function + "'")
+        LCadException.__init__(self, expr, "unknown function '" + unknown_function + "'")
 
 class NumberArgumentsException(LCadException):
     def __init__(self, expr, expected, got):
-        LCadException.__init__(self, "wrong number of arguments, got " + str(got) + " expected " + str(expected))
+        LCadException.__init__(self, expr, "wrong number of arguments, got " + str(got) + " expected " + str(expected))
 
 class SymbolNotDefined(LCadException):
     def __init__(self, expr, variable_name):
-        LCadException.__init__(self, "symbol '" + variable_name + "' not defined.")
+        LCadException.__init__(self, expr, "symbol '" + variable_name + "' not defined.")
 
 class VariableNotSetException(LCadException):
     def __init__(self, expr, variable_name):
-        LCadException.__init__(self, "variable '" + variable_name + "' used before initialization.")
+        LCadException.__init__(self, expr, "variable '" + variable_name + "' used before initialization.")
 
 #
 # The MIT License
