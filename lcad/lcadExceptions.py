@@ -18,6 +18,10 @@ class ExpressionException(LCadException):
     def __init__(self, expr):
         LCadException.__init__(self, expr, "the first element of the list must be a function.")
 
+class IllegalArgumentTypeException(LCadException):
+    def __init__(self, expr):
+        LCadException.__init__(self, expr, "arguments in function definition must be symbols.")
+
 class IncorrectTypeException(LCadException):
     def __init__(self, expr, expected, got):
         LCadException.__init__(self, expr, "wrong argument type, got '" + got + "' expected '" + expected + "'")
