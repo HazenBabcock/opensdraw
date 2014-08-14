@@ -19,7 +19,7 @@ class LEnv(object):
     """
     def __init__(self, debug = False):
         self.debug = debug
-        self.symbols = functions.special_functions.copy()
+        self.symbols = functions.builtin_functions.copy()
 
     def makeCopy(self):
         a_copy = LEnv()
@@ -104,7 +104,7 @@ def createLexicalEnv(lenv, tree):
 
                 # 4 arguments means this is a function definition.
                 if (len(flist)==4):
-                    tree.lenv.symbols[flist[1].value] = functions.Function(tree.lenv.makeCopy(), tree)
+                    tree.lenv.symbols[flist[1].value] = functions.UserFunction(tree.lenv.makeCopy(), tree)
 
                 # Otherwise it defines one (or more variables).
                 else:
@@ -177,9 +177,9 @@ def interpret(model, tree):
 
         try:
             val = dispatch(func, model, tree)
-        except lce.LCadException:
-            print ""
-            print "Error in function", func.name, "at line", tree.start_line, ":"
+        except Exception:
+        #except lce.LCadException:
+            print "!Error in function", func.name, "at line", tree.start_line, ":"
             raise
 
         return val

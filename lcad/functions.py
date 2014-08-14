@@ -18,7 +18,7 @@ import lcadExceptions as lce
 import lexerParser
 import parts
 
-special_functions = {}
+builtin_functions = {}
 
 class LCadFunction(object):
     def __init__(self, name):
@@ -30,9 +30,14 @@ class LCadFunction(object):
     def call(self, model, tree):
         pass
 
-class Function(LCadFunction):
+
+#
+# User functions.
+#
+
+class UserFunction(LCadFunction):
     """
-    'Normal' functions and user defined functions.
+    'Normal' user defined functions.
     """
     def __init__(self, lenv, tree):
         flist = tree.value[1:]
@@ -61,6 +66,11 @@ class Function(LCadFunction):
             self.body.lenv.symbols[self.arg_list[i].value].setv(interp.interpret(model, args[i]))
         return interp.interpret(model, self.body)
 
+
+#
+# Special Functions.
+#
+
 class SpecialFunction(LCadFunction):
     """
     These are functions that cannot be written in the language itself.
@@ -68,7 +78,29 @@ class SpecialFunction(LCadFunction):
     pass
 
 
-#class LCadBlock(SpecialFunction):
+class LCadBlock(SpecialFunction):
+    """
+    A 'block' of code, similar to progn in Lisp.
+
+    Usage:
+     (block
+       (def x 15)    ; local variable x
+       (def inc-x () ; function to modify x (and return the current value).
+         (+ x 1))
+       inc-x)        ; return the inc-x function
+
+    """
+    def __init__(self):
+        self.name = "block"
+
+    def call(self, model, tree):
+        val = None
+        for node in tree.value[1:]:
+            val = interp.interpret(model, node)
+        return val
+
+builtin_functions["block"] = LCadBlock()
+
 
 class LCadDef(SpecialFunction):
     """
@@ -80,14 +112,10 @@ class LCadDef(SpecialFunction):
      (def incf (x) (+ x 1)) - Create the function incf.
 
     Note that you cannot create multiple functions at the same time.
+
     """
     def __init__(self):
         self.name = "def"
-
-    # The assumption is that incorrect arguments to def were
-    # caught in createLexicalEnv().
-    def argCheck(self, tree):
-        pass
 
     # This only sets variables. Functions are created in createLexicalEnv().
     def call(self, model, tree):
@@ -107,7 +135,7 @@ class LCadDef(SpecialFunction):
             return ret
         return None
 
-special_functions["def"] = LCadDef()
+builtin_functions["def"] = LCadDef()
 
 
 #class LCadMirror(SpecialFunction):
@@ -140,7 +168,28 @@ class LCadPart(SpecialFunction):
         model.parts_list.append(parts.Part(model.m, part_id, part_color))
         return None
 
-special_functions["part"] = LCadPart()
+builtin_functions["part"] = LCadPart()
+
+
+class LCadPrint(SpecialFunction):
+    """
+    Print to the console.
+
+    Usage:
+     (print x "=" 10)
+
+    """
+    def __init__(self):
+        self.name = "print"
+
+    def call(self, model, tree):
+        string = ""
+        for node in tree.value[1:]:
+            string += str(interp.interpret(model, node))
+        print string
+        return string
+
+builtin_functions["print"] = LCadPrint()
 
 
 class LCadRotate(SpecialFunction):
@@ -200,7 +249,7 @@ class LCadRotate(SpecialFunction):
         else:
             return None
 
-special_functions["rotate"] = LCadRotate()
+builtin_functions["rotate"] = LCadRotate()
 
 
 class LCadSet(SpecialFunction):
@@ -234,7 +283,7 @@ class LCadSet(SpecialFunction):
             ret = val
         return ret
 
-special_functions["set"] = LCadSet()
+builtin_functions["set"] = LCadSet()
 
 
 class LCadTranslate(SpecialFunction):
@@ -275,7 +324,90 @@ class LCadTranslate(SpecialFunction):
         else:
             return None
 
-special_functions["translate"] = LCadTranslate()
+builtin_functions["translate"] = LCadTranslate()
+
+
+#
+# Basic Math Functions.
+#
+
+class BasicMathFunction(LCadFunction):
+    """
+    Basic math functions, + - * /.
+    """
+    def argCheck(self, tree):
+        if (len(tree.value) < 3):
+            raise lce.NumberArgumentsException(tree, "2+", len(tree.value) - 1)
+
+
+class LCadDivide(SpecialFunction):
+    """
+    Divide the first number by one or more additional numbers.
+
+    Usage:
+     (/ 4 2)
+
+    """
+    def call(self, model, tree):
+        total = interp.interpret(model, tree.value[1])
+        for node in tree.value[2:]:
+            total = total/interp.interpret(model, node)
+        return total
+
+builtin_functions["/"] = LCadDivide("/")
+
+
+class LCadMinus(SpecialFunction):
+    """
+    Subtract one or more numbers from the first number.
+
+    Usage:
+     (- 50 20 y)
+
+    """
+    def call(self, model, tree):
+        total = interp.interpret(model, tree.value[1])
+        for node in tree.value[2:]:
+            total -= interp.interpret(model, node)
+        return total
+
+builtin_functions["-"] = LCadMinus("-")
+
+
+class LCadMultiply(SpecialFunction):
+    """
+    Multiply two or more numbers.
+
+    Usage:
+     (* 2 2 y)
+
+    """
+    def call(self, model, tree):
+        total = 1
+        for node in tree.value[2:]:
+            total = total * interp.interpret(model, node)
+        return total
+
+builtin_functions["*"] = LCadMultiply("*")
+
+
+class LCadPlus(SpecialFunction):
+    """
+    Add together two or more numbers.
+
+    Usage:
+     (+ 10 20 y)
+
+    """
+    def call(self, model, tree):
+        total = 0
+        for node in tree.value[1:]:
+            total += interp.interpret(model, node)
+        return total
+
+builtin_functions["+"] = LCadPlus("+")
+
+
 
 
 #
