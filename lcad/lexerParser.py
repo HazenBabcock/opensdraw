@@ -53,7 +53,7 @@ class LCadInteger(LCadConstant):
 class LCadString(LCadConstant):
     def __init__(self, value):
         self.simple_type_name = "String"
-        self.value = str(value)
+        self.value = str(value[1:-1])
 
 class LCadSymbol(LCadObject):
     def __init__(self, value):
@@ -131,6 +131,11 @@ def identifier(p):
 @set_boundaries
 def parens(p):
     return LCadExpression(p[1])
+
+@pg.production('parens : LPAREN RPAREN')
+@set_boundaries
+def empty_parens(p):
+    return LCadExpression([])
 
 @pg.error
 def error_handler(token):
