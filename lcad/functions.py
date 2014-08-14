@@ -31,20 +31,35 @@ class LCadFunction(object):
         pass
 
 class Function(LCadFunction):
-    def __init__(self, tree):
+    """
+    'Normal' functions and user defined functions.
+    """
+    def __init__(self, lenv, tree):
         flist = tree.value[1:]
         self.name = flist[0].value
         self.arg_list = flist[1].value
-        self.body = flist[2].value
+        self.body = flist[2]
+        self.body.lenv = lenv
 
-    def argCheck(self, args):
-        if (len(self.arg_list) != len(args)):
-            # throw exception.
-            pass
+        for arg in self.arg_list:
+            if not isinstance(arg, lexerParser.LCadSymbol):
+                raise lce.IllegalArgumentTypeException(tree)
+            if arg.value in self.body.lenv.symbols:
+                print "Warning function argument", arg.value, "overrides existing variable with the same name."
+            self.body.lenv.symbols[arg.value] = interp.Variable(arg.value)
+
+        interp.createLexicalEnv(lenv, flist[2])
+
+    def argCheck(self, tree):
+        if ((len(tree.value)-1) != len(self.arg_list)):
+            raise lce.NumberArgumentsException(tree, len(self.arg_list), (len(tree.value)-1))
 
     def call(self, model, tree):
-        pass
+        args = tree.value[1:]
 
+        for i in range(len(args)):
+            self.body.lenv.symbols[self.arg_list[i].value].setv(interp.interpret(model, args[i]))
+        return interp.interpret(model, self.body)
 
 class SpecialFunction(LCadFunction):
     """

@@ -104,7 +104,7 @@ def createLexicalEnv(lenv, tree):
 
                 # 4 arguments means this is a function definition.
                 if (len(flist)==4):
-                    lenv.symbols[flist[1].value] = functions.Function(tree)
+                    tree.lenv.symbols[flist[1].value] = functions.Function(tree.lenv.makeCopy(), tree)
 
                 # Otherwise it defines one (or more variables).
                 else:
@@ -121,6 +121,10 @@ def createLexicalEnv(lenv, tree):
                             flist[i+1].lenv = lenv
                         else:
                             createLexicalEnv(tree.lenv.makeCopy(), flist[i+1])
+
+                        # Warning for shadowing existing symbols.
+                        if flist[i].value in tree.lenv.symbols:
+                            print "Warning", flist[i].value, "overrides existing variable with the same name."
                         tree.lenv.symbols[flist[i].value] = Variable(flist[i].value)
                         i += 2
 
