@@ -17,12 +17,17 @@ class LEnv(object):
     """
     This keeps track of the current lexical environment.
     """
-    def __init__(self, debug = False):
+    def __init__(self, debug = False, add_builtins = True):
         self.debug = debug
-        self.symbols = functions.builtin_functions.copy()
+
+        self.symbols = {}
+        if add_builtins:
+            for fn_name in functions.builtin_functions.keys():
+                self.symbols[fn_name] = Symbol(fn_name)
+                self.symbols[fn_name].setv(functions.builtin_functions[fn_name])
 
     def makeCopy(self):
-        a_copy = LEnv()
+        a_copy = LEnv(add_builtins = False)
         a_copy.debug = self.debug
         a_copy.symbols = self.symbols.copy()
         return a_copy
@@ -42,24 +47,24 @@ class Model(object):
         a_copy.parts_list = self.parts_list
         return a_copy
 
-class Variable(object):
+class Symbol(object):
     """
-    Box variables so that they don't get copied when the environment gets copied.
+    Box symbols so that they don't get copied when the environment gets copied.
     """
     def __init__(self, name):
+        self.is_set = False
         self.name = name
-        self.set = False
         self.used = False
         self.value = None
 
     def getv(self, env):
-        if not self.set:
+        if not self.is_set:
             raise lce.VariableNotSetException(env, self.name)
         self.used = True
         return self.value
 
     def setv(self, value):
-        self.set = True
+        self.is_set = True
         self.value = value
 
 
@@ -104,7 +109,8 @@ def createLexicalEnv(lenv, tree):
 
                 # 4 arguments means this is a function definition.
                 if (len(flist)==4):
-                    tree.lenv.symbols[flist[1].value] = functions.UserFunction(tree.lenv.makeCopy(), tree)
+                    tree.lenv.symbols[flist[1].value] = Symbol(flist[i].value)
+                    tree.lenv.symbols[flist[1].value].setv(functions.UserFunction(tree.lenv.makeCopy(), tree))
 
                 # Otherwise it defines one (or more variables).
                 else:
@@ -125,7 +131,7 @@ def createLexicalEnv(lenv, tree):
                         # Warning for shadowing existing symbols.
                         if flist[i].value in tree.lenv.symbols:
                             print "Warning", flist[i].value, "overrides existing variable with the same name."
-                        tree.lenv.symbols[flist[i].value] = Variable(flist[i].value)
+                        tree.lenv.symbols[flist[i].value] = Symbol(flist[i].value)
                         i += 2
 
         new_env = tree.lenv.makeCopy()
@@ -154,12 +160,7 @@ def interpret(model, tree):
     # Symbol.
     elif isinstance(tree, lexerParser.LCadSymbol):
         try:
-            symbol = tree.lenv.symbols[tree.value]
-            if isinstance(symbol, Variable):
-            #if hasattr(symbol, "getv"):
-                return symbol.getv(tree)
-            else:
-                return symbol
+            return tree.lenv.symbols[tree.value].getv(tree)
         except KeyError:
             raise lce.SymbolNotDefined(tree, tree.value)
 
@@ -178,8 +179,8 @@ def interpret(model, tree):
         try:
             val = dispatch(func, model, tree)
         except Exception:
-        #except lce.LCadException:
-            print "!Error in function", func.name, "at line", tree.start_line, ":"
+            #except lce.LCadException:
+            #print "!Error in function", func.name, "at line", tree.start_line, ":"
             raise
 
         return val

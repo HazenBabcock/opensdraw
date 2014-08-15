@@ -51,7 +51,7 @@ class UserFunction(LCadFunction):
                 raise lce.IllegalArgumentTypeException(tree)
             if arg.value in self.body.lenv.symbols:
                 print "Warning function argument", arg.value, "overrides existing variable with the same name."
-            self.body.lenv.symbols[arg.value] = interp.Variable(arg.value)
+            self.body.lenv.symbols[arg.value] = interp.Symbol(arg.value)
 
         interp.createLexicalEnv(lenv, flist[2])
 
