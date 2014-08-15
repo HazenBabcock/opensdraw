@@ -109,7 +109,7 @@ def createLexicalEnv(lenv, tree):
 
                 # 4 arguments means this is a function definition.
                 if (len(flist)==4):
-                    tree.lenv.symbols[flist[1].value] = Symbol(flist[i].value)
+                    tree.lenv.symbols[flist[1].value] = Symbol(flist[1].value)
                     tree.lenv.symbols[flist[1].value].setv(functions.UserFunction(tree.lenv.makeCopy(), tree))
 
                 # Otherwise it defines one (or more variables).
