@@ -180,7 +180,7 @@ def interpret(model, tree):
             val = dispatch(func, model, tree)
         except Exception:
             #except lce.LCadException:
-            #print "!Error in function", func.name, "at line", tree.start_line, ":"
+            print "!Error in function '" + func.name + "' at line " + str(tree.start_line) + ":"
             raise
 
         return val
