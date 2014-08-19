@@ -12,6 +12,7 @@ from functools import wraps
 from itertools import izip
 import math
 import numpy
+import operator
 
 import interpreter as interp
 import lcadExceptions as lce
@@ -19,6 +20,21 @@ import lexerParser
 import parts
 
 builtin_functions = {}
+
+
+def isTrue(model, tree, arg):
+    temp = interp.interpret(model, arg)
+    if (temp is interp.lcad_t):
+        return True
+    elif (temp is interp.lcad_nil):
+        return False
+    else:
+        raise lce.BooleanException(tree)
+
+
+#
+# Function class.
+#
 
 class LCadFunction(object):
     def __init__(self, name):
@@ -32,7 +48,7 @@ class LCadFunction(object):
 
 
 #
-# User functions.
+# User functions class.
 #
 
 class UserFunction(LCadFunction):
@@ -68,7 +84,7 @@ class UserFunction(LCadFunction):
 
 
 #
-# Special Functions.
+# Special functions classes.
 #
 
 class SpecialFunction(LCadFunction):
@@ -123,13 +139,12 @@ class LCadDef(SpecialFunction):
         if ((len(args)%2) == 0):
             ret = None
             kv_pairs = izip(*[iter(args)]*2)
-            for key, value in kv_pairs:
-                val = interp.interpret(model, value)
+            for key, node in kv_pairs:
 
                 # If the symbol is not already defined for this environment then something has gone seriously amiss.
                 if not key.value in tree.lenv.symbols:
                     raise Exception("My hovercraft is full of eels!!")
-
+                val = interp.interpret(model, node)
                 tree.lenv.symbols[key.value].setv(val)
                 ret = val
             return ret
@@ -137,6 +152,42 @@ class LCadDef(SpecialFunction):
 
 builtin_functions["def"] = LCadDef()
 
+
+class LCadIf(SpecialFunction):
+    """
+    If statement. Only the symbol t is truth, everything else is nil.
+
+    Usage:
+     (if t 1 2)       ; returns 1
+     (if 1 2 3)       ; error
+     (if (= 1 1) 1 2) ; returns 1
+
+     (if x 1 0)       ; error if x is not t or nil
+     (if (= x 2) 3)
+     (if (= (fn) 0) 
+       (block 
+          (fn1 1) 
+          (fn2))
+       (fn3 1 2))
+    """
+    def __init__(self):
+        self.name = "if"
+
+    def argCheck(self, tree):
+        if (len(tree.value) != 3) and (len(tree.value) != 4):
+            raise lce.NumberArgumentsException(tree, "2 or 3", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        args = tree.value[1:]
+        if isTrue(model, tree, args[0]):
+            return interp.interpret(model, args[1])
+        else:
+            if (len(args)==3):
+                return interp.interpret(model, args[2])
+            else:
+                return False
+
+builtin_functions["if"] = LCadIf()
 
 #class LCadMirror(SpecialFunction):
 
@@ -277,7 +328,10 @@ class LCadSet(SpecialFunction):
             if not isinstance(key, lexerParser.LCadSymbol):
                 raise lce.CannotSetException(tree, key.simple_type_name)
             if not key.value in tree.lenv.symbols:
-                raise lce.VariableNotDefined(tree, key.value)
+                raise lce.SymbolNotDefined(tree, key.value)
+            if key.value in interp.builtin_symbols:
+                raise lce.CannotOverrideTNil(tree)
+
             val = interp.interpret(model, node)
             tree.lenv.symbols[key.value].setv(val)
             ret = val
@@ -328,10 +382,180 @@ builtin_functions["translate"] = LCadTranslate()
 
 
 #
-# Basic Math Functions.
+# Comparison functions.
 #
 
-class BasicMathFunction(LCadFunction):
+class ComparisonFunction(SpecialFunction):
+    """
+    Comparison functions, =, >, <, >=, <=, !=.
+    """
+    def argCheck(self, tree):
+        if (len(tree.value) < 3):
+            raise lce.NumberArgumentsException(tree, "2+", len(tree.value) - 1)
+
+    def compare(self, model, tree, cmp_func):
+        args = tree.value[1:]
+        val0 = interp.interpret(model, args[0])
+        for arg in args[1:]:
+            if not cmp_func(val0, interp.interpret(model, arg)):
+                return interp.lcad_nil
+        return interp.lcad_t
+        
+
+class LCadEqual(ComparisonFunction):
+    """
+    =
+
+    Usage:
+     (= 1 1)     ; t
+     (= 1 2)     ; nil
+     (= 2 2 2 2) ; t
+     (= "a" "a") ; t
+    """
+    def call(self, model, tree):
+        return self.compare(model, tree, operator.eq)
+
+builtin_functions["="] = LCadEqual("=")
+
+
+class LCadGt(ComparisonFunction):
+    """
+    >
+
+    Usage:
+     (> 2 1) ; t
+    """
+    def call(self, model, tree):
+        return self.compare(model, tree, operator.gt)
+
+builtin_functions[">"] = LCadGt(">")
+
+
+class LCadLt(ComparisonFunction):
+    """
+    <
+
+    Usage:
+     (< 2 1) ; nil
+    """
+    def call(self, model, tree):
+        return self.compare(model, tree, operator.lt)
+
+builtin_functions["<"] = LCadLt("<")
+
+
+class LCadGe(ComparisonFunction):
+    """
+    >=
+
+    Usage:
+     (>= 2 1) ; t
+    """
+    def call(self, model, tree):
+        return self.compare(model, tree, operator.ge)
+
+builtin_functions[">="] = LCadGe(">=")
+
+
+class LCadLe(ComparisonFunction):
+    """
+    <=
+
+    Usage:
+     (<= 2 1) ; nil
+    """
+    def call(self, model, tree):
+        return self.compare(model, tree, operator.le)
+
+builtin_functions["<="] = LCadLe("<=")
+
+
+class LCadNe(ComparisonFunction):
+    """
+    !=
+
+    Usage:
+     (!= 2 1) ; t
+    """
+    def call(self, model, tree):
+        return self.compare(model, tree, operator.ne)
+
+builtin_functions["!="] = LCadNe("!=")
+
+
+#
+# Logic functions.
+#
+
+class LogicFunction(SpecialFunction):
+    """
+    Logic functions, and, or, not
+    """
+    def argCheck(self, tree):
+        if (len(tree.value) < 3):
+            raise lce.NumberArgumentsException(tree, "2+", len(tree.value) - 1)
+
+class LCadAnd(LogicFunction):
+    """
+    And statement.
+
+    Usage:
+     (and (< 1 2) (< 2 3))  ; t
+     (and (fn x) nil)      ; nil
+    """
+    def call(self, model, tree):
+        for node in tree.value[1:]:
+            if isTrue(model, tree, node):
+                return interp.lcad_t
+        return interp.lcad_nil
+
+builtin_functions["and"] = LCadAnd("and")
+
+
+class LCadOr(LogicFunction):
+    """
+    Or statement.
+
+    Usage:
+     (or (< 1 2) (> 1 3))  ; t
+     (or (fn x) t)         ; t
+     (or nil nil)          ; nil
+    """
+    def call(self, model, tree):
+        for node in tree.value[1:]:
+            if isTrue(model, tree, node):
+                return interp.lcad_t
+        return interp.lcad_nil
+
+builtin_functions["or"] = LCadOr("or")
+
+
+class LCadNot(SpecialFunction):
+    """
+    Not statement.
+
+    Usage:
+     (not t)  ; t
+     (not ()) ; nil
+    """
+    def argCheck(self, tree):
+        if (len(tree.value) != 2):
+            raise lce.NumberArgumentsException(tree, "2", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        if isTrue(model, tree, tree.value[1]):
+            return interp.lcad_nil
+        else:
+            return interp.lcad_t
+
+builtin_functions["not"] = LCadNot("not")
+
+
+#
+# (Basic) math functions.
+#
+
+class BasicMathFunction(SpecialFunction):
     """
     Basic math functions, + - * /.
     """
@@ -340,7 +564,7 @@ class BasicMathFunction(LCadFunction):
             raise lce.NumberArgumentsException(tree, "2+", len(tree.value) - 1)
 
 
-class LCadDivide(SpecialFunction):
+class LCadDivide(BasicMathFunction):
     """
     Divide the first number by one or more additional numbers.
 
@@ -357,7 +581,7 @@ class LCadDivide(SpecialFunction):
 builtin_functions["/"] = LCadDivide("/")
 
 
-class LCadMinus(SpecialFunction):
+class LCadMinus(BasicMathFunction):
     """
     Subtract one or more numbers from the first number.
 
@@ -374,7 +598,7 @@ class LCadMinus(SpecialFunction):
 builtin_functions["-"] = LCadMinus("-")
 
 
-class LCadMultiply(SpecialFunction):
+class LCadMultiply(BasicMathFunction):
     """
     Multiply two or more numbers.
 
@@ -391,7 +615,7 @@ class LCadMultiply(SpecialFunction):
 builtin_functions["*"] = LCadMultiply("*")
 
 
-class LCadPlus(SpecialFunction):
+class LCadPlus(BasicMathFunction):
     """
     Add together two or more numbers.
 
@@ -406,8 +630,6 @@ class LCadPlus(SpecialFunction):
         return total
 
 builtin_functions["+"] = LCadPlus("+")
-
-
 
 
 #

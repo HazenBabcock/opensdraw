@@ -12,6 +12,7 @@ import lcadExceptions as lce
 import functions
 import lexerParser
 
+builtin_symbols = {}
 
 class LEnv(object):
     """
@@ -22,6 +23,12 @@ class LEnv(object):
 
         self.symbols = {}
         if add_builtins:
+
+            # Symbols.
+            for sym_name in builtin_symbols.keys():
+                self.symbols[sym_name] = builtin_symbols[sym_name]
+
+            # Functions.
             for fn_name in functions.builtin_functions.keys():
                 self.symbols[fn_name] = Symbol(fn_name)
                 self.symbols[fn_name].setv(functions.builtin_functions[fn_name])
@@ -67,13 +74,41 @@ class Symbol(object):
         self.is_set = True
         self.value = value
 
+        
+#
+# Create built in symbols.
+#
+class LObject(object):
+    def __init__(self, name):
+        self.name = name
 
-def dispatch(func, model, tree):
-    """
-    This handles function calls to both user-defined and built-in functions.
-    """
-    func.argCheck(tree)
-    return func.call(model, tree)
+    def __unicode__(self):
+        return unicode(self.name)
+
+    def __str__(self):
+        return self.name
+
+# t and nil are objects so that we can do comparisons using 'is' and
+# be gauranteed that there is only one truth and one false.
+
+lcad_t = LObject("t")
+builtin_symbols["t"] = Symbol("t")
+builtin_symbols["t"].setv(lcad_t)
+
+lcad_nil = LObject("nil")
+builtin_symbols["nil"] = Symbol("nil")
+builtin_symbols["nil"].setv(lcad_nil)
+
+
+def checkOverride(tree, symbol_name):
+    # Error for shadowing built in symbols.
+    if (symbol_name in builtin_symbols):
+        raise lce.CannotOverrideTNil(tree)
+
+    # Warning for shadowing other existing symbols.
+    if symbol_name in tree.lenv.symbols:
+        print "Warning", symbol_name, "overrides existing variable with the same name."
+
 
 def createLexicalEnv(lenv, tree):
     """
@@ -109,6 +144,7 @@ def createLexicalEnv(lenv, tree):
 
                 # 4 arguments means this is a function definition.
                 if (len(flist)==4):
+                    checkOverride(tree, flist[1].value)
                     tree.lenv.symbols[flist[1].value] = Symbol(flist[1].value)
                     tree.lenv.symbols[flist[1].value].setv(functions.UserFunction(tree.lenv.makeCopy(), tree))
 
@@ -127,10 +163,8 @@ def createLexicalEnv(lenv, tree):
                             flist[i+1].lenv = lenv
                         else:
                             createLexicalEnv(tree.lenv.makeCopy(), flist[i+1])
-
-                        # Warning for shadowing existing symbols.
-                        if flist[i].value in tree.lenv.symbols:
-                            print "Warning", flist[i].value, "overrides existing variable with the same name."
+                        
+                        checkOverride(tree, flist[1].value)
                         tree.lenv.symbols[flist[i].value] = Symbol(flist[i].value)
                         i += 2
 
@@ -144,6 +178,17 @@ def createLexicalEnv(lenv, tree):
     elif isinstance(tree, list):
         for node in tree:
             createLexicalEnv(lenv, node)
+
+
+def dispatch(func, model, tree):
+    """
+    This handles function calls to both user-defined and built-in functions.
+    """
+    if not isinstance(func, functions.LCadFunction):
+        raise lce.NotAFunctionException(tree)
+    func.argCheck(tree)
+    return func.call(model, tree)
+
 
 def interpret(model, tree):
     """

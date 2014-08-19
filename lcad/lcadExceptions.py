@@ -10,6 +10,14 @@ class LCadException(Exception):
         message = "Error at line " + str(expr.start_line) + ", " + message
         Exception.__init__(self, message)
 
+class BooleanException(LCadException):
+    def __init__(self, expr):
+        LCadException.__init__(self, expr, "value must be 't' or 'nil'.")
+
+class CannotOverrideTNil(LCadException):
+    def __init__(self, expr):
+        LCadException.__init__(self, expr, "overriding builtin symbols (t, nil) is not allowed.")
+
 class CannotSetException(LCadException):
     def __init__(self, expr, item_type):
         LCadException.__init__(self, expr, "type '" + item_type + "' is not settable.")
@@ -26,9 +34,9 @@ class IncorrectTypeException(LCadException):
     def __init__(self, expr, expected, got):
         LCadException.__init__(self, expr, "wrong argument type, got '" + got + "' expected '" + expected + "'")
 
-class NoSuchFunctionException(LCadException):
-    def __init__(self, expr, unknown_function):
-        LCadException.__init__(self, expr, "unknown function '" + unknown_function + "'")
+class NotAFunctionException(LCadException):
+    def __init__(self, expr):
+        LCadException.__init__(self, expr, "not a function.")
 
 class NumberArgumentsException(LCadException):
     def __init__(self, expr, expected, got):
