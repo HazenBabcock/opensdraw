@@ -140,7 +140,7 @@ def empty_parens(p):
 @pg.error
 def error_handler(token):
     if (token.gettokentype() == '$end'):
-        raise Exception("File is empty")
+        raise Exception("Unexpected EOF. Empty file? Unbalanced Parenthesis?")
     raise ValueError("Ran into a {!s} where it was't expected at row {!s} column {!s}".format(token.gettokentype(), 
                                                                                               token.source_pos.lineno, 
                                                                                               token.source_pos.colno))
