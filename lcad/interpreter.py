@@ -247,6 +247,10 @@ def interpret(model, tree):
     elif isinstance(tree, lexerParser.LCadExpression):
         flist = tree.value
 
+        # Empty list is false.
+        if (len(flist) == 0):
+            return lcad_nil
+
         if isinstance(flist[0], lexerParser.LCadExpression) or isinstance(flist[0], lexerParser.LCadSymbol):
             func = interpret(model, flist[0])
         else:
