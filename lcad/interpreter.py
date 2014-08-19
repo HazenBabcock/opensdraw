@@ -120,88 +120,92 @@ def createLexicalEnv(lenv, tree):
     """
 
     if isinstance(tree, lexerParser.LCadExpression):
-        tree.lenv = lenv
-        flist = tree.value
+        try:
+            tree.lenv = lenv
+            flist = tree.value
 
-        # Empty list.
-        if (len(flist) == 0):
-            return
+            # Empty list.
+            if (len(flist) == 0):
+                return
 
-        # First element is a symbol, have to handle this specially in
-        # case the symbol is "def" or "for" as these create symbols.
-        start = 0
-        if isinstance(flist[0], lexerParser.LCadSymbol):
-            start = 1
-            flist[0].lenv = tree.lenv
+            # First element is a symbol, have to handle this specially in
+            # case the symbol is "def" or "for" as these create symbols.
+            start = 0
+            if isinstance(flist[0], lexerParser.LCadSymbol):
+                start = 1
+                flist[0].lenv = tree.lenv
 
-            # First element is def.
-            if (flist[0].value == "def"):
-                start = len(flist)
+                # First element is def.
+                if (flist[0].value == "def"):
+                    start = len(flist)
             
-                # def needs at least 3 arguments.
-                if (len(flist)<3):
-                    raise lce.NumberArgumentsException(tree, "2 or more", len(flist) - 1)
+                    # def needs at least 3 arguments.
+                    if (len(flist)<3):
+                        raise lce.NumberArgumentsException(tree, "2 or more", len(flist) - 1)
 
-                # 4 arguments means this is a function definition.
-                if (len(flist)==4):
-                    checkOverride(tree, flist[1].value)
-                    tree.lenv.symbols[flist[1].value] = Symbol(flist[1].value)
-                    tree.lenv.symbols[flist[1].value].setv(functions.UserFunction(tree.lenv.makeCopy(), tree))
-
-                # Otherwise it defines one (or more variables).
-                else:
-                    # Must be divisible by 2.
-                    if ((len(flist)%2)!=1):
-                        raise lce.NumberArgumentsException(tree, "an even number of arguments", len(flist) - 1)
-
-                    i = 1
-                    while(i < len(flist)):
-                        if not isinstance(flist[i], lexerParser.LCadSymbol):
-                            raise lce.CannotSetException(tree, flist[i].simple_type_name)
-                        flist[i].lenv = lenv
-                        if isinstance(flist[i+1], lexerParser.LCadSymbol):
-                            flist[i+1].lenv = lenv
-                        else:
-                            createLexicalEnv(tree.lenv.makeCopy(), flist[i+1])
-                        
+                    # 4 arguments means this is a function definition.
+                    if (len(flist)==4):
                         checkOverride(tree, flist[1].value)
-                        tree.lenv.symbols[flist[i].value] = Symbol(flist[i].value)
-                        i += 2
+                        tree.lenv.symbols[flist[1].value] = Symbol(flist[1].value)
+                        tree.lenv.symbols[flist[1].value].setv(functions.UserFunction(tree.lenv.makeCopy(), tree))
 
-            # First element is for.
-            elif (flist[0].value == "for"):
-                start = len(flist)
+                    # Otherwise it defines one (or more variables).
+                    else:
+                        # Must be divisible by 2.
+                        if ((len(flist)%2)!=1):
+                            raise lce.NumberArgumentsException(tree, "an even number of arguments", len(flist) - 1)
 
-                # For needs at least 3 arguments.
-                if (len(flist)<3):
-                    raise lce.NumberArgumentsException(tree, "2 or more", len(flist) - 1)
+                        i = 1
+                        while(i < len(flist)):
+                            if not isinstance(flist[i], lexerParser.LCadSymbol):
+                                raise lce.CannotSetException(tree, flist[i].simple_type_name)
+                            flist[i].lenv = lenv
+                            if isinstance(flist[i+1], lexerParser.LCadSymbol):
+                                flist[i+1].lenv = lenv
+                            else:
+                                createLexicalEnv(tree.lenv.makeCopy(), flist[i+1])
+                        
+                            checkOverride(tree, flist[1].value)
+                            tree.lenv.symbols[flist[i].value] = Symbol(flist[i].value)
+                            i += 2
 
-                # Check that loop arguments are correct.
-                loop_args = flist[1]
-                if not isinstance(loop_args, lexerParser.LCadExpression):
-                    raise lce.LCadException(tree, "first argument to for() must be a list.")
+                # First element is for.
+                elif (flist[0].value == "for"):
+                    start = len(flist)
 
-                loop_args = loop_args.value
-                if (len(loop_args) < 2):
-                    raise lce.NumberArgumentsException(tree, "2,3 or 4", len(loop_args))
-                elif (len(loop_args) > 4):
-                    raise lce.NumberArgumentsException(tree, "2,3 or 4", len(loop_args))
+                    # For needs at least 3 arguments.
+                    if (len(flist)<3):
+                        raise lce.NumberArgumentsException(tree, "2 or more", len(flist) - 1)
 
-                if not isinstance(loop_args[0], lexerParser.LCadSymbol):
-                    raise lce.LCadException(tree, "loop variable must be a symbol.")
+                    # Check that loop arguments are correct.
+                    loop_args = flist[1]
+                    if not isinstance(loop_args, lexerParser.LCadExpression):
+                        raise lce.LCadException(tree, "first argument to for() must be a list.")
 
-                checkOverride(tree, loop_args[0].value)
+                    loop_args = loop_args.value
+                    if (len(loop_args) < 2):
+                        raise lce.NumberArgumentsException(tree, "2,3 or 4", len(loop_args))
+                    elif (len(loop_args) > 4):
+                        raise lce.NumberArgumentsException(tree, "2,3 or 4", len(loop_args))
 
-                # Unlike def, iteration variable is not visible outside of the for loop.
-                new_env = tree.lenv.makeCopy()
-                new_env.symbols[loop_args[0].value] = Symbol(loop_args[0].value)
-                tree.lenv = new_env
-                for node in flist[1:]:
-                    createLexicalEnv(new_env, node)
+                    if not isinstance(loop_args[0], lexerParser.LCadSymbol):
+                        raise lce.LCadException(tree, "loop variable must be a symbol.")
 
-        new_env = tree.lenv.makeCopy()
-        for node in flist[start:]:
-            createLexicalEnv(new_env, node)
+                    checkOverride(tree, loop_args[0].value)
+
+                    # Unlike def, iteration variable is not visible outside of the for loop.
+                    new_env = tree.lenv.makeCopy()
+                    new_env.symbols[loop_args[0].value] = Symbol(loop_args[0].value)
+                    tree.lenv = new_env
+                    for node in flist[1:]:
+                        createLexicalEnv(new_env, node)
+
+            new_env = tree.lenv.makeCopy()
+            for node in flist[start:]:
+                createLexicalEnv(new_env, node)
+        except Exception:
+            print "!Error in expression '" + tree.value[0].value + "' at line " + str(tree.start_line) + ":"
+            raise
 
     elif isinstance(tree, lexerParser.LCadSymbol):
         tree.lenv = lenv
