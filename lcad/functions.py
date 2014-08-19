@@ -153,9 +153,51 @@ class LCadDef(SpecialFunction):
 builtin_functions["def"] = LCadDef()
 
 
+class LCadFor(SpecialFunction):
+    """
+    For statement.
+
+    Usage:
+     (for (i 10) ..)       ; increment i from 0 to 9.
+     (for (i 1 11) ..)     ; increment i from 1 to 11.
+     (for (i 1 0.1 5) ..)  ; increment i from 1 to 5 in steps of 0.1.
+    """
+    def __init__(self):
+        self.name = "for"
+
+    def call(self, model, tree):
+
+        # Determine loop parameters.
+        loop_args = tree.value[1].value
+        inc_var = tree.lenv.symbols[loop_args[0].value]
+        start = 0
+        inc = 1
+        if (len(loop_args)==2):
+            stop = interp.interpret(model, loop_args[1])
+        elif (len(loop_args)==3):
+            start = interp.interpret(model, loop_args[1])
+            stop = interp.interpret(model, loop_args[2])
+        else:
+            start = interp.interpret(model, loop_args[1])
+            inc = interp.interpret(model, loop_args[2])
+            stop = interp.interpret(model, loop_args[3])
+
+        # loop.
+        ret = None
+        cur = start
+        while(cur < stop):
+            inc_var.setv(cur)
+            for node in tree.value[2:]:
+                ret = interp.interpret(model, node)
+            cur += inc
+        return ret
+
+builtin_functions["for"] = LCadFor()
+
+
 class LCadIf(SpecialFunction):
     """
-    If statement. Only the symbol t is truth, everything else is nil.
+    If statement. The first argument must be t or nil.
 
     Usage:
      (if t 1 2)       ; returns 1

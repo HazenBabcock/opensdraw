@@ -128,7 +128,7 @@ def createLexicalEnv(lenv, tree):
             return
 
         # First element is a symbol, have to handle this specially in
-        # case the symbol is "def".
+        # case the symbol is "def" or "for" as these create symbols.
         start = 0
         if isinstance(flist[0], lexerParser.LCadSymbol):
             start = 1
@@ -167,6 +167,37 @@ def createLexicalEnv(lenv, tree):
                         checkOverride(tree, flist[1].value)
                         tree.lenv.symbols[flist[i].value] = Symbol(flist[i].value)
                         i += 2
+
+            # First element is for.
+            elif (flist[0].value == "for"):
+                start = len(flist)
+
+                # For needs at least 3 arguments.
+                if (len(flist)<3):
+                    raise lce.NumberArgumentsException(tree, "2 or more", len(flist) - 1)
+
+                # Check that loop arguments are correct.
+                loop_args = flist[1]
+                if not isinstance(loop_args, lexerParser.LCadExpression):
+                    raise lce.LCadException(tree, "first argument to for() must be a list.")
+
+                loop_args = loop_args.value
+                if (len(loop_args) < 2):
+                    raise lce.NumberArgumentsException(tree, "2,3 or 4", len(loop_args))
+                elif (len(loop_args) > 4):
+                    raise lce.NumberArgumentsException(tree, "2,3 or 4", len(loop_args))
+
+                if not isinstance(loop_args[0], lexerParser.LCadSymbol):
+                    raise lce.LCadException(tree, "loop variable must be a symbol.")
+
+                checkOverride(tree, loop_args[0].value)
+
+                # Unlike def, iteration variable is not visible outside of the for loop.
+                new_env = tree.lenv.makeCopy()
+                new_env.symbols[loop_args[0].value] = Symbol(loop_args[0].value)
+                tree.lenv = new_env
+                for node in flist[1:]:
+                    createLexicalEnv(new_env, node)
 
         new_env = tree.lenv.makeCopy()
         for node in flist[start:]:
