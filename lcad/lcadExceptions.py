@@ -34,13 +34,17 @@ class IncorrectTypeException(LCadException):
     def __init__(self, expr, expected, got):
         LCadException.__init__(self, expr, "wrong argument type, got '" + got + "' expected '" + expected + "'")
 
+class KeywordException(LCadException):
+    def __init__(self, expr, item):
+        LCadException.__init__(self, expr, str(item) + " is not a keyword.")
+
 class NotAFunctionException(LCadException):
     def __init__(self, expr):
         LCadException.__init__(self, expr, "not a function.")
 
 class NumberArgumentsException(LCadException):
     def __init__(self, expr, expected, got):
-        LCadException.__init__(self, expr, "wrong number of arguments, got " + str(got) + " expected " + str(expected))
+        LCadException.__init__(self, expr, "wrong number of standard arguments, got " + str(got) + " expected " + str(expected))
 
 class SymbolNotDefined(LCadException):
     def __init__(self, expr, variable_name):
@@ -49,6 +53,11 @@ class SymbolNotDefined(LCadException):
 class VariableNotSetException(LCadException):
     def __init__(self, expr, variable_name):
         LCadException.__init__(self, expr, "variable '" + variable_name + "' used before initialization.")
+
+class WrongTypeException(LCadException):
+    def __init__(self, expr, expected, got):
+        LCadException.__init__(self, expr, "wrong type, got '" + str(got) + "' expected '" + str(expected) + "'.")
+
 
 #
 # The MIT License

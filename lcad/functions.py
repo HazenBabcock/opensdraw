@@ -11,6 +11,7 @@
 from functools import wraps
 from itertools import izip
 import math
+import numbers
 import numpy
 import operator
 
@@ -57,29 +58,88 @@ class UserFunction(LCadFunction):
     """
     def __init__(self, lenv, tree):
         flist = tree.value[1:]
-        self.name = flist[0].value
+
         self.arg_list = flist[1].value
         self.body = flist[2]
         self.body.lenv = lenv
+        self.default_values = []
+        self.have_keyword_args = False
+        self.min_args = 0
+        self.name = flist[0].value
 
-        for arg in self.arg_list:
+        i = 0
+        while (i < len(self.arg_list)):
+            arg = self.arg_list[i]
             if not isinstance(arg, lexerParser.LCadSymbol):
                 raise lce.IllegalArgumentTypeException(tree)
-            if arg.value in self.body.lenv.symbols:
-                print "Warning function argument", arg.value, "overrides existing variable with the same name."
-            self.body.lenv.symbols[arg.value] = interp.Symbol(arg.value)
+
+            arg_name = arg.value
+            # Keyword arguments.
+            if (arg_name[0] == ":"):
+                self.have_keyword_args = True
+                arg_name = arg_name[1:]
+                arg_value = self.arg_list[i+1]
+                if isinstance(arg_value, lexerParser.LCadSymbol):
+                    if (arg_value.value[0] == ":"):
+                        raise Exception("Keyword arguments must have a default value.")
+                interp.createLexicalEnv(lenv, arg_value)
+                self.default_values.append([arg_name, arg_value])
+                i += 2
+            else:
+                self.min_args += 1
+                i += 1
+
+            if arg_name in self.body.lenv.symbols:
+                print "Warning function argument", arg_name, "overrides existing variable with the same name."
+            self.body.lenv.symbols[arg_name] = interp.Symbol(arg_name)
 
         interp.createLexicalEnv(lenv, flist[2])
 
     def argCheck(self, tree):
-        if ((len(tree.value)-1) != len(self.arg_list)):
-            raise lce.NumberArgumentsException(tree, len(self.arg_list), (len(tree.value)-1))
+        args = tree.value[1:]
+        if self.have_keyword_args:
+            if (len(args) < self.min_args):
+                raise lce.NumberArgumentsException(tree, "at least " + str(self.min_args), len(args))
+            cnt = 0
+            for i in range(self.min_args):
+                if isinstance(args[i], lexerParser.LCadSymbol) and (args[i].value[0] == ":"):
+                    break
+                cnt += 1
+            if (cnt < self.min_args):
+                raise lce.NumberArgumentsException(tree, "at least " + str(self.min_args), cnt)
+
+        else:
+            if (len(args) != self.min_args):
+                raise lce.NumberArgumentsException(tree, self.min_args, len(args))
 
     def call(self, model, tree):
         args = tree.value[1:]
 
-        for i in range(len(args)):
+        # Fill in defaults (if any).
+        for default in self.default_values:
+            self.body.lenv.symbols[default[0]].setv(interp.interpret(model, default[1]))
+
+        # Fill in arguments.
+        i = 0
+
+        # Standard arguments first.
+        while (i < self.min_args):
             self.body.lenv.symbols[self.arg_list[i].value].setv(interp.interpret(model, args[i]))
+            i += 1
+
+        # Keyword arguments last.
+        while (i < len(args)):
+            arg = args[i]
+            arg_name = arg.value
+            if not isinstance(arg, lexerParser.LCadSymbol):
+                raise lce.KeywordException(tree, arg_name)
+            if (arg_name[0] != ":"):
+                raise lce.KeywordException(tree, arg_name)
+
+            self.body.lenv.symbols[arg_name[1:]].setv(interp.interpret(model, args[i+1]))
+            i += 2
+
+        # Evaluate function.
         return interp.interpret(model, self.body)
 
 
@@ -231,7 +291,58 @@ class LCadIf(SpecialFunction):
 
 builtin_functions["if"] = LCadIf()
 
-#class LCadMirror(SpecialFunction):
+
+class LCadMirror(SpecialFunction):
+    """
+    Mirror child elements on a plane through the origin.
+
+    :param mx: mirror on x axis.
+    :param my: mirror on y axis.
+    :param mz: mirron on z axis.
+
+    Usage:
+     (mirror (1 0 0) ..) ; mirrors on the x axis.
+    """
+    def __init__(self):
+        self.name = "mirror"
+
+    def argCheck(self, tree):
+        flist = tree.value
+        if (len(flist)<3):
+            raise lce.NumberArgumentsException(tree, "2+", 0)
+        if (len(flist[1].value) != 3):
+            raise lce.NumberArgumentsException(tree, "3", len(flist[1].value))
+
+    def call(self, model, tree):
+        args = tree.value[1].value
+
+        new_model = model.makeCopy()
+        mx = interp.interpret(new_model, args[0])
+        my = interp.interpret(new_model, args[1])
+        mz = interp.interpret(new_model, args[2])
+
+        if not isinstance(mx, numbers.Number):
+            raise lce.WrongTypeException(tree, "number", type(mx).__name__)
+        if not isinstance(my, numbers.Number):
+            raise lce.WrongTypeException(tree, "number", type(my).__name__)
+        if not isinstance(mz, numbers.Number):
+            raise lce.WrongTypeException(tree, "number", type(mz).__name__)
+
+        mm = numpy.identity(4)
+        if (mx == 1):
+            mm[0,0] = -1
+        if (my == 1):
+            mm[1,1] = -1
+        if (mz == 1):
+            mm[2,2] = -1
+
+        new_model.m = numpy.dot(new_model.m, mm)
+        if (len(tree.value) > 2):
+            return interp.interpret(new_model, tree.value[2:])
+        else:
+            return None
+
+builtin_functions["mirror"] = LCadMirror()
 
 
 class LCadPart(SpecialFunction):
@@ -304,8 +415,8 @@ class LCadRotate(SpecialFunction):
 
     def argCheck(self, tree):
         flist = tree.value
-        if (len(flist)<2):
-            raise lce.NumberArgumentsException(tree, "3", 0)
+        if (len(flist)<3):
+            raise lce.NumberArgumentsException(tree, "2+", 0)
         if (len(flist[1].value) != 3):
             raise lce.NumberArgumentsException(tree, "3", len(flist[1].value))
 
@@ -313,9 +424,20 @@ class LCadRotate(SpecialFunction):
         args = tree.value[1].value
 
         new_model = model.makeCopy()        
-        ax = interp.interpret(new_model, args[0]) * numpy.pi / 180.0
-        ay = interp.interpret(new_model, args[1]) * numpy.pi / 180.0
-        az = interp.interpret(new_model, args[2]) * numpy.pi / 180.0
+        ax = interp.interpret(new_model, args[0])
+        ay = interp.interpret(new_model, args[1])
+        az = interp.interpret(new_model, args[2])
+
+        if not isinstance(ax, numbers.Number):
+            raise lce.WrongTypeException(tree, "number", type(ax).__name__)
+        if not isinstance(ay, numbers.Number):
+            raise lce.WrongTypeException(tree, "number", type(ay).__name__)
+        if not isinstance(az, numbers.Number):
+            raise lce.WrongTypeException(tree, "number", type(az).__name__)
+
+        ax = ax * numpy.pi / 180.0
+        ay = ay * numpy.pi / 180.0
+        az = az * numpy.pi / 180.0
 
         rx = numpy.identity(4)
         rx[1,1] = math.cos(ax)
@@ -400,8 +522,8 @@ class LCadTranslate(SpecialFunction):
 
     def argCheck(self, tree):
         flist = tree.value
-        if (len(flist)<2):
-            raise lce.NumberArgumentsException(tree, "3", 0)
+        if (len(flist)<3):
+            raise lce.NumberArgumentsException(tree, "2+", 0)
         if (len(flist[1].value) != 3):
             raise lce.NumberArgumentsException(tree, "3", len(flist[1].value))
 
@@ -410,9 +532,20 @@ class LCadTranslate(SpecialFunction):
 
         new_model = model.makeCopy()
         m = numpy.identity(4)
-        m[0,3] = interp.interpret(new_model, args[0])
-        m[1,3] = interp.interpret(new_model, args[1])
-        m[2,3] = interp.interpret(new_model, args[2])
+        mx = interp.interpret(new_model, args[0])
+        my = interp.interpret(new_model, args[1])
+        mz = interp.interpret(new_model, args[2])
+
+        if not isinstance(mx, numbers.Number):
+            raise lce.WrongTypeException(tree, "number", type(mx).__name__)
+        if not isinstance(my, numbers.Number):
+            raise lce.WrongTypeException(tree, "number", type(my).__name__)
+        if not isinstance(mz, numbers.Number):
+            raise lce.WrongTypeException(tree, "number", type(mz).__name__)
+
+        m[0,3] = mx
+        m[1,3] = my
+        m[2,3] = mz
 
         new_model.m = numpy.dot(new_model.m, m)
         if (len(tree.value) > 2):
