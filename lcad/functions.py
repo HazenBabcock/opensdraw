@@ -33,11 +33,10 @@ def isTrue(model, tree, arg):
         raise lce.BooleanException(tree)
 
 
-#
-# Function class.
-#
-
 class LCadFunction(object):
+    """
+    The base class for all functions.
+    """
     def __init__(self, name):
         self.name = name
 
@@ -47,10 +46,6 @@ class LCadFunction(object):
     def call(self, model, tree):
         pass
 
-
-#
-# User functions class.
-#
 
 class UserFunction(LCadFunction):
     """
@@ -142,10 +137,6 @@ class UserFunction(LCadFunction):
         # Evaluate function.
         return interp.interpret(model, self.body)
 
-
-#
-# Special functions classes.
-#
 
 class SpecialFunction(LCadFunction):
     """
@@ -556,9 +547,8 @@ class LCadTranslate(SpecialFunction):
 builtin_functions["translate"] = LCadTranslate()
 
 
-#
+
 # Comparison functions.
-#
 
 class ComparisonFunction(SpecialFunction):
     """
@@ -658,9 +648,8 @@ class LCadNe(ComparisonFunction):
 builtin_functions["!="] = LCadNe("!=")
 
 
-#
+
 # Logic functions.
-#
 
 class LogicFunction(SpecialFunction):
     """
@@ -726,18 +715,25 @@ class LCadNot(SpecialFunction):
 builtin_functions["not"] = LCadNot("not")
 
 
-#
-# (Basic) math functions.
-#
+class MathFunction(SpecialFunction):
+    """
+    Math functions.
+    """
+    def isNumber(self, tree, value):
+        if not isinstance(value, numbers.Number):
+            raise lce.WrongTypeException(tree, "number", type(value).__name__)
+        return value
 
-class BasicMathFunction(SpecialFunction):
+
+# "Basic" math functions.
+
+class BasicMathFunction(MathFunction):
     """
     Basic math functions, + - * /.
     """
     def argCheck(self, tree):
         if (len(tree.value) < 3):
             raise lce.NumberArgumentsException(tree, "2+", len(tree.value) - 1)
-
 
 class LCadDivide(BasicMathFunction):
     """
@@ -748,9 +744,9 @@ class LCadDivide(BasicMathFunction):
 
     """
     def call(self, model, tree):
-        total = interp.interpret(model, tree.value[1])
+        total = self.isNumber(tree, interp.interpret(model, tree.value[1]))
         for node in tree.value[2:]:
-            total = total/interp.interpret(model, node)
+            total = total/self.isNumber(tree, interp.interpret(model, node))
         return total
 
 builtin_functions["/"] = LCadDivide("/")
@@ -765,9 +761,9 @@ class LCadMinus(BasicMathFunction):
 
     """
     def call(self, model, tree):
-        total = interp.interpret(model, tree.value[1])
+        total = self.isNumber(tree, interp.interpret(model, tree.value[1]))
         for node in tree.value[2:]:
-            total -= interp.interpret(model, node)
+            total -= self.isNumber(tree, interp.interpret(model, node))
         return total
 
 builtin_functions["-"] = LCadMinus("-")
@@ -784,7 +780,7 @@ class LCadMultiply(BasicMathFunction):
     def call(self, model, tree):
         total = 1
         for node in tree.value[2:]:
-            total = total * interp.interpret(model, node)
+            total = total * self.isNumber(tree, interp.interpret(model, node))
         return total
 
 builtin_functions["*"] = LCadMultiply("*")
@@ -801,10 +797,35 @@ class LCadPlus(BasicMathFunction):
     def call(self, model, tree):
         total = 0
         for node in tree.value[1:]:
-            total += interp.interpret(model, node)
+            total += self.isNumber(tree, interp.interpret(model, node))
         return total
 
 builtin_functions["+"] = LCadPlus("+")
+
+
+# "Advanced" math functions.
+
+class AdvMathFunction(MathFunction):
+    """
+    The functions in Python's math module.
+    """
+    def __init__(self, name, py_func):
+        MathFunction.__init__(self, name)
+        self.py_func = py_func
+
+    def call(self, model, tree):
+        args = tree.value[1:]
+
+        i_args = []
+        for arg in args:
+            i_args.append(self.isNumber(tree, interp.interpret(model, arg)))
+
+        return self.py_func(*i_args)
+
+for name in dir(math):
+    obj = getattr(math, name)
+    if callable(obj):
+        builtin_functions[name] = AdvMathFunction(name, obj)
 
 
 #

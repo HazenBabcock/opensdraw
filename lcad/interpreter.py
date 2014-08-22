@@ -6,6 +6,7 @@
 #
 
 import copy
+import math
 import numpy
 
 import lcadExceptions as lce
@@ -99,6 +100,11 @@ lcad_nil = LObject("nil")
 builtin_symbols["nil"] = Symbol("nil")
 builtin_symbols["nil"].setv(lcad_nil)
 
+builtin_symbols["e"] = Symbol("e")
+builtin_symbols["e"].setv(math.e)
+
+builtin_symbols["pi"] = Symbol("pi")
+builtin_symbols["pi"].setv(math.pi)
 
 def checkOverride(tree, symbol_name):
     # Error for shadowing built in symbols.
