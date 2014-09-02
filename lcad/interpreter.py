@@ -40,6 +40,31 @@ class LEnv(object):
         a_copy.symbols = self.symbols.copy()
         return a_copy
 
+class List(object):
+    """
+    Array class.
+    """
+    def __init__(self, py_list):
+        self.py_list = []
+        for elt in py_list:
+            tmp = Symbol("list_object")
+            tmp.setv(elt)
+            self.py_list.append(tmp)
+
+    def __str__(self):
+        if (self.size() < 10):
+            return "(" + " ".join(map(lambda(x): str(x), self.py_list)) + ")"
+        else:
+            tmp = "(" + " ".join(map(lambda(x): str(x), self.py_list[:3]))
+            tmp += " .. " + " ".join(map(lambda(x): str(x), self.py_list[-3:])) + ")"
+            return tmp
+
+    def getv(self, index):
+        return self.py_list[index]
+
+    def size(self):
+        return len(self.py_list)
+
 class Model(object):
     """
     This keeps track of the current "model", i.e. the 
@@ -65,9 +90,12 @@ class Symbol(object):
         self.used = False
         self.value = None
 
-    def getv(self, env):
+    def __str__(self):
+        return str(self.value)
+
+    def getv(self):
         if not self.is_set:
-            raise lce.VariableNotSetException(env, self.name)
+            raise lce.VariableNotSetException(self.name)
         self.used = True
         return self.value
 
@@ -76,29 +104,16 @@ class Symbol(object):
         self.value = value
 
         
-#
-# Create built in symbols.
-#
-class LObject(object):
-    def __init__(self, name):
-        self.name = name
-
-    def __unicode__(self):
-        return unicode(self.name)
-
-    def __str__(self):
-        return self.name
-
 # t and nil are objects so that we can do comparisons using 'is' and
 # be gauranteed that there is only one truth and one false.
 
-lcad_t = LObject("t")
 builtin_symbols["t"] = Symbol("t")
-builtin_symbols["t"].setv(lcad_t)
+builtin_symbols["t"].setv(1)
+lcad_t = builtin_symbols["t"]
 
-lcad_nil = LObject("nil")
 builtin_symbols["nil"] = Symbol("nil")
-builtin_symbols["nil"].setv(lcad_nil)
+builtin_symbols["nil"].setv(1)
+lcad_nil = builtin_symbols["nil"]
 
 builtin_symbols["e"] = Symbol("e")
 builtin_symbols["e"].setv(math.e)
@@ -109,7 +124,7 @@ builtin_symbols["pi"].setv(math.pi)
 def checkOverride(tree, symbol_name):
     # Error for shadowing built in symbols.
     if (symbol_name in builtin_symbols):
-        raise lce.CannotOverrideTNil(tree)
+        raise lce.CannotOverrideTNil()
 
     # Warning for shadowing other existing symbols.
     if symbol_name in tree.lenv.symbols:
@@ -147,7 +162,7 @@ def createLexicalEnv(lenv, tree):
             
                     # def needs at least 3 arguments.
                     if (len(flist)<3):
-                        raise lce.NumberArgumentsException(tree, "2 or more", len(flist) - 1)
+                        raise lce.NumberArgumentsException("2 or more", len(flist) - 1)
 
                     # 4 arguments means this is a function definition.
                     if (len(flist)==4):
@@ -159,19 +174,19 @@ def createLexicalEnv(lenv, tree):
                     else:
                         # Must be divisible by 2.
                         if ((len(flist)%2)!=1):
-                            raise lce.NumberArgumentsException(tree, "an even number of arguments", len(flist) - 1)
+                            raise lce.NumberArgumentsException("an even number of arguments", len(flist) - 1)
 
                         i = 1
                         while(i < len(flist)):
                             if not isinstance(flist[i], lexerParser.LCadSymbol):
-                                raise lce.CannotSetException(tree, flist[i].simple_type_name)
+                                raise lce.CannotSetException(flist[i].simple_type_name)
                             flist[i].lenv = lenv
                             if isinstance(flist[i+1], lexerParser.LCadSymbol):
                                 flist[i+1].lenv = lenv
                             else:
                                 createLexicalEnv(tree.lenv.makeCopy(), flist[i+1])
                         
-                            checkOverride(tree, flist[1].value)
+                            checkOverride(tree, flist[i].value)
                             tree.lenv.symbols[flist[i].value] = Symbol(flist[i].value)
                             i += 2
 
@@ -181,21 +196,21 @@ def createLexicalEnv(lenv, tree):
 
                     # For needs at least 3 arguments.
                     if (len(flist)<3):
-                        raise lce.NumberArgumentsException(tree, "2 or more", len(flist) - 1)
+                        raise lce.NumberArgumentsException("2 or more", len(flist) - 1)
 
                     # Check that loop arguments are correct.
                     loop_args = flist[1]
                     if not isinstance(loop_args, lexerParser.LCadExpression):
-                        raise lce.LCadException(tree, "first argument to for() must be a list.")
+                        raise lce.LCadException("first argument to for() must be a list.")
 
                     loop_args = loop_args.value
                     if (len(loop_args) < 2):
-                        raise lce.NumberArgumentsException(tree, "2,3 or 4", len(loop_args))
+                        raise lce.NumberArgumentsException("2,3 or 4", len(loop_args))
                     elif (len(loop_args) > 4):
-                        raise lce.NumberArgumentsException(tree, "2,3 or 4", len(loop_args))
+                        raise lce.NumberArgumentsException("2,3 or 4", len(loop_args))
 
                     if not isinstance(loop_args[0], lexerParser.LCadSymbol):
-                        raise lce.LCadException(tree, "loop variable must be a symbol.")
+                        raise lce.LCadException("loop variable must be a symbol.")
 
                     checkOverride(tree, loop_args[0].value)
 
@@ -226,10 +241,20 @@ def dispatch(func, model, tree):
     This handles function calls to both user-defined and built-in functions.
     """
     if not isinstance(func, functions.LCadFunction):
-        raise lce.NotAFunctionException(tree)
+        raise lce.NotAFunctionException()
     func.argCheck(tree)
     return func.call(model, tree)
 
+def getv(node):
+    """
+    A convenience function, interpret() will return a symbol or a 
+    constant. If node is a symbol this will return the value of the
+    symbol, otherwise it will just return node.
+    """
+    if isinstance(node, Symbol):
+        return node.getv()
+    else:
+        return node
 
 def interpret(model, tree):
     """
@@ -246,9 +271,9 @@ def interpret(model, tree):
     # Symbol.
     elif isinstance(tree, lexerParser.LCadSymbol):
         try:
-            return tree.lenv.symbols[tree.value].getv(tree)
+            return tree.lenv.symbols[tree.value]
         except KeyError:
-            raise lce.SymbolNotDefined(tree, tree.value)
+            raise lce.SymbolNotDefined(tree.value)
 
     # Expression.
     #
@@ -262,9 +287,9 @@ def interpret(model, tree):
             return lcad_nil
 
         if isinstance(flist[0], lexerParser.LCadExpression) or isinstance(flist[0], lexerParser.LCadSymbol):
-            func = interpret(model, flist[0])
+            func = getv(interpret(model, flist[0]))
         else:
-            raise lce.ExpressionException(tree)
+            raise lce.ExpressionException()
 
         try:
             val = dispatch(func, model, tree)

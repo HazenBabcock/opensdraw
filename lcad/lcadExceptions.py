@@ -6,57 +6,61 @@
 #
 
 class LCadException(Exception):
-    def __init__(self, expr, message):
-        message = "Error at line " + str(expr.start_line) + ", " + message
+    def __init__(self, message):
+        message = "!Error, " + message
         Exception.__init__(self, message)
 
 class BooleanException(LCadException):
-    def __init__(self, expr):
-        LCadException.__init__(self, expr, "value must be 't' or 'nil'.")
+    def __init__(self):
+        LCadException.__init__(self, "value must be 't' or 'nil'.")
 
 class CannotOverrideTNil(LCadException):
-    def __init__(self, expr):
-        LCadException.__init__(self, expr, "overriding builtin symbols (t, nil) is not allowed.")
+    def __init__(self):
+        LCadException.__init__(self, "overriding builtin symbols (t, nil) is not allowed.")
 
 class CannotSetException(LCadException):
-    def __init__(self, expr, item_type):
-        LCadException.__init__(self, expr, "type '" + item_type + "' is not settable.")
+    def __init__(self, item_type):
+        LCadException.__init__(self, "type '" + item_type + "' is not settable.")
 
 class ExpressionException(LCadException):
-    def __init__(self, expr):
-        LCadException.__init__(self, expr, "the first element of the list must be a function.")
+    def __init__(self):
+        LCadException.__init__(self, "the first element of the list must be a function.")
 
 class IllegalArgumentTypeException(LCadException):
-    def __init__(self, expr):
-        LCadException.__init__(self, expr, "arguments in function definition must be symbols.")
+    def __init__(self):
+        LCadException.__init__(self, "arguments in function definition must be symbols.")
 
 class IncorrectTypeException(LCadException):
-    def __init__(self, expr, expected, got):
-        LCadException.__init__(self, expr, "wrong argument type, got '" + got + "' expected '" + expected + "'")
+    def __init__(self, expected, got):
+        LCadException.__init__(self, "wrong argument type, got '" + got + "' expected '" + expected + "'")
 
 class KeywordException(LCadException):
-    def __init__(self, expr, item):
-        LCadException.__init__(self, expr, str(item) + " is not a keyword.")
+    def __init__(self, item):
+        LCadException.__init__(self, str(item) + " is not a keyword.")
 
 class NotAFunctionException(LCadException):
-    def __init__(self, expr):
-        LCadException.__init__(self, expr, "not a function.")
+    def __init__(self):
+        LCadException.__init__(self, "not a function.")
 
 class NumberArgumentsException(LCadException):
-    def __init__(self, expr, expected, got):
-        LCadException.__init__(self, expr, "wrong number of standard arguments, got " + str(got) + " expected " + str(expected))
+    def __init__(self, expected, got):
+        LCadException.__init__(self, "wrong number of standard arguments, got " + str(got) + " expected " + str(expected))
+
+class OutOfRangeException(LCadException):
+    def __init__(self, high, val):
+        LCadException.__init__(self, "value out of range, got " + str(val) + ", range is 0 - " + str(high))
 
 class SymbolNotDefined(LCadException):
-    def __init__(self, expr, variable_name):
-        LCadException.__init__(self, expr, "symbol '" + variable_name + "' not defined.")
+    def __init__(self, variable_name):
+        LCadException.__init__(self, "symbol '" + variable_name + "' not defined.")
 
 class VariableNotSetException(LCadException):
-    def __init__(self, expr, variable_name):
-        LCadException.__init__(self, expr, "variable '" + variable_name + "' used before initialization.")
+    def __init__(self, variable_name):
+        LCadException.__init__(self, "variable '" + variable_name + "' used before initialization.")
 
 class WrongTypeException(LCadException):
-    def __init__(self, expr, expected, got):
-        LCadException.__init__(self, expr, "wrong type, got '" + str(got) + "' expected '" + str(expected) + "'.")
+    def __init__(self, expected, got):
+        LCadException.__init__(self, "wrong type, got '" + str(got.__name__) + "' expected '" + str(expected) + "'.")
 
 
 #

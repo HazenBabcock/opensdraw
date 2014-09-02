@@ -23,14 +23,14 @@ import parts
 builtin_functions = {}
 
 
-def isTrue(model, tree, arg):
+def isTrue(model, arg):
     temp = interp.interpret(model, arg)
     if (temp is interp.lcad_t):
         return True
     elif (temp is interp.lcad_nil):
         return False
     else:
-        raise lce.BooleanException(tree)
+        raise lce.BooleanException()
 
 
 class LCadFunction(object):
@@ -66,7 +66,7 @@ class UserFunction(LCadFunction):
         while (i < len(self.arg_list)):
             arg = self.arg_list[i]
             if not isinstance(arg, lexerParser.LCadSymbol):
-                raise lce.IllegalArgumentTypeException(tree)
+                raise lce.IllegalArgumentTypeException()
 
             arg_name = arg.value
             # Keyword arguments.
@@ -94,18 +94,18 @@ class UserFunction(LCadFunction):
         args = tree.value[1:]
         if self.have_keyword_args:
             if (len(args) < self.min_args):
-                raise lce.NumberArgumentsException(tree, "at least " + str(self.min_args), len(args))
+                raise lce.NumberArgumentsException("at least " + str(self.min_args), len(args))
             cnt = 0
             for i in range(self.min_args):
                 if isinstance(args[i], lexerParser.LCadSymbol) and (args[i].value[0] == ":"):
                     break
                 cnt += 1
             if (cnt < self.min_args):
-                raise lce.NumberArgumentsException(tree, "at least " + str(self.min_args), cnt)
+                raise lce.NumberArgumentsException("at least " + str(self.min_args), cnt)
 
         else:
             if (len(args) != self.min_args):
-                raise lce.NumberArgumentsException(tree, self.min_args, len(args))
+                raise lce.NumberArgumentsException(self.min_args, len(args))
 
     def call(self, model, tree):
         args = tree.value[1:]
@@ -127,9 +127,9 @@ class UserFunction(LCadFunction):
             arg = args[i]
             arg_name = arg.value
             if not isinstance(arg, lexerParser.LCadSymbol):
-                raise lce.KeywordException(tree, arg_name)
+                raise lce.KeywordException(arg_name)
             if (arg_name[0] != ":"):
-                raise lce.KeywordException(tree, arg_name)
+                raise lce.KeywordException(arg_name)
 
             self.body.lenv.symbols[arg_name[1:]].setv(interp.interpret(model, args[i+1]))
             i += 2
@@ -143,6 +143,36 @@ class SpecialFunction(LCadFunction):
     These are functions that cannot be written in the language itself.
     """
     pass
+
+
+class LCadAref(SpecialFunction):
+    """
+    Returns an element of a list.
+
+    Usage:
+     (aref (list 1 2 3) 1)          ; returns 2
+     (set (aref (list 1 2 3) 1) 4)  ; list is now 1, 4, 3
+    """
+    def __init__(self):
+        self.name = "aref"
+
+    def argCheck(self, tree):
+        if (len(tree.value) != 3):
+            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        tlist = interp.getv(interp.interpret(model, tree.value[1]))
+        index = interp.getv(interp.interpret(model, tree.value[2]))
+
+        if not isinstance(tlist, interp.List):
+            raise lce.WrongTypeException("List", type(tlist))
+
+        if ((index > 0) and (index < tlist.size())):
+            return tlist.getv(index)
+        else:
+            raise lce.OutOfRangeException(tlist.size(), index)
+
+builtin_functions["aref"] = LCadAref()
 
 
 class LCadBlock(SpecialFunction):
@@ -195,7 +225,7 @@ class LCadDef(SpecialFunction):
                 # If the symbol is not already defined for this environment then something has gone seriously amiss.
                 if not key.value in tree.lenv.symbols:
                     raise Exception("My hovercraft is full of eels!!")
-                val = interp.interpret(model, node)
+                val = interp.getv(interp.interpret(model, node))
                 tree.lenv.symbols[key.value].setv(val)
                 ret = val
             return ret
@@ -224,14 +254,14 @@ class LCadFor(SpecialFunction):
         start = 0
         inc = 1
         if (len(loop_args)==2):
-            stop = interp.interpret(model, loop_args[1])
+            stop = interp.getv(interp.interpret(model, loop_args[1]))
         elif (len(loop_args)==3):
-            start = interp.interpret(model, loop_args[1])
-            stop = interp.interpret(model, loop_args[2])
+            start = interp.getv(interp.interpret(model, loop_args[1]))
+            stop = interp.getv(interp.interpret(model, loop_args[2]))
         else:
-            start = interp.interpret(model, loop_args[1])
-            inc = interp.interpret(model, loop_args[2])
-            stop = interp.interpret(model, loop_args[3])
+            start = interp.getv(interp.interpret(model, loop_args[1]))
+            inc = interp.getv(interp.interpret(model, loop_args[2]))
+            stop = interp.getv(interp.interpret(model, loop_args[3]))
 
         # loop.
         ret = None
@@ -257,7 +287,7 @@ class LCadIf(SpecialFunction):
 
      (if x 1 0)       ; error if x is not t or nil
      (if (= x 2) 3)
-     (if (= (fn) 0) 
+     (if (= (fn) 0)   ; if / else
        (block 
           (fn1 1) 
           (fn2))
@@ -268,11 +298,11 @@ class LCadIf(SpecialFunction):
 
     def argCheck(self, tree):
         if (len(tree.value) != 3) and (len(tree.value) != 4):
-            raise lce.NumberArgumentsException(tree, "2 or 3", len(tree.value) - 1)
+            raise lce.NumberArgumentsException("2 or 3", len(tree.value) - 1)
 
     def call(self, model, tree):
         args = tree.value[1:]
-        if isTrue(model, tree, args[0]):
+        if isTrue(model, args[0]):
             return interp.interpret(model, args[1])
         else:
             if (len(args)==3):
@@ -281,6 +311,26 @@ class LCadIf(SpecialFunction):
                 return False
 
 builtin_functions["if"] = LCadIf()
+
+
+class LCadList(SpecialFunction):
+    """
+    Create a list.
+
+    Usage:
+     (list 1 2 3)  ; returns the list 1,2,3
+     (list)        ; an empty list
+    """
+    def __init__(self):
+        self.name = "list"
+
+    def call(self, model, tree):
+        vals = []
+        for node in tree.value[1:]:
+            vals.append(interp.interpret(model, node))
+        return interp.List(vals)
+    
+builtin_functions["list"] = LCadList()
 
 
 class LCadMirror(SpecialFunction):
@@ -300,24 +350,24 @@ class LCadMirror(SpecialFunction):
     def argCheck(self, tree):
         flist = tree.value
         if (len(flist)<3):
-            raise lce.NumberArgumentsException(tree, "2+", 0)
+            raise lce.NumberArgumentsException("2+", 0)
         if (len(flist[1].value) != 3):
-            raise lce.NumberArgumentsException(tree, "3", len(flist[1].value))
+            raise lce.NumberArgumentsException("3", len(flist[1].value))
 
     def call(self, model, tree):
         args = tree.value[1].value
 
         new_model = model.makeCopy()
-        mx = interp.interpret(new_model, args[0])
-        my = interp.interpret(new_model, args[1])
-        mz = interp.interpret(new_model, args[2])
+        mx = interp.getv(interp.interpret(new_model, args[0]))
+        my = interp.getv(interp.interpret(new_model, args[1]))
+        mz = interp.getv(interp.interpret(new_model, args[2]))
 
         if not isinstance(mx, numbers.Number):
-            raise lce.WrongTypeException(tree, "number", type(mx).__name__)
+            raise lce.WrongTypeException("number", type(mx))
         if not isinstance(my, numbers.Number):
-            raise lce.WrongTypeException(tree, "number", type(my).__name__)
+            raise lce.WrongTypeException("number", type(my))
         if not isinstance(mz, numbers.Number):
-            raise lce.WrongTypeException(tree, "number", type(mz).__name__)
+            raise lce.WrongTypeException("number", type(mz))
 
         mm = numpy.identity(4)
         if (mx == 1):
@@ -354,12 +404,12 @@ class LCadPart(SpecialFunction):
     def argCheck(self, tree):
         flist = tree.value
         if (len(flist) != 3):
-            raise lce.NumberArgumentsException(tree, 2, len(flist) - 1)
+            raise lce.NumberArgumentsException(2, len(flist) - 1)
 
     def call(self, model, tree):
         args = tree.value[1:]
-        part_id = interp.interpret(model, args[0])
-        part_color = interp.interpret(model, args[1])
+        part_id = interp.getv(interp.interpret(model, args[0]))
+        part_color = interp.getv(interp.interpret(model, args[1]))
         model.parts_list.append(parts.Part(model.m, part_id, part_color))
         return None
 
@@ -407,24 +457,24 @@ class LCadRotate(SpecialFunction):
     def argCheck(self, tree):
         flist = tree.value
         if (len(flist)<3):
-            raise lce.NumberArgumentsException(tree, "2+", 0)
+            raise lce.NumberArgumentsException("2+", 0)
         if (len(flist[1].value) != 3):
-            raise lce.NumberArgumentsException(tree, "3", len(flist[1].value))
+            raise lce.NumberArgumentsException("3", len(flist[1].value))
 
     def call(self, model, tree):
         args = tree.value[1].value
 
         new_model = model.makeCopy()        
-        ax = interp.interpret(new_model, args[0])
-        ay = interp.interpret(new_model, args[1])
-        az = interp.interpret(new_model, args[2])
+        ax = interp.getv(interp.interpret(new_model, args[0]))
+        ay = interp.getv(interp.interpret(new_model, args[1]))
+        az = interp.getv(interp.interpret(new_model, args[2]))
 
         if not isinstance(ax, numbers.Number):
-            raise lce.WrongTypeException(tree, "number", type(ax).__name__)
+            raise lce.WrongTypeException("number", type(ax))
         if not isinstance(ay, numbers.Number):
-            raise lce.WrongTypeException(tree, "number", type(ay).__name__)
+            raise lce.WrongTypeException("number", type(ay))
         if not isinstance(az, numbers.Number):
-            raise lce.WrongTypeException(tree, "number", type(az).__name__)
+            raise lce.WrongTypeException("number", type(az))
 
         ax = ax * numpy.pi / 180.0
         ay = ay * numpy.pi / 180.0
@@ -473,22 +523,22 @@ class LCadSet(SpecialFunction):
     def argCheck(self, tree):
         flist = tree.value
         if (len(flist) < 3) or ((len(flist[1:])%2) != 0):
-            raise lce.NumberArgumentsException(tree, "A multiple of 2", len(flist[1:]))
+            raise lce.NumberArgumentsException("A multiple of 2", len(flist[1:]))
 
     def call(self, model, tree):
         args = tree.value[1:]
         ret = None
         kv_pairs = izip(*[iter(args)]*2)
-        for key, node in kv_pairs:
-            if not isinstance(key, lexerParser.LCadSymbol):
-                raise lce.CannotSetException(tree, key.simple_type_name)
-            if not key.value in tree.lenv.symbols:
-                raise lce.SymbolNotDefined(tree, key.value)
-            if key.value in interp.builtin_symbols:
-                raise lce.CannotOverrideTNil(tree)
+        for sym_node, val_node in kv_pairs:
 
-            val = interp.interpret(model, node)
-            tree.lenv.symbols[key.value].setv(val)
+            sym = interp.interpret(model, sym_node)
+            if not isinstance(sym, interp.Symbol):
+                raise lce.CannotSetException(type(sym))
+            if sym in interp.builtin_symbols:
+                raise lce.CannotOverrideTNil()
+
+            val = interp.getv(interp.interpret(model, val_node))
+            sym.setv(val)
             ret = val
         return ret
 
@@ -514,25 +564,25 @@ class LCadTranslate(SpecialFunction):
     def argCheck(self, tree):
         flist = tree.value
         if (len(flist)<3):
-            raise lce.NumberArgumentsException(tree, "2+", 0)
+            raise lce.NumberArgumentsException("2+", 0)
         if (len(flist[1].value) != 3):
-            raise lce.NumberArgumentsException(tree, "3", len(flist[1].value))
+            raise lce.NumberArgumentsException("3", len(flist[1].value))
 
     def call(self, model, tree):
         args = tree.value[1].value
 
         new_model = model.makeCopy()
         m = numpy.identity(4)
-        mx = interp.interpret(new_model, args[0])
-        my = interp.interpret(new_model, args[1])
-        mz = interp.interpret(new_model, args[2])
+        mx = interp.getv(interp.interpret(new_model, args[0]))
+        my = interp.getv(interp.interpret(new_model, args[1]))
+        mz = interp.getv(interp.interpret(new_model, args[2]))
 
         if not isinstance(mx, numbers.Number):
-            raise lce.WrongTypeException(tree, "number", type(mx).__name__)
+            raise lce.WrongTypeException("number", type(mx))
         if not isinstance(my, numbers.Number):
-            raise lce.WrongTypeException(tree, "number", type(my).__name__)
+            raise lce.WrongTypeException("number", type(my))
         if not isinstance(mz, numbers.Number):
-            raise lce.WrongTypeException(tree, "number", type(mz).__name__)
+            raise lce.WrongTypeException("number", type(mz))
 
         m[0,3] = mx
         m[1,3] = my
@@ -556,13 +606,13 @@ class ComparisonFunction(SpecialFunction):
     """
     def argCheck(self, tree):
         if (len(tree.value) < 3):
-            raise lce.NumberArgumentsException(tree, "2+", len(tree.value) - 1)
+            raise lce.NumberArgumentsException("2+", len(tree.value) - 1)
 
     def compare(self, model, tree, cmp_func):
         args = tree.value[1:]
-        val0 = interp.interpret(model, args[0])
+        val0 = interp.getv(interp.interpret(model, args[0]))
         for arg in args[1:]:
-            if not cmp_func(val0, interp.interpret(model, arg)):
+            if not cmp_func(val0, interp.getv(interp.interpret(model, arg))):
                 return interp.lcad_nil
         return interp.lcad_t
         
@@ -657,7 +707,7 @@ class LogicFunction(SpecialFunction):
     """
     def argCheck(self, tree):
         if (len(tree.value) < 3):
-            raise lce.NumberArgumentsException(tree, "2+", len(tree.value) - 1)
+            raise lce.NumberArgumentsException("2+", len(tree.value) - 1)
 
 class LCadAnd(LogicFunction):
     """
@@ -669,7 +719,7 @@ class LCadAnd(LogicFunction):
     """
     def call(self, model, tree):
         for node in tree.value[1:]:
-            if isTrue(model, tree, node):
+            if isTrue(model, node):
                 return interp.lcad_t
         return interp.lcad_nil
 
@@ -687,7 +737,7 @@ class LCadOr(LogicFunction):
     """
     def call(self, model, tree):
         for node in tree.value[1:]:
-            if isTrue(model, tree, node):
+            if isTrue(model, node):
                 return interp.lcad_t
         return interp.lcad_nil
 
@@ -704,10 +754,10 @@ class LCadNot(SpecialFunction):
     """
     def argCheck(self, tree):
         if (len(tree.value) != 2):
-            raise lce.NumberArgumentsException(tree, "2", len(tree.value) - 1)
+            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
 
     def call(self, model, tree):
-        if isTrue(model, tree, tree.value[1]):
+        if isTrue(model, tree.value[1]):
             return interp.lcad_nil
         else:
             return interp.lcad_t
@@ -719,10 +769,11 @@ class MathFunction(SpecialFunction):
     """
     Math functions.
     """
-    def isNumber(self, tree, value):
-        if not isinstance(value, numbers.Number):
-            raise lce.WrongTypeException(tree, "number", type(value).__name__)
-        return value
+    def isNumber(self, value):
+        num = interp.getv(value)
+        if not isinstance(num, numbers.Number):
+            raise lce.WrongTypeException("number", type(num))
+        return num
 
 
 # "Basic" math functions.
@@ -733,7 +784,7 @@ class BasicMathFunction(MathFunction):
     """
     def argCheck(self, tree):
         if (len(tree.value) < 3):
-            raise lce.NumberArgumentsException(tree, "2+", len(tree.value) - 1)
+            raise lce.NumberArgumentsException("2+", len(tree.value) - 1)
 
 class LCadDivide(BasicMathFunction):
     """
@@ -744,9 +795,9 @@ class LCadDivide(BasicMathFunction):
 
     """
     def call(self, model, tree):
-        total = self.isNumber(tree, interp.interpret(model, tree.value[1]))
+        total = self.isNumber(interp.interpret(model, tree.value[1]))
         for node in tree.value[2:]:
-            total = total/self.isNumber(tree, interp.interpret(model, node))
+            total = total/self.isNumber(interp.interpret(model, node))
         return total
 
 builtin_functions["/"] = LCadDivide("/")
@@ -761,9 +812,9 @@ class LCadMinus(BasicMathFunction):
 
     """
     def call(self, model, tree):
-        total = self.isNumber(tree, interp.interpret(model, tree.value[1]))
+        total = self.isNumber(interp.interpret(model, tree.value[1]))
         for node in tree.value[2:]:
-            total -= self.isNumber(tree, interp.interpret(model, node))
+            total -= self.isNumber(interp.interpret(model, node))
         return total
 
 builtin_functions["-"] = LCadMinus("-")
@@ -780,7 +831,7 @@ class LCadMultiply(BasicMathFunction):
     def call(self, model, tree):
         total = 1
         for node in tree.value[2:]:
-            total = total * self.isNumber(tree, interp.interpret(model, node))
+            total = total * self.isNumber(interp.interpret(model, node))
         return total
 
 builtin_functions["*"] = LCadMultiply("*")
@@ -797,7 +848,7 @@ class LCadPlus(BasicMathFunction):
     def call(self, model, tree):
         total = 0
         for node in tree.value[1:]:
-            total += self.isNumber(tree, interp.interpret(model, node))
+            total += self.isNumber(interp.interpret(model, node))
         return total
 
 builtin_functions["+"] = LCadPlus("+")
@@ -818,7 +869,7 @@ class AdvMathFunction(MathFunction):
 
         i_args = []
         for arg in args:
-            i_args.append(self.isNumber(tree, interp.interpret(model, arg)))
+            i_args.append(self.isNumber(interp.interpret(model, arg)))
 
         return self.py_func(*i_args)
 
