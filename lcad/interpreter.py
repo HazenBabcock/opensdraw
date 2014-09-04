@@ -31,7 +31,7 @@ class LEnv(object):
 
             # Functions.
             for fn_name in functions.builtin_functions.keys():
-                self.symbols[fn_name] = Symbol(fn_name)
+                self.symbols[fn_name] = Symbol(fn_name, 0)
                 self.symbols[fn_name].setv(functions.builtin_functions[fn_name])
 
     def makeCopy(self):
@@ -47,9 +47,12 @@ class List(object):
     def __init__(self, py_list):
         self.py_list = []
         for elt in py_list:
-            tmp = Symbol("list_object")
-            tmp.setv(elt)
-            self.py_list.append(tmp)
+            if isinstance(elt, Symbol):
+                self.py_list.append(elt)
+            else:
+                tmp = Symbol("list_object", 0)
+                tmp.setv(elt)
+                self.py_list.append(tmp)
 
     def __str__(self):
         if (self.size() < 10):
@@ -58,6 +61,9 @@ class List(object):
             tmp = "(" + " ".join(map(lambda(x): str(x), self.py_list[:3]))
             tmp += " .. " + " ".join(map(lambda(x): str(x), self.py_list[-3:])) + ")"
             return tmp
+
+    def getl(self):
+        return self.py_list
 
     def getv(self, index):
         return self.py_list[index]
@@ -84,13 +90,15 @@ class Symbol(object):
     """
     Box symbols so that they don't get copied when the environment gets copied.
     """
-    def __init__(self, name):
+    def __init__(self, name, lenv_id):
         self.is_set = False
+        self.lenv_id = lenv_id
         self.name = name
         self.used = False
         self.value = None
 
     def __str__(self):
+        #return self.name + " " + str(id(self))
         return str(self.value)
 
     def getv(self):
@@ -107,28 +115,41 @@ class Symbol(object):
 # t and nil are objects so that we can do comparisons using 'is' and
 # be gauranteed that there is only one truth and one false.
 
-builtin_symbols["t"] = Symbol("t")
-builtin_symbols["t"].setv(1)
-lcad_t = builtin_symbols["t"]
+class LObject(object):
+    
+    def __init__(self, name):
+        self.name = name
+        
+    def __str__(self):
+        return str(self.name)
 
-builtin_symbols["nil"] = Symbol("nil")
-builtin_symbols["nil"].setv(1)
-lcad_nil = builtin_symbols["nil"]
+lcad_t = LObject("t")
+builtin_symbols["t"] = Symbol("t", 0)
+builtin_symbols["t"].setv(lcad_t)
 
-builtin_symbols["e"] = Symbol("e")
+lcad_nil = LObject("nil")
+builtin_symbols["nil"] = Symbol("nil", 0)
+builtin_symbols["nil"].setv(lcad_nil)
+
+builtin_symbols["e"] = Symbol("e", 0)
 builtin_symbols["e"].setv(math.e)
 
-builtin_symbols["pi"] = Symbol("pi")
+builtin_symbols["pi"] = Symbol("pi", 0)
 builtin_symbols["pi"].setv(math.pi)
 
 def checkOverride(tree, symbol_name):
+
     # Error for shadowing built in symbols.
     if (symbol_name in builtin_symbols):
         raise lce.CannotOverrideTNil()
 
+    # Error for shadowing symbols at the same level of scope.
     # Warning for shadowing other existing symbols.
     if symbol_name in tree.lenv.symbols:
-        print "Warning", symbol_name, "overrides existing variable with the same name."
+        if (id(tree.lenv.symbols) == tree.lenv.symbols[symbol_name].lenv_id):
+            raise lce.SymbolAlreadyExists(symbol_name)
+        else:
+            print "Warning", symbol_name, "shadows existing symbol with the same name."
 
 
 def createLexicalEnv(lenv, tree):
@@ -167,7 +188,7 @@ def createLexicalEnv(lenv, tree):
                     # 4 arguments means this is a function definition.
                     if (len(flist)==4):
                         checkOverride(tree, flist[1].value)
-                        tree.lenv.symbols[flist[1].value] = Symbol(flist[1].value)
+                        tree.lenv.symbols[flist[1].value] = Symbol(flist[1].value, id(tree.lenv.symbols))
                         tree.lenv.symbols[flist[1].value].setv(functions.UserFunction(tree.lenv.makeCopy(), tree))
 
                     # Otherwise it defines one (or more variables).
@@ -187,7 +208,7 @@ def createLexicalEnv(lenv, tree):
                                 createLexicalEnv(tree.lenv.makeCopy(), flist[i+1])
                         
                             checkOverride(tree, flist[i].value)
-                            tree.lenv.symbols[flist[i].value] = Symbol(flist[i].value)
+                            tree.lenv.symbols[flist[i].value] = Symbol(flist[i].value, id(tree.lenv.symbols))
                             i += 2
 
                 # First element is for.
@@ -216,14 +237,16 @@ def createLexicalEnv(lenv, tree):
 
                     # Unlike def, iteration variable is not visible outside of the for loop.
                     new_env = tree.lenv.makeCopy()
-                    new_env.symbols[loop_args[0].value] = Symbol(loop_args[0].value)
+                    new_env.symbols[loop_args[0].value] = Symbol(loop_args[0].value, id(new_env.symbols))
                     tree.lenv = new_env
                     for node in flist[1:]:
                         createLexicalEnv(new_env, node)
 
-            new_env = tree.lenv.makeCopy()
-            for node in flist[start:]:
-                createLexicalEnv(new_env, node)
+            if (start != len(flist)):
+                new_env = tree.lenv.makeCopy()
+                for node in flist[start:]:
+                    createLexicalEnv(new_env, node)
+
         except Exception:
             print "!Error in expression '" + tree.value[0].value + "' at line " + str(tree.start_line) + ":"
             raise

@@ -24,7 +24,7 @@ builtin_functions = {}
 
 
 def isTrue(model, arg):
-    temp = interp.interpret(model, arg)
+    temp = interp.getv(interp.interpret(model, arg))
     if (temp is interp.lcad_t):
         return True
     elif (temp is interp.lcad_nil):
@@ -86,7 +86,7 @@ class UserFunction(LCadFunction):
 
             if arg_name in self.body.lenv.symbols:
                 print "Warning function argument", arg_name, "overrides existing variable with the same name."
-            self.body.lenv.symbols[arg_name] = interp.Symbol(arg_name)
+            self.body.lenv.symbols[arg_name] = interp.Symbol(arg_name, 0)
 
         interp.createLexicalEnv(lenv, flist[2])
 
@@ -167,7 +167,7 @@ class LCadAref(SpecialFunction):
         if not isinstance(tlist, interp.List):
             raise lce.WrongTypeException("List", type(tlist))
 
-        if ((index > 0) and (index < tlist.size())):
+        if ((index >= 0) and (index < tlist.size())):
             return tlist.getv(index)
         else:
             raise lce.OutOfRangeException(tlist.size(), index)
@@ -214,9 +214,10 @@ class LCadDef(SpecialFunction):
     def __init__(self):
         self.name = "def"
 
-    # This only sets variables. Functions are created in createLexicalEnv().
     def call(self, model, tree):
         args = tree.value[1:]
+        if (len(args) == 3):
+            return tree.lenv.symbols[args[0].value].getv()
         if ((len(args)%2) == 0):
             ret = None
             kv_pairs = izip(*[iter(args)]*2)
@@ -239,39 +240,53 @@ class LCadFor(SpecialFunction):
     For statement.
 
     Usage:
-     (for (i 10) ..)       ; increment i from 0 to 9.
-     (for (i 1 11) ..)     ; increment i from 1 to 11.
-     (for (i 1 0.1 5) ..)  ; increment i from 1 to 5 in steps of 0.1.
+     (for (i 10) ..)           ; increment i from 0 to 9.
+     (for (i 1 11) ..)         ; increment i from 1 to 11.
+     (for (i 1 0.1 5) ..)      ; increment i from 1 to 5 in steps of 0.1.
+     (for (i (list 1 3 4)) ..) ; increment i over the values in the list.
     """
     def __init__(self):
         self.name = "for"
 
     def call(self, model, tree):
 
-        # Determine loop parameters.
         loop_args = tree.value[1].value
         inc_var = tree.lenv.symbols[loop_args[0].value]
-        start = 0
-        inc = 1
-        if (len(loop_args)==2):
-            stop = interp.getv(interp.interpret(model, loop_args[1]))
-        elif (len(loop_args)==3):
-            start = interp.getv(interp.interpret(model, loop_args[1]))
-            stop = interp.getv(interp.interpret(model, loop_args[2]))
-        else:
-            start = interp.getv(interp.interpret(model, loop_args[1]))
-            inc = interp.getv(interp.interpret(model, loop_args[2]))
-            stop = interp.getv(interp.interpret(model, loop_args[3]))
+        arg1 = interp.interpret(model, loop_args[1])
 
-        # loop.
-        ret = None
-        cur = start
-        while(cur < stop):
-            inc_var.setv(cur)
-            for node in tree.value[2:]:
-                ret = interp.interpret(model, node)
-            cur += inc
-        return ret
+        # Iterate over list.
+        if ((len(loop_args)==2) and (isinstance(arg1, interp.List))):
+            ret = None
+            for elt in arg1.getl():
+                inc_var.setv(interp.getv(elt))
+                for node in tree.value[2:]:
+                    ret = interp.interpret(model, node)
+            return ret
+
+        # "Normal" iteration.
+        else:
+            start = 0
+            inc = 1
+            if (len(loop_args)==2):
+                stop = interp.getv(arg1)
+            elif (len(loop_args)==3):
+                start = interp.getv(interp.interpret(model, loop_args[1]))
+                stop = interp.getv(interp.interpret(model, loop_args[2]))
+            else:
+                start = interp.getv(interp.interpret(model, loop_args[1]))
+                inc = interp.getv(interp.interpret(model, loop_args[2]))
+                stop = interp.getv(interp.interpret(model, loop_args[3]))
+
+            # loop.
+            ret = None
+            cur = start
+            while(cur < stop):
+                inc_var.setv(cur)
+                for node in tree.value[2:]:
+                    ret = interp.interpret(model, node)
+                cur += inc
+            return ret
+        print "end"
 
 builtin_functions["for"] = LCadFor()
 
@@ -534,7 +549,7 @@ class LCadSet(SpecialFunction):
             sym = interp.interpret(model, sym_node)
             if not isinstance(sym, interp.Symbol):
                 raise lce.CannotSetException(type(sym))
-            if sym in interp.builtin_symbols:
+            if sym.name in interp.builtin_symbols:
                 raise lce.CannotOverrideTNil()
 
             val = interp.getv(interp.interpret(model, val_node))
