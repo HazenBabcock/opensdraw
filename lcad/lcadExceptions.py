@@ -16,7 +16,7 @@ class BooleanException(LCadException):
 
 class CannotOverrideTNil(LCadException):
     def __init__(self):
-        LCadException.__init__(self, "overriding builtin symbols (t, nil) is not allowed.")
+        LCadException.__init__(self, "overriding builtin symbols (t, nil, ..) is not allowed.")
 
 class CannotSetException(LCadException):
     def __init__(self, item_type):
@@ -50,9 +50,13 @@ class OutOfRangeException(LCadException):
     def __init__(self, high, val):
         LCadException.__init__(self, "value out of range, got " + str(val) + ", range is 0 - " + str(high))
 
+class SymbolAlreadyExists(LCadException):
+    def __init__(self, symbol_name):
+        LCadException.__init__(self, "symbol '" + symbol_name + "' already exists.")
+
 class SymbolNotDefined(LCadException):
-    def __init__(self, variable_name):
-        LCadException.__init__(self, "symbol '" + variable_name + "' not defined.")
+    def __init__(self, symbol_name):
+        LCadException.__init__(self, "symbol '" + symbol_name + "' not defined.")
 
 class VariableNotSetException(LCadException):
     def __init__(self, variable_name):
