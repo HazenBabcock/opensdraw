@@ -199,6 +199,37 @@ class LCadBlock(SpecialFunction):
 builtin_functions["block"] = LCadBlock()
 
 
+class LCadCond(SpecialFunction):
+    """
+    A switch statement.
+
+    Usage:
+     (cond
+       ((= x 1) ..) ; do this if x = 1
+       ((= x 2) ..) ; do this if x = 2
+       ((= x 3) ..) ; do this if x = 3
+       (t ..))      ; otherwise do this
+    """
+    def __init__(self):
+        self.name = "cond"
+
+    def argCheck(self, tree):
+        if (len(tree.value)<3):
+            raise lce.NumberArgumentsException("2+", 1)
+
+    def call(self, model, tree):
+        args = tree.value[1:]
+        ret = None
+        for arg in args:
+            nodes = arg.value
+            if isTrue(model, nodes[0]):
+                for node in nodes[1:]:
+                    ret = interp.interpret(model, node)
+                return ret
+
+builtin_functions["cond"] = LCadCond()
+
+
 class LCadDef(SpecialFunction):
     """
     Create a variable or function.
@@ -530,7 +561,7 @@ class LCadSet(SpecialFunction):
     Usage:
      (set x 15) - Set the value of x to 15.
      (set x 15 y 20) - Set x to 15 and y to 20.
-     (set x fn) - Set x to value of the symbol fn.
+     (set x fn) - Set x to be the function fn.
     """
     def __init__(self):
         self.name = "set"
@@ -562,7 +593,7 @@ builtin_functions["set"] = LCadSet()
 
 class LCadTranslate(SpecialFunction):
     """
-    Add a rotation to the current transformation matrix. Parts inside a translate
+    Add a translation to the current transformation matrix. Parts inside a translate
     block have this transformation applied to them.
 
     :param dx: Displacement in x in LDU.
@@ -579,7 +610,7 @@ class LCadTranslate(SpecialFunction):
     def argCheck(self, tree):
         flist = tree.value
         if (len(flist)<3):
-            raise lce.NumberArgumentsException("2+", 0)
+            raise lce.NumberArgumentsException("2+", 1)
         if (len(flist[1].value) != 3):
             raise lce.NumberArgumentsException("3", len(flist[1].value))
 
@@ -611,6 +642,31 @@ class LCadTranslate(SpecialFunction):
 
 builtin_functions["translate"] = LCadTranslate()
 
+
+class LCadWhile(SpecialFunction):
+    """
+    A while loop.
+
+    Usage:
+     (def x 1)
+     (while (< x 10) .. )
+    """
+    def __init__(self):
+        self.name = "while"
+
+    def argCheck(self, tree):
+        if (len(tree.value)<3):
+            raise lce.NumberArgumentsException("2+", 1)
+
+    def call(self, model, tree):
+        args = tree.value[1:]
+        ret = None
+        while isTrue(model, args[0]):
+            for arg in args[1:]:
+                ret = interp.interpret(model, arg)
+        return ret
+
+builtin_functions["while"] = LCadWhile()
 
 
 # Comparison functions.
