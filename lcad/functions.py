@@ -14,6 +14,7 @@ import math
 import numbers
 import numpy
 import operator
+import os
 
 import interpreter as interp
 import lcadExceptions as lce
@@ -357,6 +358,46 @@ class LCadIf(SpecialFunction):
                 return False
 
 builtin_functions["if"] = LCadIf()
+
+
+class LCadImport(SpecialFunction):
+    """
+    Import a module.
+
+    Module are searched for in the current working directory with
+    the extension ".scad".
+
+    Usage:
+     (import mod1)      ; import mod1.scad
+     (print mod1:x)     ; print the value of x in the mod1.scad module.
+     (mod1:fn 1)        ; call the function fn in the mod1.scad module.
+
+     (import mod1 mod2) ; import mod1.lcad and mod2.lcad.
+     (def m1 mod1)      ; use m1 as an alternate name for mod1.
+     (print m1:x)       ; print the value of x in the mod1.scad module.
+    """
+    def __init__(self):
+        self.name = "import"
+
+#    def argCheck(self, tree):
+#        if (len(tree.value) < 2):
+#            raise lce.NumberArgumentsException("2+", len(tree.value) - 1)
+#        for arg in tree.value[1:]:
+#            if not isinstance(arg, lexerParser.LCadSymbol):
+#                raise lce.WrongTypeException("symbol", arg)
+
+    def call(self, model, tree):
+        args = tree.value[1:]
+        for arg in args:
+            a_lenv = interp.LEnv()
+            a_model = interp.Model()
+            with open(arg.value + ".lcad") as fp:
+                a_ast = lexerParser.parser.parse(lexerParser.lexer.lex(fp.read()))
+                interp.createLexicalEnv(a_lenv, a_ast)
+                interp.interpret(a_model, a_ast)
+            tree.lenv.symbols[arg.value].setv(a_lenv.symbols)
+
+builtin_functions["import"] = LCadImport()
 
 
 class LCadList(SpecialFunction):

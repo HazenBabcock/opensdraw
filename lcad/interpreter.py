@@ -222,7 +222,7 @@ def createLexicalEnv(lenv, tree):
                     # Check that loop arguments are correct.
                     loop_args = flist[1]
                     if not isinstance(loop_args, lexerParser.LCadExpression):
-                        raise lce.LCadException("first argument to for() must be a list.")
+                        raise lce.LCadException("first argument in for() must be a list.")
 
                     loop_args = loop_args.value
                     if (len(loop_args) < 2):
@@ -241,6 +241,23 @@ def createLexicalEnv(lenv, tree):
                     tree.lenv = new_env
                     for node in flist[1:]:
                         createLexicalEnv(new_env, node)
+
+                # First element is import.
+                elif (flist[0].value == "import"):
+                    start = len(flist)
+
+                    # Import needs at least 1 arguments.
+                    if (len(flist)<2):
+                        raise lce.NumberArgumentsException("1 or more", len(flist) - 1)
+
+                    # All arguments must be symbols and can't override built in symbols.
+                    for arg in flist[1:]:
+                        if not isinstance(arg, lexerParser.LCadSymbol):
+                            raise lce.LCadException("arguments in import() must be a symbols.")
+                        checkOverride(tree, arg.value)
+
+                    for arg in flist[1:]:
+                        tree.lenv.symbols[arg.value] = Symbol(arg.value, id(tree.lenv.symbols))
 
             if (start != len(flist)):
                 new_env = tree.lenv.makeCopy()
@@ -293,10 +310,20 @@ def interpret(model, tree):
 
     # Symbol.
     elif isinstance(tree, lexerParser.LCadSymbol):
-        try:
-            return tree.lenv.symbols[tree.value]
-        except KeyError:
-            raise lce.SymbolNotDefined(tree.value)
+        sym_name = tree.value
+        
+        # Check in current module.
+        if sym_name in tree.lenv.symbols:
+            return tree.lenv.symbols[sym_name]
+
+        # Check in imported modules.
+        [module_name, symbol_name] = sym_name.split(":")
+        module = tree.lenv.symbols[module_name].getv()
+        if symbol_name in module:
+            return module[symbol_name]
+
+        # Not found, raise error.
+        raise lce.SymbolNotDefined(sym_name)
 
     # Expression.
     #
