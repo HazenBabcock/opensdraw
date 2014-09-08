@@ -1,10 +1,15 @@
 ;;
 ;; Major mode for openlcad.
 ;;
+;; Sources:
+;;  hy-mode.el from the Hy language project.
+;;  http://ergoemacs.org/emacs/elisp_comment_handling.html
+;;
 
 (defconst lcad-keywords
       `((,(concat "(\\("
-		  (regexp-opt '("def" "mirror" "part" "print" "rotate" "set" "translate"))
+		  (regexp-opt '("aref" "block" "cond" "def" "for" "if" "import" "list" 
+				"mirror" "part" "print" "rotate" "set" "translate" "while"))
 		  "\\)\\>"
 		  "[ \r\n\t]+")
 	 (1 font-lock-function-name-face))
@@ -13,13 +18,33 @@
 		  "\\)\\>")
 	 (1 font-lock-constant-face))))
 
+;; command to comment/uncomment text
+(defun lcad-comment-dwim (arg)
+  "Comment or uncomment current line or region in a smart way. For detail, see `comment-dwim'."
+  (interactive "*P")
+  (require 'newcomment)
+  (let ((comment-start ";") (comment-end ""))
+    (comment-dwim arg)))
+
+;; syntax table
+(defvar lcad-syntax-table nil "Syntax table for `lcad-mode'.")
+(setq lcad-syntax-table
+      (let ((synTable (make-syntax-table)))
+        (modify-syntax-entry ?\; "< b" synTable)
+        (modify-syntax-entry ?\n "> b" synTable)
+        synTable))
+
 (progn
   (add-to-list 'auto-mode-alist '("\\.lcad\\'" . lcad-mode)))
-;  (add-to-list 'interpreter-mode-alist '("lcad" . lcad-mode)))
 
-(define-derived-mode lcad-mode prog-mode "lcad"
+(define-derived-mode lcad-mode prog-mode 
+  "lcad-mode is a major mode for editing the lcad language."
+  :syntax-table lcad-syntax-table
   (setq font-lock-defaults '(lcad-keywords))
-)
+  (setq mode-name "lcad")
+  (setq indent-line-function 'lisp-indent-line)
+
+  (define-key lcad-mode-map [remap comment-dwim] 'lcad-comment-dwim))
 
 (provide 'lcad-mode)
 
