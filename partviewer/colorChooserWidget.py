@@ -8,50 +8,10 @@
 #
 
 import sys
-from xml.etree import ElementTree
 
 from PyQt4 import QtCore, QtGui
 
-## Color
-#
-# Color information class.
-#
-class Color(object):
-
-    ## __init__
-    #
-    # @param color_node A node from a colors.xml file.
-    #
-    def __init__(self, color_node):
-        self.code = color_node.attrib["code"]
-        self.edge = color_node.attrib["edge"]
-        self.lego_color = color_node.attrib["lego_color"]
-        self.lego_id = color_node.attrib["lego_id"]
-        self.name = color_node.attrib["name"]
-        self.value = color_node.attrib["value"]
-
-    ## getDescription
-    #
-    # @return A text description of the color.
-    #
-    def getDescription(self):
-        return self.code + ", " + self.name
-        
-    ## getEdgeColor
-    #
-    # @param scale (Optional) "256" or "1.0", defaults to "1.0"
-    # @return [r, g, b, a]
-    #
-    def getEdgeColor(self, scale = "1.0"):
-        return parseColor(self.edge, scale)
-
-    ## getFaceColor
-    #
-    # @param scale (Optional) "256" or "1.0", defaults to "1.0"
-    # @return [r, g, b, a]
-    #
-    def getFaceColor(self, scale = "1.0"):
-        return parseColor(self.value, scale)
+import lcad_lib.colorsParser
 
 
 ## ColorChooserWidget
@@ -72,17 +32,17 @@ class ColorChooserWidget(QtGui.QWidget):
 
         max_x = 400
         n_groups = 0
-        color_xml = ElementTree.parse(color_file).getroot()
+        colors = lcad_lib.colorsParser.loadColors()
         #x_pos = 2
         y_pos = 2
-        for color_group in color_xml.find("colors"):
+        for color_group in colors:
             if (n_groups < 3):
                 x_pos = 2
             for color_entry in color_group:
                 if (x_pos > max_x):
                     x_pos = 2
                     y_pos += 14
-                panel = ColorPanelFrame(Color(color_entry), self)
+                panel = ColorPanelFrame(color_entry, self)
                 panel.move(x_pos, y_pos)
                 panel.clicked.connect(self.handleClick)
                 self.color_panels.append(panel)
