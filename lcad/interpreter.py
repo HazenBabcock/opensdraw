@@ -312,15 +312,21 @@ def interpret(model, tree):
     elif isinstance(tree, lexerParser.LCadSymbol):
         sym_name = tree.value
         
-        # Check in current module.
-        if sym_name in tree.lenv.symbols:
-            return tree.lenv.symbols[sym_name]
+        try:
+            # Check in current module.
+            if sym_name in tree.lenv.symbols:
+                return tree.lenv.symbols[sym_name]
 
-        # Check in imported modules.
-        [module_name, symbol_name] = sym_name.split(":")
-        module = tree.lenv.symbols[module_name].getv()
-        if symbol_name in module:
-            return module[symbol_name]
+            # Check in imported modules.
+            tmp = sym_name.split(":")
+            if (len(tmp)==2):
+                [module_name, symbol_name] = tmp
+                module = tree.lenv.symbols[module_name].getv()
+                if symbol_name in module:
+                    return module[symbol_name]
+
+        except KeyError:
+            raise lce.SymbolNotDefined(sym_name)
 
         # Not found, raise error.
         raise lce.SymbolNotDefined(sym_name)
