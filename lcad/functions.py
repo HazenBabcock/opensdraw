@@ -5,7 +5,6 @@
 
 .. moduleauthor:: Hazen Babcock
 
-
 """
 
 from functools import wraps

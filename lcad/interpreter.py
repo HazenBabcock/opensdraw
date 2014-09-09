@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-#
-# The language interpreter for lcad.
-#
-# Hazen 07/14
-#
+"""
+.. module:: interpreter
+   :synopsis: The interpreter for the lcad language.
+
+.. moduleauthor:: Hazen Babcock
+
+"""
 
 import copy
 import math
