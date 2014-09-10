@@ -1,25 +1,72 @@
 #!/usr/bin/env python
-#
-# lcad part object.
-#
-# Hazen 07/14
-#
+"""
+.. module:: parts
+   :synopsis: The part object.
+
+.. moduleauthor:: Hazen Babcock
+"""
 
 import numpy
+
+import lcad_lib.colorsParser as colorsParser
+
+# Load colors and create dictionaries.
+all_colors = colorsParser.loadColors()
+
+lcad_name_dict = {}
+for color_group in all_colors:
+    for color in color_group:
+        lcad_name_dict[color.name.lower()] = color
+
+def formatNumber(a_number, precision):
+    f_string = "{0:." + str(precision) + "f}"
+    return f_string.format(a_number)
 
 class Part(object):
 
     def __init__(self, model_matrix, part_id, part_color):
         self.model_matrix = model_matrix
-        self.part_color = part_color
+        try:
+            self.part_color = int(part_color)
+        except ValueError:
+            self.part_color = part_color
+
         self.part_id = part_id
 
         self.loc = numpy.array([0.0, 0.0, 0.0, 1.0])
         self.loc = numpy.dot(self.model_matrix, self.loc)
 
-        print "Added part", self.part_id, "with color", self.part_color, "at", self.loc
-        #print model_matrix
-        #print ""
+    def toLDraw(self):
+        """
+        Return a string in ldraw format.
+
+        :returns: str.
+        """
+        ld_str = "1 "
+
+        # color
+        if isinstance(self.part_color, int):
+            ld_str += str(self.part_color) + " "
+        else:
+            ld_str += lcad_name_dict[self.part_color.lower()].code + " "
+
+        # xyz
+        ld_str += formatNumber(self.model_matrix[0,3], 2) + " "
+        ld_str += formatNumber(self.model_matrix[1,3], 2) + " "
+        ld_str += formatNumber(self.model_matrix[2,3], 2) + " "
+
+        # abcdefghi
+        for i in range(3):
+            for j in range(3):
+                ld_str += formatNumber(self.model_matrix[i,j], 3) + " "
+
+        # part
+        if not (".dat" in self.part_id):
+            ld_str += self.part_id + ".dat"
+        else:
+            ld_str += self.part_id
+
+        return ld_str
 
 #
 # The MIT License
