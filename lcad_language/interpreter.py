@@ -82,6 +82,9 @@ class Model(object):
         self.m = numpy.identity(4)
         self.parts_list = []
 
+    def getParts(self):
+        return self.parts_list
+
     def makeCopy(self):
         a_copy = Model()
         a_copy.m = self.m.copy()
@@ -112,7 +115,6 @@ class Symbol(object):
     def setv(self, value):
         self.is_set = True
         self.value = value
-
         
 # t and nil are objects so that we can do comparisons using 'is' and
 # be gauranteed that there is only one truth and one false.
@@ -152,7 +154,6 @@ def checkOverride(tree, symbol_name):
             raise lce.SymbolAlreadyExists(symbol_name)
         else:
             print "Warning", symbol_name, "shadows existing symbol with the same name."
-
 
 def createLexicalEnv(lenv, tree):
     """
@@ -277,7 +278,6 @@ def createLexicalEnv(lenv, tree):
         for node in tree:
             createLexicalEnv(lenv, node)
 
-
 def dispatch(func, model, tree):
     """
     This handles function calls to both user-defined and built-in functions.
@@ -286,6 +286,21 @@ def dispatch(func, model, tree):
         raise lce.NotAFunctionException()
     func.argCheck(tree)
     return func.call(model, tree)
+
+def execute(lcad_code):
+    """
+    Parses and executes the lcad code in the string lcad_code and returns the model.
+
+    :param lcad_code: A string containing lcad code.
+    :type lcad_code: str.
+    :returns: Model.
+    """
+    lenv = LEnv()
+    model = Model()
+    ast = lexerParser.parser.parse(lexerParser.lexer.lex(lcad_code))
+    createLexicalEnv(lenv, ast)
+    interpret(model, ast)
+    return model
 
 def getv(node):
     """
