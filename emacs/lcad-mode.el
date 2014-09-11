@@ -4,6 +4,7 @@
 ;; Sources:
 ;;  hy-mode.el from the Hy language project.
 ;;  http://ergoemacs.org/emacs/elisp_comment_handling.html
+;;  http://stackoverflow.com/questions/3623101/how-to-extend-emacs-lisp-mode-with-indentation-changes-and-color-changes
 ;;
 
 (defconst lcad-keywords
@@ -37,12 +38,60 @@
 (progn
   (add-to-list 'auto-mode-alist '("\\.lcad\\'" . lcad-mode)))
 
-(define-derived-mode lcad-mode prog-mode 
+;; lcad specific offsets here
+(put 'aref 'lcad-indent-function 1)
+(put 'block 'lcad-indent-function 1)
+(put 'cond 'lcad-indent-function 1)
+(put 'def 'lcad-indent-function 1)
+(put 'for 'lcad-indent-function 1)
+(put 'if 'lcad-indent-function 1)
+(put 'import 'lcad-indent-function 1)
+(put 'list 'lcad-indent-function 1)
+(put 'mirror 'lcad-indent-function 1)
+(put 'part 'lcad-indent-function 1)
+(put 'print 'lcad-indent-function 1)
+(put 'rotate 'lcad-indent-function 1)
+(put 'set 'lcad-indent-function 1)
+(put 'translate 'lcad-indent-function 1)
+(put 'while 'lcad-indent-function 1)
+
+(defun lcad-indent-function (indent-point state)
+  (let ((normal-indent (current-column)))
+    (goto-char (1+ (elt state 1)))
+    (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
+    (if (and (elt state 2)
+             (not (looking-at "\\sw\\|\\s_")))
+        (progn
+          (if (not (> (save-excursion (forward-line 1) (point))
+                      calculate-lisp-indent-last-sexp))
+              (progn (goto-char calculate-lisp-indent-last-sexp)
+                     (beginning-of-line)
+                     (parse-partial-sexp (point)
+                                         calculate-lisp-indent-last-sexp 0 t)))
+          (backward-prefix-chars)
+          (current-column))
+      (let ((function (buffer-substring (point)
+                                        (progn (forward-sexp 1) (point))))
+            method)
+        (setq method (or (get (intern-soft function) 'lcad-indent-function)
+                         (get (intern-soft function) 'lisp-indent-hook)))
+        (cond ((or (eq method 'defun)
+                   (and (null method)
+                        (> (length function) 3)
+                        (string-match "\\`def" function)))
+               (lisp-indent-defform state indent-point))
+              ((integerp method)
+               (lisp-indent-specform method state
+                                     indent-point normal-indent))
+              (method
+               (funcall method indent-point state)))))))
+
+(define-derived-mode lcad-mode lisp-mode 
   "lcad-mode is a major mode for editing the lcad language."
   :syntax-table lcad-syntax-table
   (setq font-lock-defaults '(lcad-keywords))
   (setq mode-name "lcad")
-  (setq indent-line-function 'lisp-indent-line)
+  (setq lisp-indent-function 'lcad-indent-function)
 
   (define-key lcad-mode-map [remap comment-dwim] 'lcad-comment-dwim))
 
