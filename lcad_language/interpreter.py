@@ -24,17 +24,21 @@ class LEnv(object):
     def __init__(self, debug = False, add_builtins = True):
         self.debug = debug
 
+        self.parents = []
         self.symbols = {}
-        if add_builtins:
 
-            # Symbols.
-            for sym_name in builtin_symbols.keys():
-                self.symbols[sym_name] = builtin_symbols[sym_name]
+    def addBuiltIns(self):
+        """
+        This should only be called on the root lexical environment.
+        """
+        # Symbols.
+        for sym_name in builtin_symbols.keys():
+            self.symbols[sym_name] = builtin_symbols[sym_name]
 
-            # Functions.
-            for fn_name in functions.builtin_functions.keys():
-                self.symbols[fn_name] = Symbol(fn_name, 0)
-                self.symbols[fn_name].setv(functions.builtin_functions[fn_name])
+        # Functions.
+        for fn_name in functions.builtin_functions.keys():
+            self.symbols[fn_name] = Symbol(fn_name, 0)
+            self.symbols[fn_name].setv(functions.builtin_functions[fn_name])
 
     def makeCopy(self):
         a_copy = LEnv(add_builtins = False)
@@ -346,6 +350,7 @@ def interpret(model, tree):
             raise lce.SymbolNotDefined(sym_name)
 
         # Not found, raise error.
+        print id(tree.lenv.symbols)
         raise lce.SymbolNotDefined(sym_name)
 
     # Expression.

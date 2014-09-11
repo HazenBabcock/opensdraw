@@ -374,19 +374,17 @@ class LCadImport(SpecialFunction):
      (import mod1 mod2) ; import mod1.lcad and mod2.lcad.
      (def m1 mod1)      ; use m1 as an alternate name for mod1.
      (print m1:x)       ; print the value of x in the mod1.scad module.
+
+     (import mod1 mod2 :local) ; import mod1.lcad and mod2.lcad into the name space of current module.
     """
     def __init__(self):
         self.name = "import"
 
-#    def argCheck(self, tree):
-#        if (len(tree.value) < 2):
-#            raise lce.NumberArgumentsException("2+", len(tree.value) - 1)
-#        for arg in tree.value[1:]:
-#            if not isinstance(arg, lexerParser.LCadSymbol):
-#                raise lce.WrongTypeException("symbol", arg)
-
     def call(self, model, tree):
         args = tree.value[1:]
+        local = True if (args[-1].value == ":local") else False
+        if local:
+            args = args[:-1]
         for arg in args:
             a_lenv = interp.LEnv()
             a_model = interp.Model()
@@ -394,7 +392,16 @@ class LCadImport(SpecialFunction):
                 a_ast = lexerParser.parser.parse(lexerParser.lexer.lex(fp.read()))
                 interp.createLexicalEnv(a_lenv, a_ast)
                 interp.interpret(a_model, a_ast)
-            tree.lenv.symbols[arg.value].setv(a_lenv.symbols)
+            if local:
+                print "local"
+                for sym in a_lenv.symbols:
+                    if (not sym in interp.builtin_symbols) and (not sym in builtin_functions):
+                        if sym in tree.lenv.symbols:
+                            print "Warning symbol", sym, "imported from", arg.value, "overwrites local symbol with the same name."
+                        print sym, id(tree.lenv.symbols)
+                        tree.lenv.symbols[sym] = a_lenv.symbols[sym]
+            else:
+                tree.lenv.symbols[arg.value].setv(a_lenv.symbols)
 
 builtin_functions["import"] = LCadImport()
 
@@ -941,7 +948,7 @@ class LCadMultiply(BasicMathFunction):
     """
     def call(self, model, tree):
         total = 1
-        for node in tree.value[2:]:
+        for node in tree.value[1:]:
             total = total * self.isNumber(interp.interpret(model, node))
         return total
 
