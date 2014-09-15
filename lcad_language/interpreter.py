@@ -21,11 +21,12 @@ class LEnv(object):
     """
     This keeps track of the current lexical environment.
     """
-    def __init__(self, debug = False, add_builtins = True):
-        self.debug = debug
-
-        self.parents = []
+    def __init__(self, parent = None, add_built_ins = False):
+        self.parent = parent
         self.symbols = {}
+
+        if add_built_ins:
+            self.addBuiltIns()
 
     def addBuiltIns(self):
         """
@@ -37,14 +38,8 @@ class LEnv(object):
 
         # Functions.
         for fn_name in functions.builtin_functions.keys():
-            self.symbols[fn_name] = Symbol(fn_name, 0)
+            self.symbols[fn_name] = Symbol(fn_name)
             self.symbols[fn_name].setv(functions.builtin_functions[fn_name])
-
-    def makeCopy(self):
-        a_copy = LEnv(add_builtins = False)
-        a_copy.debug = self.debug
-        a_copy.symbols = self.symbols.copy()
-        return a_copy
 
 class List(object):
     """
@@ -56,7 +51,7 @@ class List(object):
             if isinstance(elt, Symbol):
                 self.py_list.append(elt)
             else:
-                tmp = Symbol("list_object", 0)
+                tmp = Symbol("list_object")
                 tmp.setv(elt)
                 self.py_list.append(tmp)
 
@@ -80,7 +75,7 @@ class List(object):
 class Model(object):
     """
     This keeps track of the current "model", i.e. the 
-    transformation matrix and the parts list.
+    current transformation matrix and the parts list.
     """
     def __init__(self, debug = False):
         self.m = numpy.identity(4)
@@ -97,11 +92,10 @@ class Model(object):
 
 class Symbol(object):
     """
-    Box symbols so that they don't get copied when the environment gets copied.
+    Symbol class.
     """
-    def __init__(self, name, lenv_id):
+    def __init__(self, name):
         self.is_set = False
-        self.lenv_id = lenv_id
         self.name = name
         self.used = False
         self.value = None
@@ -132,144 +126,85 @@ class LObject(object):
         return str(self.name)
 
 lcad_t = LObject("t")
-builtin_symbols["t"] = Symbol("t", 0)
+builtin_symbols["t"] = Symbol("t")
 builtin_symbols["t"].setv(lcad_t)
 
 lcad_nil = LObject("nil")
-builtin_symbols["nil"] = Symbol("nil", 0)
+builtin_symbols["nil"] = Symbol("nil")
 builtin_symbols["nil"].setv(lcad_nil)
 
-builtin_symbols["e"] = Symbol("e", 0)
+builtin_symbols["e"] = Symbol("e")
 builtin_symbols["e"].setv(math.e)
 
-builtin_symbols["pi"] = Symbol("pi", 0)
+builtin_symbols["pi"] = Symbol("pi")
 builtin_symbols["pi"].setv(math.pi)
 
-def checkOverride(tree, symbol_name):
+def checkOverride(lenv, symbol_name):
+    """
+    Check if symbol_name overrides a builtin or user defined symbol.
+    """
 
     # Error for shadowing built in symbols.
     if (symbol_name in builtin_symbols):
         raise lce.CannotOverrideTNil()
 
     # Error for shadowing symbols at the same level of scope.
-    # Warning for shadowing other existing symbols.
-    if symbol_name in tree.lenv.symbols:
-        if (id(tree.lenv.symbols) == tree.lenv.symbols[symbol_name].lenv_id):
-            raise lce.SymbolAlreadyExists(symbol_name)
-        else:
-            print "Warning", symbol_name, "shadows existing symbol with the same name."
+    if symbol_name in lenv.symbols:
+        raise lce.SymbolAlreadyExists(symbol_name)
+
+    # Warning for shadowing other existing symbols in higher level of scope.
+    try:
+        findSymbol(lenv.parent, symbol_name)
+    except lce.SymbolNotDefined:
+        return
+
+    print "Warning", symbol_name, "shadows existing symbol with the same name."
 
 def createLexicalEnv(lenv, tree):
     """
-    Recursively walk the AST to determine the lexical environment by creating
-    variables and functions, along with environment in which the function
-    will be called. 
-
-    Expressions and Symbols in the tree are then decorated with this lexical environments.
+    Recursively walk the AST creating the a lexical environment in which to
+    evaluate all the symbols.
     """
-
     if isinstance(tree, lexerParser.LCadExpression):
         try:
-            tree.lenv = lenv
+            # Every expression has it's own lexical environment whose parent
+            # is the lexical environment of the enclosing expression.
+            tree.lenv = LEnv(lenv)
             flist = tree.value
 
             # Empty list.
             if (len(flist) == 0):
                 return
 
-            # First element is a symbol, have to handle this specially in
-            # case the symbol is "def" or "for" as these create symbols.
             start = 0
             if isinstance(flist[0], lexerParser.LCadSymbol):
                 start = 1
                 flist[0].lenv = tree.lenv
 
                 # First element is def.
+                #
+                # Create symbols for functions. Functions are created and initialized 
+                # at this time so that they can be called out of order.
+                #
                 if (flist[0].value == "def"):
-                    start = len(flist)
-            
-                    # def needs at least 3 arguments.
-                    if (len(flist)<3):
-                        raise lce.NumberArgumentsException("2 or more", len(flist) - 1)
 
                     # 4 arguments means this is a function definition.
+                    #
+                    # def creates symbols in the lexical environment of the parent expression
+                    # so that they are visible outside of the def statement.
+                    #
+                    # functions are evaulated in lexical environment of the def statement, so
+                    # that their variables are not visible outside of the def statement.
+                    #
                     if (len(flist)==4):
-                        checkOverride(tree, flist[1].value)
-                        tree.lenv.symbols[flist[1].value] = Symbol(flist[1].value, id(tree.lenv.symbols))
-                        tree.lenv.symbols[flist[1].value].setv(functions.UserFunction(tree.lenv.makeCopy(), tree))
-
-                    # Otherwise it defines one (or more variables).
-                    else:
-                        # Must be divisible by 2.
-                        if ((len(flist)%2)!=1):
-                            raise lce.NumberArgumentsException("an even number of arguments", len(flist) - 1)
-
-                        i = 1
-                        while(i < len(flist)):
-                            if not isinstance(flist[i], lexerParser.LCadSymbol):
-                                raise lce.CannotSetException(flist[i].simple_type_name)
-                            flist[i].lenv = lenv
-                            if isinstance(flist[i+1], lexerParser.LCadSymbol):
-                                flist[i+1].lenv = lenv
-                            else:
-                                createLexicalEnv(tree.lenv.makeCopy(), flist[i+1])
-                        
-                            checkOverride(tree, flist[i].value)
-                            tree.lenv.symbols[flist[i].value] = Symbol(flist[i].value, id(tree.lenv.symbols))
-                            i += 2
-
-                # First element is for.
-                elif (flist[0].value == "for"):
-                    start = len(flist)
-
-                    # For needs at least 3 arguments.
-                    if (len(flist)<3):
-                        raise lce.NumberArgumentsException("2 or more", len(flist) - 1)
-
-                    # Check that loop arguments are correct.
-                    loop_args = flist[1]
-                    if not isinstance(loop_args, lexerParser.LCadExpression):
-                        raise lce.LCadException("first argument in for() must be a list.")
-
-                    loop_args = loop_args.value
-                    if (len(loop_args) < 2):
-                        raise lce.NumberArgumentsException("2,3 or 4", len(loop_args))
-                    elif (len(loop_args) > 4):
-                        raise lce.NumberArgumentsException("2,3 or 4", len(loop_args))
-
-                    if not isinstance(loop_args[0], lexerParser.LCadSymbol):
-                        raise lce.LCadException("loop variable must be a symbol.")
-
-                    checkOverride(tree, loop_args[0].value)
-
-                    # Unlike def, iteration variable is not visible outside of the for loop.
-                    new_env = tree.lenv.makeCopy()
-                    new_env.symbols[loop_args[0].value] = Symbol(loop_args[0].value, id(new_env.symbols))
-                    tree.lenv = new_env
-                    for node in flist[1:]:
-                        createLexicalEnv(new_env, node)
-
-                # First element is import.
-                elif (flist[0].value == "import"):
-                    start = len(flist)
-
-                    # Import needs at least 1 arguments.
-                    if (len(flist)<2):
-                        raise lce.NumberArgumentsException("1 or more", len(flist) - 1)
-
-                    # All arguments must be symbols and can't override built in symbols.
-                    for arg in flist[1:]:
-                        if not isinstance(arg, lexerParser.LCadSymbol):
-                            raise lce.LCadException("arguments in import() must be a symbols.")
-                        checkOverride(tree, arg.value)
-
-                    for arg in flist[1:]:
-                        tree.lenv.symbols[arg.value] = Symbol(arg.value, id(tree.lenv.symbols))
+                        start = len(flist)
+                        checkOverride(lenv, flist[1].value)
+                        lenv.symbols[flist[1].value] = Symbol(flist[1].value)
+                        lenv.symbols[flist[1].value].setv(functions.UserFunction(tree.lenv, tree))
 
             if (start != len(flist)):
-                new_env = tree.lenv.makeCopy()
                 for node in flist[start:]:
-                    createLexicalEnv(new_env, node)
+                    createLexicalEnv(tree.lenv, node)
 
         except Exception:
             print "!Error in expression '" + tree.value[0].value + "' at line " + str(tree.start_line) + ":"
@@ -288,7 +223,8 @@ def dispatch(func, model, tree):
     """
     if not isinstance(func, functions.LCadFunction):
         raise lce.NotAFunctionException()
-    func.argCheck(tree)
+    if not tree.initialized:
+        func.argCheck(tree)
     return func.call(model, tree)
 
 def execute(lcad_code):
@@ -299,12 +235,30 @@ def execute(lcad_code):
     :type lcad_code: str.
     :returns: Model.
     """
-    lenv = LEnv()
+    lenv = LEnv(add_built_ins = True)
     model = Model()
     ast = lexerParser.parser.parse(lexerParser.lexer.lex(lcad_code))
     createLexicalEnv(lenv, ast)
     interpret(model, ast)
     return model
+
+def findSymbol(lenv, symbol_name):
+    """
+    Recursively searchs up the tree of lexical environments to find
+    a symbol_name.
+
+    :param lenv: A lexical environment.
+    :type lenv: LEnv.
+    :param symbol_name: The name of symbol to find.
+    :type symbol_name: str.
+    :returns: Symbol.
+    :raises: SymbolNotDefined.
+    """
+    if lenv is None:
+        raise lce.SymbolNotDefined(symbol_name)
+    if symbol_name in lenv.symbols:
+        return lenv.symbols[symbol_name]
+    return findSymbol(lenv.parent, symbol_name)
 
 def getv(node):
     """
@@ -331,27 +285,7 @@ def interpret(model, tree):
 
     # Symbol.
     elif isinstance(tree, lexerParser.LCadSymbol):
-        sym_name = tree.value
-        
-        try:
-            # Check in current module.
-            if sym_name in tree.lenv.symbols:
-                return tree.lenv.symbols[sym_name]
-
-            # Check in imported modules.
-            tmp = sym_name.split(":")
-            if (len(tmp)==2):
-                [module_name, symbol_name] = tmp
-                module = tree.lenv.symbols[module_name].getv()
-                if symbol_name in module:
-                    return module[symbol_name]
-
-        except KeyError:
-            raise lce.SymbolNotDefined(sym_name)
-
-        # Not found, raise error.
-        print id(tree.lenv.symbols)
-        raise lce.SymbolNotDefined(sym_name)
+        return findSymbol(tree.lenv, tree.value)
 
     # Expression.
     #
