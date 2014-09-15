@@ -434,8 +434,8 @@ class LCadImport(SpecialFunction):
      (mod1:fn 1)        ; call the function fn in the mod1.scad module.
 
      (import mod1 mod2) ; import mod1.lcad and mod2.lcad.
-     (def m1 mod1)      ; use m1 as an alternate name for mod1.
-     (print m1:x)       ; print the value of x in the mod1.scad module.
+     (def mx mod1:x)    ; use m1 as an alternate name for mod1:x.
+     (print mx)         ; print the value of x in the mod1.scad module.
 
      (import mod1 mod2 :local) ; import mod1.lcad and mod2.lcad into the name space of current module.
     """
