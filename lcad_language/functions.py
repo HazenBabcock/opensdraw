@@ -32,6 +32,11 @@ def isTrue(model, arg):
     else:
         raise lce.BooleanException()
 
+def printSymbolTableIds(lenv):
+    while lenv is not None:
+        print id(lenv)
+        lenv = lenv.parent
+    print "-"
 
 class LCadFunction(object):
     """
@@ -56,8 +61,8 @@ class UserFunction(LCadFunction):
 
         self.arg_list = flist[1].value
         self.body = flist[2]
-        self.body.lenv = lenv
         self.default_values = []
+        self.lenv = lenv
         self.have_keyword_args = False
         self.min_args = 0
         self.name = flist[0].value
@@ -77,18 +82,17 @@ class UserFunction(LCadFunction):
                 if isinstance(arg_value, lexerParser.LCadSymbol):
                     if (arg_value.value[0] == ":"):
                         raise Exception("Keyword arguments must have a default value.")
-                interp.createLexicalEnv(lenv, arg_value)
+                interp.createLexicalEnv(self.lenv, arg_value)
                 self.default_values.append([arg_name, arg_value])
                 i += 2
             else:
                 self.min_args += 1
                 i += 1
 
-            if arg_name in self.body.lenv.symbols:
-                print "Warning function argument", arg_name, "overrides existing variable with the same name."
-            self.body.lenv.symbols[arg_name] = interp.Symbol(arg_name, 0)
+            interp.checkOverride(self.lenv, arg_name)
+            self.lenv.symbols[arg_name] = interp.Symbol(arg_name)
 
-        interp.createLexicalEnv(lenv, flist[2])
+        interp.createLexicalEnv(self.lenv, flist[2])
 
     def argCheck(self, tree):
         args = tree.value[1:]
@@ -112,14 +116,14 @@ class UserFunction(LCadFunction):
 
         # Fill in defaults (if any).
         for default in self.default_values:
-            self.body.lenv.symbols[default[0]].setv(interp.interpret(model, default[1]))
+            self.lenv.symbols[default[0]].setv(interp.interpret(model, default[1]))
 
         # Fill in arguments.
         i = 0
 
         # Standard arguments first.
         while (i < self.min_args):
-            self.body.lenv.symbols[self.arg_list[i].value].setv(interp.interpret(model, args[i]))
+            self.lenv.symbols[self.arg_list[i].value].setv(interp.interpret(model, args[i]))
             i += 1
 
         # Keyword arguments last.
@@ -131,7 +135,7 @@ class UserFunction(LCadFunction):
             if (arg_name[0] != ":"):
                 raise lce.KeywordException(arg_name)
 
-            self.body.lenv.symbols[arg_name[1:]].setv(interp.interpret(model, args[i+1]))
+            self.lenv.symbols[arg_name[1:]].setv(interp.interpret(model, args[i+1]))
             i += 2
 
         # Evaluate function.
@@ -245,21 +249,50 @@ class LCadDef(SpecialFunction):
     def __init__(self):
         self.name = "def"
 
+    def argCheck(self, tree):
+
+        # def needs at least 3 arguments.
+        if (len(tree.value)<3):
+            raise lce.NumberArgumentsException("2 or more", len(tree.value) - 1)
+
+        # Check for the right number of arguments (4 for a function, 
+        # a multiple of 2 for variables).
+        if (len(tree.value)!=4) and ((len(tree.value)%2)!=1):
+            raise lce.NumberArgumentsException("an even number of arguments", len(tree.value) - 1)
+
     def call(self, model, tree):
         args = tree.value[1:]
+        # Symbols are created in the lexical environment of the parent expression.
+        lenv = tree.lenv.parent
+
+        # Create function.
         if (len(args) == 3):
-            return tree.lenv.symbols[args[0].value].getv()
+            return lenv.symbols[args[0].value].getv()
+
+        # Create variables.
         if ((len(args)%2) == 0):
             ret = None
             kv_pairs = izip(*[iter(args)]*2)
             for key, node in kv_pairs:
 
-                # If the symbol is not already defined for this environment then something has gone seriously amiss.
-                if not key.value in tree.lenv.symbols:
-                    raise Exception("My hovercraft is full of eels!!")
+                # FIXME: Maybe something more appropriate for the error, like can only create symbols?
+                if not isinstance(key, lexerParser.LCadSymbol):
+                    raise lce.CannotSetException(key)
+
+                symbol_name = key.value
+                if not tree.initialized:
+                    try:
+                        interp.checkOverride(lenv, symbol_name)
+                    except lce.SymbolNotDefined:
+                        pass
+
+                if not (symbol_name in lenv.symbols):
+                    lenv.symbols[symbol_name] = interp.Symbol(symbol_name)
+
                 val = interp.getv(interp.interpret(model, node))
-                tree.lenv.symbols[key.value].setv(val)
+                lenv.symbols[symbol_name].setv(val)
                 ret = val
+            tree.initialized = True
             return ret
         return None
 
@@ -279,13 +312,42 @@ class LCadFor(SpecialFunction):
     def __init__(self):
         self.name = "for"
 
-    def call(self, model, tree):
+    def argCheck(self, tree):
+        flist = tree.value
 
+        # For needs at least 3 arguments.
+        if (len(flist)<3):
+            raise lce.NumberArgumentsException("2 or more", len(flist) - 1)
+            
+        # Check that loop arguments are correct.
+        loop_args = flist[1]
+        if not isinstance(loop_args, lexerParser.LCadExpression):
+            raise lce.LCadException("first argument in for() must be a list.")
+            
+        # Check for the right number of arguments.
+        loop_args = loop_args.value
+        if (len(loop_args) < 2):
+            raise lce.NumberArgumentsException("2,3 or 4", len(loop_args))
+        elif (len(loop_args) > 4):
+            raise lce.NumberArgumentsException("2,3 or 4", len(loop_args))
+
+        # Check for correct type of loop variable.
+        if not isinstance(loop_args[0], lexerParser.LCadSymbol):
+            raise lce.LCadException("loop variable must be a symbol.")
+
+        # Create loop variable.
+        if not tree.initialized:
+            inc_name = loop_args[0].value
+            interp.checkOverride(tree.lenv, inc_name)
+            tree.lenv.symbols[inc_name] = interp.Symbol(inc_name)
+            tree.initialized = True
+
+    def call(self, model, tree):
         loop_args = tree.value[1].value
         inc_var = tree.lenv.symbols[loop_args[0].value]
-        arg1 = interp.interpret(model, loop_args[1])
 
         # Iterate over list.
+        arg1 = interp.interpret(model, loop_args[1])
         if ((len(loop_args)==2) and (isinstance(arg1, interp.List))):
             ret = None
             for elt in arg1.getl():
@@ -380,28 +442,46 @@ class LCadImport(SpecialFunction):
     def __init__(self):
         self.name = "import"
 
+    def argCheck(self, tree):
+
+        # Import needs at least 1 arguments.
+        if (len(tree.value)<2):
+            raise lce.NumberArgumentsException("1 or more", len(tree.value) - 1)
+
     def call(self, model, tree):
+
+        # FIXME? 
+        #  Multiple calls of the same import do nothing. However multiple calls to
+        #  different imports that import the same module are an error.
+        #
+        if tree.initialized:
+            return
+        else:
+            tree.initialized = True
+
         args = tree.value[1:]
         local = True if (args[-1].value == ":local") else False
         if local:
             args = args[:-1]
         for arg in args:
-            a_lenv = interp.LEnv()
-            a_model = interp.Model()
+            module_lenv = interp.LEnv(add_built_ins = True)
+            module_model = interp.Model()
             with open(arg.value + ".lcad") as fp:
-                a_ast = lexerParser.parser.parse(lexerParser.lexer.lex(fp.read()))
-                interp.createLexicalEnv(a_lenv, a_ast)
-                interp.interpret(a_model, a_ast)
-            if local:
-                print "local"
-                for sym in a_lenv.symbols:
-                    if (not sym in interp.builtin_symbols) and (not sym in builtin_functions):
-                        if sym in tree.lenv.symbols:
-                            print "Warning symbol", sym, "imported from", arg.value, "overwrites local symbol with the same name."
-                        print sym, id(tree.lenv.symbols)
-                        tree.lenv.symbols[sym] = a_lenv.symbols[sym]
-            else:
-                tree.lenv.symbols[arg.value].setv(a_lenv.symbols)
+                module_ast = lexerParser.parser.parse(lexerParser.lexer.lex(fp.read()))
+                interp.createLexicalEnv(module_lenv, module_ast)
+                interp.interpret(module_model, module_ast)
+
+            lenv = tree.lenv.parent
+            for sym_name in module_lenv.symbols:
+                if (not sym_name in interp.builtin_symbols) and (not sym_name in builtin_functions):
+                    if local:
+                        interp.checkOverride(lenv, sym_name)
+                        lenv.symbols[sym_name] = module_lenv.symbols[sym_name]
+                    else:
+                        full_name = arg.value + ":" + sym_name
+                        interp.checkOverride(lenv, full_name)
+                        lenv.symbols[full_name] = module_lenv.symbols[sym_name]
+                        #sym.name = full_name
 
 builtin_functions["import"] = LCadImport()
 
@@ -936,6 +1016,26 @@ class LCadMinus(BasicMathFunction):
         return total
 
 builtin_functions["-"] = LCadMinus("-")
+
+
+class LCadModulo(BasicMathFunction):
+    """
+    Return remainder of the first numner divided by the second number.
+
+    Usage:
+     (% 10 2)
+
+    """
+    def argCheck(self, tree):
+        if (len(tree.value) != 3):
+            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        n1 = self.isNumber(interp.interpret(model, tree.value[1]))
+        n2 = self.isNumber(interp.interpret(model, tree.value[2]))
+        return n1 % n2
+
+builtin_functions["%"] = LCadModulo("%")
 
 
 class LCadMultiply(BasicMathFunction):
