@@ -17,7 +17,12 @@ if (len(sys.argv)!=3):
 
 # Generate parts.
 with open(sys.argv[1]) as fp:
+
+    # Change current working directory to the location of the lcad file.
+    cur_dir = os.getcwd()    
+    os.chdir(os.path.dirname(sys.argv[1]))
     parts = interpreter.execute(fp.read()).getParts()
+    os.chdir(cur_dir)
 
 print "Model has", len(parts), "parts."
 
