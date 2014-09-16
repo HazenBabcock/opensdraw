@@ -469,7 +469,6 @@ class LCadImport(SpecialFunction):
             module_lenv = interp.LEnv(add_built_ins = True)
             module_model = interp.Model()
             for path in self.paths:
-                print path
                 if os.path.exists(path + arg.value + ".lcad"):
                     with open(path + arg.value + ".lcad") as fp:
                         module_ast = lexerParser.parser.parse(lexerParser.lexer.lex(fp.read()))
