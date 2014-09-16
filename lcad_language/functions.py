@@ -441,6 +441,7 @@ class LCadImport(SpecialFunction):
     """
     def __init__(self):
         self.name = "import"
+        self.paths = ["./", os.path.dirname(__file__) + "../library/"]
 
     def argCheck(self, tree):
 
@@ -466,10 +467,13 @@ class LCadImport(SpecialFunction):
         for arg in args:
             module_lenv = interp.LEnv(add_built_ins = True)
             module_model = interp.Model()
-            with open(arg.value + ".lcad") as fp:
-                module_ast = lexerParser.parser.parse(lexerParser.lexer.lex(fp.read()))
-                interp.createLexicalEnv(module_lenv, module_ast)
-                interp.interpret(module_model, module_ast)
+            for path in self.paths:
+                if os.path.exists(path + arg.value + ".lcad"):
+                    with open(path + arg.value + ".lcad") as fp:
+                        module_ast = lexerParser.parser.parse(lexerParser.lexer.lex(fp.read()))
+                        interp.createLexicalEnv(module_lenv, module_ast)
+                        interp.interpret(module_model, module_ast)
+                    break
 
             lenv = tree.lenv.parent
             for sym_name in module_lenv.symbols:
