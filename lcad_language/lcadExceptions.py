@@ -26,6 +26,10 @@ class ExpressionException(LCadException):
     def __init__(self):
         LCadException.__init__(self, "the first element of the list must be a function.")
 
+class FileNotFoundException(LCadException):
+    def __init__(self, filename):
+        LCadException.__init__(self, filename + " not found.")
+
 class IllegalArgumentTypeException(LCadException):
     def __init__(self):
         LCadException.__init__(self, "arguments in function definition must be symbols.")

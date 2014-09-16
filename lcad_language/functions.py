@@ -425,8 +425,9 @@ class LCadImport(SpecialFunction):
     """
     Import a module.
 
-    Module are searched for in the current working directory with
-    the extension ".scad".
+    Module are searched for in the current working directory first,
+    then in the library folder of the openlcad project. The modules
+    are assumed to be in files that end with the ".scad" extension.
 
     Usage:
      (import mod1)      ; import mod1.scad
@@ -441,7 +442,7 @@ class LCadImport(SpecialFunction):
     """
     def __init__(self):
         self.name = "import"
-        self.paths = ["./", os.path.dirname(__file__) + "../library/"]
+        self.paths = ["./", os.path.dirname(__file__) + "/../library/"]
 
     def argCheck(self, tree):
 
@@ -468,12 +469,15 @@ class LCadImport(SpecialFunction):
             module_lenv = interp.LEnv(add_built_ins = True)
             module_model = interp.Model()
             for path in self.paths:
+                print path
                 if os.path.exists(path + arg.value + ".lcad"):
                     with open(path + arg.value + ".lcad") as fp:
                         module_ast = lexerParser.parser.parse(lexerParser.lexer.lex(fp.read()))
                         interp.createLexicalEnv(module_lenv, module_ast)
                         interp.interpret(module_model, module_ast)
                     break
+            else:
+                raise lce.FileNotFoundException(arg.value + ".lcad")
 
             lenv = tree.lenv.parent
             for sym_name in module_lenv.symbols:
