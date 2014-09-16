@@ -1,0 +1,18 @@
+;
+; Functions for converting from ldu to brick sizes.
+;
+; Hazen 09/14.
+;
+
+; brick height
+(def bh (x)
+  (* x 24))
+
+; brick width
+(def bw (x)
+  (* x 20))
+
+; brick depth
+(def bd (x)
+  (* x 20))
+
