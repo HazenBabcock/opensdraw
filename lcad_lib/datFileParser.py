@@ -10,15 +10,25 @@
 
 import os
 import sys
+from xml.etree import ElementTree
 
 
+#
 # Find all the possible part directories & cache this.
-#all_part_dirs = ["", "C:/Users/Hazen/openlcad/test/"]
-#ldraw_path = "c:/Program Files (x86)/LDraw/"
+# This uses the path specified in the parts.xml file.
+#
+directory = os.path.dirname(__file__)
+if (directory == ""):
+    directory = "./"
+else:
+    directory += "/"
+
+xml = ElementTree.parse(directory + "../parts.xml").getroot()
+ldraw_path = os.path.dirname(os.path.dirname(xml.find("path").attrib["path"])) + "/"
+
 all_part_dirs = [""]
-ldraw_path = "/home/hbabcock/Downloads/ldraw/"
-for dir in ["p", "parts"]:
-    for [path_original, dirs, files] in os.walk(ldraw_path + dir):
+for a_dir in ["p", "parts"]:
+    for [path_original, dirs, files] in os.walk(ldraw_path + a_dir):
         all_part_dirs.append(path_original + "/")
 
 ## findPartFile
