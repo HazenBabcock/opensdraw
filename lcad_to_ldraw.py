@@ -20,7 +20,8 @@ with open(sys.argv[1]) as fp:
 
     # Change current working directory to the location of the lcad file.
     cur_dir = os.getcwd()    
-    os.chdir(os.path.dirname(sys.argv[1]))
+    if not (os.path.dirname(sys.argv[1]) == ""):
+        os.chdir(os.path.dirname(sys.argv[1]))
     parts = interpreter.execute(fp.read()).getParts()
     os.chdir(cur_dir)
 
