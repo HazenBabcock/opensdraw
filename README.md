@@ -1,10 +1,10 @@
-### Openlcad ###
+### openlcad ###
 A programming language (and some related utilities) for creating [LDraw](http://www.ldraw.org) format files.
 
 ### Directory Layout ###
 * emacs - Minor mode for editing .lcad files with emacs.
 * examples - Sample .lcad format files.
-* lcad_language - The lcad language.
+* lcad_language - The lcad language interpreter.
 * lcad_lib - Supporting modules for partviewer.
 * library - Modules that are part of the lcad language.
 * misc - Some utility scripts.
