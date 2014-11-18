@@ -13,8 +13,10 @@ import sys
 
 
 # Find all the possible part directories & cache this.
-all_part_dirs = ["", "C:/Users/Hazen/openlcad/test/"]
-ldraw_path = "c:/Program Files (x86)/LDraw/" 
+#all_part_dirs = ["", "C:/Users/Hazen/openlcad/test/"]
+#ldraw_path = "c:/Program Files (x86)/LDraw/"
+all_part_dirs = [""]
+ldraw_path = "/home/hbabcock/Downloads/ldraw/"
 for dir in ["p", "parts"]:
     for [path_original, dirs, files] in os.walk(ldraw_path + dir):
         all_part_dirs.append(path_original + "/")
@@ -26,6 +28,7 @@ for dir in ["p", "parts"]:
 # @return The full path to a part file
 #
 def findPartFile(filename):
+    filename = filename.replace("\\", "/")
     for part_dir in getPartDirectories():
         full_path = part_dir + filename
         if os.path.exists(full_path):
@@ -45,10 +48,10 @@ def getPartDirectories():
 # This is the main entry point for parsing a part file.
 #
 # @param parser A part file parser object.
-# @param filanem The filename of the part file.
+# @param filename The filename of the part file.
 #
 def parsePartFile(parser, filename):
-    with open(findPartFile(filename)) as filep:
+    with open(findPartFile(str(filename))) as filep:
         parsePartFileP(parser, filep, 0)
 
 ## parsePartFileP
@@ -77,7 +80,7 @@ def parsePartFileP (parser, filep, depth):
         elif (cmd_type == 1):
             new_parser = parser.newFile(parsed_line)
             if new_parser is not None:
-                with open(findPartFile(parsed_line[-1])) as new_part_filep:
+                with open(findPartFile(parsed_line[-1].lower())) as new_part_filep:
                     parsePartFileP(new_parser, new_part_filep, depth + 1)
 
         # Line.
