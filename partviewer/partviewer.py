@@ -7,6 +7,7 @@
 # Hazen 07/14
 #
 
+import os
 import sys
 from xml.etree import ElementTree
 
@@ -192,7 +193,11 @@ if (__name__ == '__main__'):
     if (len(sys.argv) == 2):
         window = PartViewer(sys.argv[1])
     else:
-        window = PartViewer("../parts.xml")
+        directory = os.path.dirname(__file__)
+        if (len(directory) > 0):
+            window = PartViewer(directory + "/../parts.xml")
+        else:
+            window = PartViewer("../parts.xml")
     window.show()
     app.exec_()
 
