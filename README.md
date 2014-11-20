@@ -15,5 +15,10 @@ A programming language (and some related utilities) for creating [LDraw](http://
 * lcad_to_ldraw.py - Uses the lcad language interpreter to convert a .lcad file to a ldraw .dat file.
 * parts.xml - XML file describing the available parts (created using misc/make_parts_xml.py).
 
+### Dependencies ###
+* [Python](https://www.python.org/)
+* [PyQt4](http://www.riverbankcomputing.com/software/pyqt/intro)
+* [rply](https://github.com/alex/rply)
+
 ### Disclaimer ###
 LEGO(R) is a trademark of The LEGO Group of companies which does not sponsor, authorize or endorse this repository.
