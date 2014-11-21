@@ -1,4 +1,4 @@
-### openlcad ###
+### openldraw ###
 A programming language (and some related utilities) for creating [LDraw](http://www.ldraw.org) format files.
 
 ### Getting Started ###
