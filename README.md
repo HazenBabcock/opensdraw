@@ -1,6 +1,9 @@
 ### openlcad ###
 A programming language (and some related utilities) for creating [LDraw](http://www.ldraw.org) format files.
 
+### Getting Started ###
+You will need to add this directory to your Python path. One way to do this is to copy the openldraw.pth file into your Python dist-packages directory, then edit it to have the correct path.
+
 ### Directory Layout ###
 * emacs - Minor mode for editing .lcad files with emacs.
 * examples - Sample .lcad format files.
@@ -11,8 +14,9 @@ A programming language (and some related utilities) for creating [LDraw](http://
 * partviewer - A simple utility for finding ldraw part numbers and colors.
 
 ### Files ###
-* colors.xml - XML file describing the LDraw colors (created using misc/make_colors_xml.py).
 * lcad_to_ldraw.py - Uses the lcad language interpreter to convert a .lcad file to a ldraw .dat file.
+* openldraw.pth - A sample .pth file.
+* colors.xml - XML file describing the LDraw colors (created using misc/make_colors_xml.py).
 * parts.xml - XML file describing the available parts (created using misc/make_parts_xml.py).
 
 ### Dependencies ###
