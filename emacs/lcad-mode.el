@@ -39,21 +39,21 @@
   (add-to-list 'auto-mode-alist '("\\.lcad\\'" . lcad-mode)))
 
 ;; lcad specific offsets here
-(put 'aref 'lcad-indent-function 1)
-(put 'block 'lcad-indent-function 1)
-(put 'cond 'lcad-indent-function 1)
-(put 'def 'lcad-indent-function 1)
-(put 'for 'lcad-indent-function 1)
-(put 'if 'lcad-indent-function 1)
-(put 'import 'lcad-indent-function 1)
-(put 'list 'lcad-indent-function 1)
-(put 'mirror 'lcad-indent-function 1)
-(put 'part 'lcad-indent-function 1)
-(put 'print 'lcad-indent-function 1)
-(put 'rotate 'lcad-indent-function 1)
-(put 'set 'lcad-indent-function 1)
-(put 'translate 'lcad-indent-function 1)
-(put 'while 'lcad-indent-function 1)
+;(put 'aref 'lcad-indent-function 1)
+;(put 'block 'lcad-indent-function 1)
+;(put 'cond 'lcad-indent-function 1)
+;(put 'def 'lcad-indent-function 1)
+;(put 'for 'lcad-indent-function 1)
+;(put 'if 'lcad-indent-function 1)
+;(put 'import 'lcad-indent-function 1)
+;(put 'list 'lcad-indent-function 1)
+;(put 'mirror 'lcad-indent-function 1)
+;(put 'part 'lcad-indent-function 1)
+;(put 'print 'lcad-indent-function 1)
+;(put 'rotate 'lcad-indent-function 1)
+;(put 'set 'lcad-indent-function 1)
+;(put 'translate 'lcad-indent-function 1)
+;(put 'while 'lcad-indent-function 1)
 
 (defun lcad-indent-function (indent-point state)
   (let ((normal-indent (current-column)))
@@ -86,13 +86,21 @@
               (method
                (funcall method indent-point state)))))))
 
-(define-derived-mode lcad-mode lisp-mode 
+(defun compile ()
+  (interactive)
+  (shell-command (concat "python ~/Code/openldraw/lcad_to_ldraw.py " 
+			 (buffer-file-name) " "
+			 (file-name-sans-extension (buffer-file-name)) ".dat")))
+
+;(define-derived-mode lcad-mode lisp-mode 
+(define-derived-mode lcad-mode c-mode 
   "lcad-mode is a major mode for editing the lcad language."
   :syntax-table lcad-syntax-table
   (setq font-lock-defaults '(lcad-keywords))
   (setq mode-name "lcad")
-  (setq lisp-indent-function 'lcad-indent-function)
+  ;(setq lisp-indent-function 'lcad-indent-function)
 
+  (local-set-key [f5] 'compile)
   (define-key lcad-mode-map [remap comment-dwim] 'lcad-comment-dwim))
 
 (provide 'lcad-mode)
