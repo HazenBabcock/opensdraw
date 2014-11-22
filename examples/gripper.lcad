@@ -1,0 +1,77 @@
+;
+; A gripper, design copied from here:
+; http://www.brickshelf.com/cgi-bin/gallery.cgi?i=5724663
+;
+; Hazen 11/14
+;
+
+(import ldu :local)
+
+(def gripper ()
+  (block
+    ;5 x 3 x 0.5 liftarm triangle type 2.
+    (translate (0 (bw -1.75) (bw -2))
+      (part "99773" "yellow"))
+
+    ; 5 x 3 x 0.5 liftarm triangle type 2.
+    (translate (0 (bw 1.75) (bw -2))
+      (part "99773" "yellow"))
+
+    ; Small linear actuator (contracted).
+    (translate (0 0 0)
+      (rotate (180 0 90)
+        (part "92693c02" 7)))
+
+    ; Axle 3.
+    (translate (0 (bw -1.5) 0)
+      (rotate (0 0 90)
+        (part "4519" 7)))
+
+    ; Axle 4 with Stop.
+    (translate (0 (bw 2) 0)
+      (rotate (0 0 90)
+        (part "87083" 8)))
+
+    ; Gear 20 Tooth Bevel
+    (translate (0 (bw -2.35) 0)
+      (rotate (90 0 0)
+        (part "32198" 18)))
+
+    ; Gear 20 Tooth Double Bevel
+    (translate (0 (bw 3.4) 0)
+      (rotate (90 0 0)
+        (part "32269" 18)))
+
+    ; Gear 12 Tooth Bevel
+    (translate (0 (bw 2.35) 0)
+      (rotate (90 0 0)
+        (part "6589" 18)))
+
+    ; Gear 12 Tooth Bevel
+    (translate (0 (bw -0.82) 0)
+      (rotate (90 180 0)
+        (part "6589" 18)))
+
+    ; Gear 12 Tooth Double Bevel
+    (translate (0 0 (bw -1))
+      (rotate (0 0 0)
+        (part "32270" 0)))
+
+    ; Bush 1/2 Smooth
+    (translate (0 (bw 0.75) 0)
+      (rotate (90 0 0)
+        (part "4211573" 8)))
+
+    ; Turntable 28 Tooth Bottom
+    (translate (0 0 (bw -3))
+      (rotate (90 0 0)
+        (part "99009" 7)))
+
+    ; Turntable 28 Tooth Top
+    (translate (0 0 (bw -3))
+      (rotate (90 0 0)
+        (part "99010" 0)))
+
+    ))
+
+(gripper)
