@@ -116,14 +116,14 @@ class UserFunction(LCadFunction):
 
         # Fill in defaults (if any).
         for default in self.default_values:
-            self.lenv.symbols[default[0]].setv(interp.interpret(model, default[1]))
+            self.lenv.symbols[default[0]].setv(interp.getv(interp.interpret(model, default[1])))
 
         # Fill in arguments.
         i = 0
 
         # Standard arguments first.
         while (i < self.min_args):
-            self.lenv.symbols[self.arg_list[i].value].setv(interp.interpret(model, args[i]))
+            self.lenv.symbols[self.arg_list[i].value].setv(interp.getv(interp.interpret(model, args[i])))
             i += 1
 
         # Keyword arguments last.
@@ -135,7 +135,7 @@ class UserFunction(LCadFunction):
             if (arg_name[0] != ":"):
                 raise lce.KeywordException(arg_name)
 
-            self.lenv.symbols[arg_name[1:]].setv(interp.interpret(model, args[i+1]))
+            self.lenv.symbols[arg_name[1:]].setv(interp.getv(interp.interpret(model, args[i+1])))
             i += 2
 
         # Evaluate function.
@@ -625,7 +625,7 @@ class LCadRotate(SpecialFunction):
 
     :param ax: Amount to rotate around the x axis in degrees.
     :param ay: Amount to rotate around the y axis in degrees.
-    :param az: Amount to rotate around the y axis in degrees.
+    :param az: Amount to rotate around the z axis in degrees.
 
     Usage:
      (rotate (0 0 90) .. )
