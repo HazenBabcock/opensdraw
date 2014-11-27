@@ -13,35 +13,81 @@
   (rotate (ax ay az)
    (part name color))))
 
-(def gripper-arm ()
+; These are for figuring out the part geometries based on the opening of the gripper.
+(def calc-angle1 (ext)
+ (atan2 (bw 0.5) (bw ext)))
+
+(def calc-length1 (ext)
+ (sqrt (+ (* (bw 0.5) (bw 0.5)) (* (bw ext) (bw ext)))))
+
+(def calc-arm-angle (ext)
+ (block
+  (def a1 (calc-angle1 ext) l1 (calc-length1 ext))
+  ; use law of cosines.
+  (def a2 (acos (/ (+ (* l1 l1) (* (bw 5) (bw 5)) (- (* (bw 3) (bw 3)))) (* 2 (bw 5) l1))))
+  (* (/ 180 pi) (- a2 a1))))
+
+(def calc-tooth-angle (ext)
+ (block
+  (def a1 (calc-angle1 ext) l1 (calc-length1 ext))
+  ; use law of cosines.
+  (def a2 (acos (/ (+ (* l1 l1) (* (bw 3) (bw 3)) (- (* (bw 5) (bw 5)))) (* 2 (bw 3) l1))))
+  (* (/ 180 pi) (+ a2 a1))))
+
+; Render the gripper.
+;
+; open - The amount to be open in ldu (basically the extension of the linear actuator).
+; angle - The rotation of the gripper relative to its mount (in degrees).
+;
+(def gripper (open angle)
+ (block
+  (gripper-main open angle)
+
+  (rotate (0 0 angle)
+   (translate ((bw -1) (bw 0.25) (bw -4))
+    (rotate (0 (- 180 (calc-arm-angle (+ open 3))) 0)
+     (gripper-arm 1)))
+   
+   (translate ((bw 1) (bw 0.25) (bw -4))
+    (rotate (0 (+ 180 (calc-arm-angle (+ open 3))) 0)
+     (gripper-arm 0)))
+
+   (translate ((bw 0.5) 0 (+ (bw (- open)) (bw -7)))
+    (rotate (180 (+ 53.13 (calc-tooth-angle (+ open 3))) 0)
+     (gripper-tooth-1)))
+
+   (translate ((bw -0.5) 0 (+ (bw (- open)) (bw -7)))
+    (rotate (0 (+ 53.13 180 (calc-tooth-angle (+ open 3))) 0)
+     ;(rotate (0 (- 53.13 (calc-tooth-angle (+ open 3))) 0)
+     (gripper-tooth-2)))
+
+   )))
+
+(def gripper-arm (type)
  (block
   ; Beam 3 x 0.5 Liftarm
   (trp 0 0.5 0 0 0 0 "6632" 0)
-
-  ; Beam 3 x 0.5 Liftarm
   (trp 0 1 0 0 0 0 "6632" 0)
-
-  ; Beam 3 x 0.5 Liftarm
   (trp 0 -1 0 0 0 0 "6632" 0)
-
-  ; Beam 3 x 0.5 Liftarm
   (trp 0 -1.5 0 0 0 0 "6632" 0)
 
   ; Beam 4 x 0.5 Liftarm
   (trp 0 0 3.5 0 0 0 "32449" 0)
-
-  ; Beam 4 x 0.5 Liftarm
   (trp 0 -0.5 3.5 0 0 0 "32449" 0)
 
   ; Axle 3
   (trp 0 -0.25 0 0 0 90 "4519" 7)
-
-  ; Axle 3
   (trp 0 -0.25 2 0 0 90 "4519" 7)
 
-  ))
+  (if (= type 1)
+    (trp 0 -0.25 5 0 0 90 "4519" 7)
+    (block
+     (trp 0 -0.25 5 0 0 90 "32073" 7)
+     (trp 0 0.75 5 -90 0 0 "3713" 7)
+     (trp 0 -1.25 5 -90 0 0 "3713" 7)))
+   ))
 
-(def gripper-main ()
+(def gripper-main (open angle)
  (block
   ;5 x 3 x 0.5 liftarm triangle type 2.
   (trp 0 -1.75 -2 0 0 0 "99773" "yellow")
@@ -53,7 +99,14 @@
   (trp 0 0 0 180 0 90 "92693c01" 7)
 
   ; Linear Actuator Small Piston.
-  (trp 0 0 -6 180 0 0 "92696" 8)
+  (def zpos (- (+ open 6)))
+  (trp 0 0 zpos 180 0 angle "92696" 8)
+
+  ; Cross Block 2 x 2 Split (Axle/Twin Pin)
+  (trp 0 0 zpos 0 0 angle "41678" 7)
+
+  ; Axle 2 Notched
+  (trp 0 0 zpos 0 0 angle "32062" 4)
 
   ; Axle 3.
   (trp 0 -1.5 0 0 0 90 "4519" 7)
@@ -69,8 +122,6 @@
 
   ; Gear 12 Tooth Bevel
   (trp 0 2.35 0 90 0 0 "6589" 18)
-  
-  ; Gear 12 Tooth Bevel
   (trp 0 -0.82 0 90 180 0 "6589" 18)
   
   ; Gear 12 Tooth Double Bevel
@@ -83,21 +134,15 @@
   (trp 0 0 -3 90 0 0 "99009" 7)
   
   ; Turntable 28 Tooth Top
-  (trp 0 0 -3 90 0 0 "99010" 0)
+  (trp 0 0 -3 90 angle 0 "99010" 0)
   
   ; Bush with Two Flanges
   (trp -1 -1 -2 90 0 0 "3713" 7)
-
-  ; Bush with Two Flanges
   (trp -1 1 -2 -90 0 0 "3713" 7)
-
-  ; Bush with Two Flanges
   (trp -1 2.5 -2 -90 0 0 "3713" 7)
 
   ; Beam 3 x 0.5 Liftarm
   (trp -1 -2.25 -2 0 -90 0 "6632" 0)
-
-  ; Beam 3 x 0.5 Liftarm
   (trp -1 -2.75 -2 0 -90 0 "6632" 0)
 
   ; Axle 6
@@ -105,14 +150,8 @@
 
   ; Beam 3 x 3 x 0.5 Liftarm Bent 90
   (trp 3 -1.25 -2 0 0 180 "32056" 0)
-
-  ; Beam 3 x 3 x 0.5 Liftarm Bent 90
   (trp 3 -0.75 -2 0 0 180 "32056" 0)
-
-  ; Beam 3 x 3 x 0.5 Liftarm Bent 90
   (trp 3 2.25 -2 0 0 180 "32056" 0)
-
-  ; Beam 3 x 3 x 0.5 Liftarm Bent 90
   (trp 3 2.75 -2 0 0 180 "32056" 0)
 
   ; Cross Block 1 x 2
@@ -147,44 +186,60 @@
 
   ; Gear 8 Tooth
   (trp 2 1 -3 0 0 90 "3647" 8)
-
-  ; Gear 8 Tooth
   (trp 2 1 -1 0 0 90 "3647" 8)
 
   ; Axle Pin with Friction Blue
   (trp 2 -1.5 -2 0 0 -90 "4206482" 1)
 
-  ; Cross Block 2 x 2 Split (Axle/Twin Pin)
-  (trp 0 0 -6 0 0 0 "41678" 7)
-
-  ; Axle 2 Notched
-  (trp 0 0 -6 0 0 0 "32062" 4)
 
   ))
 
 (def gripper-tooth-1 ()
- (block
+ (translate ((bw -2.4) 0 (bw -4.8))
   ; Beam 4 x 4 Liftarm Bent 53.13
   (trp 0 -2 0 0 0 0 "32348" 0)
   (trp 0 2 0 0 0 0 "32348" 0)
-
+  
   ; Beam 4 x 6 Liftarm Bent 53.13
   (trp 4 1 -4 0 53.13 0 "6629" 0)
   (trp 4 -1 -4 0 53.13 0 "6629" 0)
+  
+  ; Axle 5
+  (trp 0 0 0 0 0 90 "32073" 7)
+  (trp 0 0 2 0 0 90 "32073" 7)
+  (trp 2.4 0 4.8 0 -53.13 90 "32073" 7)
+  
+  ; Bush with Two Flanges
+  (trp 0 0 0 -90 0 0 "3713" 7)
+  (trp 0 0 2 -90 0 0 "3713" 7)
+  (trp 2.4 1 4.8 -90 0 53.13 "3713" 7)
+  (trp 2.4 -1 4.8 -90 0 53.13 "3713" 7)
+  ))
+  
+(def gripper-tooth-2 ()
+ (translate ((bw -2.4) 0 (bw -4.8))
+  ; Beam 4 x 4 Liftarm Bent 53.13
+  (trp 0 -1 0 0 0 0 "32348" 0)
+  (trp 0 1 0 0 0 0 "32348" 0)
+  (trp 2.4 0 -2.8 0 53.13 0 "32348" 0)
+
+  ; Beam 4 x 6 Liftarm Bent 53.13
+  (trp 4 2 -4 0 53.13 0 "6629" 0)
+  (trp 4 -2 -4 0 53.13 0 "6629" 0)  
 
   ; Axle 5
   (trp 0 0 0 0 0 90 "32073" 7)
   (trp 0 0 2 0 0 90 "32073" 7)
-  (trp 0 0 3 0 0 90 "32073" 7)
-  (trp 2.4 0 4.8 0 -53.13 90 "32073" 7)
+  (trp 2.4 0 -2.8 0 53.13 90 "32073" 7)
+
+  ; Axle 3
+  (trp 2.4 0 4.8 0 -53.13 90 "4519" 7)
 
   ; Bush with Two Flanges
-  (trp 0 0 0 -90 0 0 "3713" 7)
-  (trp 0 0 2 -90 0 0 "3713" 7)
-  (trp 0 1 3 -90 0 0 "3713" 7)
-  (trp 0 -1 3 -90 0 0 "3713" 7)
-  (trp 2.4 1 4.8 -90 0 53.13 "3713" 7)
-  (trp 2.4 -1 4.8 -90 0 53.13 "3713" 7)
+  (trp 2.4 1 -2.8 -90 0 -53.13 "3713" 7)
+  (trp 2.4 -1 -2.8 -90 0 -53.13 "3713" 7)
   ))
 
-(gripper-tooth-1)
+(gripper 1 90)
+
+
