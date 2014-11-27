@@ -1013,14 +1013,22 @@ class LCadMinus(BasicMathFunction):
     Subtract one or more numbers from the first number.
 
     Usage:
-     (- 50 20 y)
+     (- 50 20 y) -> -30 - y
+     (- 50)      -> -50
 
     """
+    def argCheck(self, tree):
+        if (len(tree.value) < 2):
+            raise lce.NumberArgumentsException("1+", len(tree.value) - 1)
+
     def call(self, model, tree):
-        total = self.isNumber(interp.interpret(model, tree.value[1]))
-        for node in tree.value[2:]:
-            total -= self.isNumber(interp.interpret(model, node))
-        return total
+        if (len(tree.value) == 2):
+            return -self.isNumber(interp.interpret(model, tree.value[1]))
+        else:
+            total = self.isNumber(interp.interpret(model, tree.value[1]))
+            for node in tree.value[2:]:
+                total -= self.isNumber(interp.interpret(model, node))
+            return total
 
 builtin_functions["-"] = LCadMinus("-")
 
