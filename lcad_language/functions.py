@@ -452,9 +452,12 @@ class LCadImport(SpecialFunction):
 
     def call(self, model, tree):
 
-        # FIXME? 
-        #  Multiple calls of the same import do nothing. However multiple calls to
-        #  different imports that import the same module are an error.
+        # FIXME:
+        #  1. Multiple calls of the same import do nothing. However multiple calls to
+        #     different imports that import the same module are an error.
+        #
+        #  2. Need some mechanism for knowing which files the symbols came from to
+        #     for better handling of symbol override errors / warnings.
         #
         if tree.initialized:
             return
@@ -482,7 +485,7 @@ class LCadImport(SpecialFunction):
             for sym_name in module_lenv.symbols:
                 if (not sym_name in interp.builtin_symbols) and (not sym_name in builtin_functions):
                     if local:
-                        interp.checkOverride(lenv, sym_name)
+                        interp.checkOverride(lenv, sym_name, True)
                         lenv.symbols[sym_name] = module_lenv.symbols[sym_name]
                     else:
                         full_name = arg.value + ":" + sym_name

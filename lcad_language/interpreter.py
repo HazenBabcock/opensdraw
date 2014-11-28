@@ -139,7 +139,7 @@ builtin_symbols["e"].setv(math.e)
 builtin_symbols["pi"] = Symbol("pi")
 builtin_symbols["pi"].setv(math.pi)
 
-def checkOverride(lenv, symbol_name):
+def checkOverride(lenv, symbol_name, warn_only = False):
     """
     Check if symbol_name overrides a builtin or user defined symbol.
     """
@@ -150,7 +150,10 @@ def checkOverride(lenv, symbol_name):
 
     # Error for shadowing symbols at the same level of scope.
     if symbol_name in lenv.symbols:
-        raise lce.SymbolAlreadyExists(symbol_name)
+        if not warn_only:
+            raise lce.SymbolAlreadyExists(symbol_name)
+        else:
+            print "Warning", symbol_name, "shadows existing symbol with the same name."
 
     # Warning for shadowing other existing symbols in higher level of scope.
     try:
