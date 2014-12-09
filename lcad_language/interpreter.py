@@ -244,7 +244,12 @@ def execute(lcad_code, filename = "NA"):
     model = Model()
     ast = lexerParser.parse(lcad_code, filename)
     createLexicalEnv(lenv, ast)
-    interpret(model, ast)
+    try:
+        interpret(model, ast)
+    except Exception as e:
+        if hasattr(e, "lcad_err"):
+            print e.lcad_err
+        raise
     return model
 
 def findSymbol(lenv, symbol_name):
@@ -310,9 +315,14 @@ def interpret(model, tree):
 
         try:
             val = dispatch(func, model, tree)
-        except Exception:
+        except Exception as e:
             #except lce.LCadException:
-            print "!Error in function '" + func.name + "' at line " + str(tree.start_line) + " in file '" + str(tree.filename) + "'"
+            #print "!Error in function '" + func.name + "' at line " + str(tree.start_line) + " in file '" + str(tree.filename) + "'"
+            err_string = "!Error in function '" + func.name + "' at line " + str(tree.start_line) + " in file '" + str(tree.filename) + "'\n"
+            if hasattr(e, "lcad_err"):
+                e.lcad_err = err_string + e.lcad_err
+            else:
+                e.lcad_err = err_string
             raise
 
         return val
