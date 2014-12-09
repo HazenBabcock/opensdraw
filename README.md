@@ -22,6 +22,7 @@ I use partviewer.py to find LDraw part information, emacs to edit the .lcad file
 * parts.xml - XML file describing the available parts (created using misc/make_parts_xml.py).
 
 ### Dependencies ###
+* [LDraw](http://www.ldraw.org)
 * [Python](https://www.python.org/)
 * [PyQt4](http://www.riverbankcomputing.com/software/pyqt/intro)
 * [rply](https://github.com/alex/rply)
