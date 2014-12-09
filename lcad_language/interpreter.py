@@ -230,17 +230,19 @@ def dispatch(func, model, tree):
         func.argCheck(tree)
     return func.call(model, tree)
 
-def execute(lcad_code):
+def execute(lcad_code, filename = "NA"):
     """
     Parses and executes the lcad code in the string lcad_code and returns the model.
 
     :param lcad_code: A string containing lcad code.
     :type lcad_code: str.
+    :param filename: A string containing the filename of the file that contained the lcad code.
+    :type filename: str.
     :returns: Model.
     """
     lenv = LEnv(add_built_ins = True)
     model = Model()
-    ast = lexerParser.parser.parse(lexerParser.lexer.lex(lcad_code))
+    ast = lexerParser.parse(lcad_code, filename)
     createLexicalEnv(lenv, ast)
     interpret(model, ast)
     return model
@@ -310,7 +312,7 @@ def interpret(model, tree):
             val = dispatch(func, model, tree)
         except Exception:
             #except lce.LCadException:
-            print "!Error in function '" + func.name + "' at line " + str(tree.start_line) + ":"
+            print "!Error in function '" + func.name + "' at line " + str(tree.start_line) + " in file '" + str(tree.filename) + "'"
             raise
 
         return val

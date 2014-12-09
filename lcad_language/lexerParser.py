@@ -68,10 +68,11 @@ from rply import ParserGenerator
 
 def set_boundaries(fun):
     @wraps(fun)
-    def wrapped(p):
+    def wrapped(state, p):
         start = p[0].source_pos
         end = p[-1].source_pos
-        ret = fun(p)
+        ret = fun(state, p)
+        ret.filename = state.filename
         ret.start_line = start.lineno
         ret.start_column = start.colno
         if start is not end:
@@ -89,31 +90,31 @@ pg = ParserGenerator(
 )
 
 @pg.production('main : list')
-def main(p):
+def main(state, p):
     return p[0]
 
 @pg.production('list : term list')
-def list(p):
+def list(state, p):
     return [p[0]] + p[1]
 
 @pg.production('list : term')
-def single_list(p):
+def single_list(state, p):
     return [p[0]]
 
 @pg.production('term : string')
 @pg.production('term : identifier')
 @pg.production('term : parens')
-def term(p):
+def term(state, p):
     return p[0]
 
 @pg.production("string : STRING")
 @set_boundaries
-def string(p):
+def string(state, p):
     return LCadString(p[0].getstr())
 
 @pg.production("identifier : IDENTIFIER")
 @set_boundaries
-def identifier(p):
+def identifier(state, p):
     text = p[0].getstr()
 
     try:
@@ -130,16 +131,16 @@ def identifier(p):
 
 @pg.production('parens : LPAREN list RPAREN')
 @set_boundaries
-def parens(p):
+def parens(state, p):
     return LCadExpression(p[1])
 
 @pg.production('parens : LPAREN RPAREN')
 @set_boundaries
-def empty_parens(p):
+def empty_parens(state, p):
     return LCadExpression([])
 
 @pg.error
-def error_handler(token):
+def error_handler(state, token):
     if (token.gettokentype() == '$end'):
         raise Exception("Unexpected EOF. Empty file? Unbalanced Parenthesis?")
     raise ValueError("Ran into a {!s} where it was't expected at row {!s} column {!s}".format(token.gettokentype(), 
@@ -148,6 +149,13 @@ def error_handler(token):
 
 parser = pg.build()
 
+class ParserState(object):
+    def __init__(self, filename):
+        self.filename = filename
+
+def parse(string, filename = "na"):
+    return parser.parse(lexer.lex(string), 
+                        state = ParserState(filename))
 
 # For testing purposes.
 if (__name__ == '__main__'):
@@ -158,7 +166,7 @@ if (__name__ == '__main__'):
         exit()
 
     with open(sys.argv[1]) as fp:
-        print parser.parse(lexer.lex(fp.read()))
+        print parse(fp.read(), sys.argv[1])
 
 
 #
