@@ -147,7 +147,7 @@ def checkOverride(lenv, symbol_name, external_filename = False):
 
     # Error for shadowing built in symbols.
     if (symbol_name in builtin_symbols):
-        raise lce.CannotOverrideTNil()
+        raise lce.CannotOverrideBuiltIn()
 
     # Error for shadowing symbols at the same level of scope.
     if symbol_name in lenv.symbols:

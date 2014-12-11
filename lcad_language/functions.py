@@ -712,7 +712,7 @@ class LCadSet(SpecialFunction):
             if not isinstance(sym, interp.Symbol):
                 raise lce.CannotSetException(type(sym))
             if sym.name in interp.builtin_symbols:
-                raise lce.CannotOverrideTNil()
+                raise lce.CannotOverrideBuiltIn()
 
             val = interp.getv(interp.interpret(model, val_node))
             sym.setv(val)
