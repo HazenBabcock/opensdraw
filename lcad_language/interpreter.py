@@ -38,7 +38,7 @@ class LEnv(object):
 
         # Functions.
         for fn_name in functions.builtin_functions.keys():
-            self.symbols[fn_name] = Symbol(fn_name)
+            self.symbols[fn_name] = Symbol(fn_name, "builtin")
             self.symbols[fn_name].setv(functions.builtin_functions[fn_name])
 
 class List(object):
@@ -51,7 +51,7 @@ class List(object):
             if isinstance(elt, Symbol):
                 self.py_list.append(elt)
             else:
-                tmp = Symbol("list_object")
+                tmp = Symbol("list_object", "list")
                 tmp.setv(elt)
                 self.py_list.append(tmp)
 
@@ -94,7 +94,8 @@ class Symbol(object):
     """
     Symbol class.
     """
-    def __init__(self, name):
+    def __init__(self, name, filename):
+        self.filename = filename
         self.is_set = False
         self.name = name
         self.used = False
@@ -126,20 +127,20 @@ class LObject(object):
         return str(self.name)
 
 lcad_t = LObject("t")
-builtin_symbols["t"] = Symbol("t")
+builtin_symbols["t"] = Symbol("t", "builtin")
 builtin_symbols["t"].setv(lcad_t)
 
 lcad_nil = LObject("nil")
-builtin_symbols["nil"] = Symbol("nil")
+builtin_symbols["nil"] = Symbol("nil", "builtin")
 builtin_symbols["nil"].setv(lcad_nil)
 
-builtin_symbols["e"] = Symbol("e")
+builtin_symbols["e"] = Symbol("e", "builtin")
 builtin_symbols["e"].setv(math.e)
 
-builtin_symbols["pi"] = Symbol("pi")
+builtin_symbols["pi"] = Symbol("pi", "builtin")
 builtin_symbols["pi"].setv(math.pi)
 
-def checkOverride(lenv, symbol_name, warn_only = False):
+def checkOverride(lenv, symbol_name, external_filename = False):
     """
     Check if symbol_name overrides a builtin or user defined symbol.
     """
@@ -150,10 +151,17 @@ def checkOverride(lenv, symbol_name, warn_only = False):
 
     # Error for shadowing symbols at the same level of scope.
     if symbol_name in lenv.symbols:
-        if not warn_only:
+        symbol = lenv.symbols[symbol_name]
+
+        # This the standard check.
+        if not external_filename:
             raise lce.SymbolAlreadyExists(symbol_name)
+
+        # Import uses this to not give errors for multiple 
+        # imports of same symbol from the same package.
         else:
-            print "Warning", symbol_name, "shadows existing symbol with the same name."
+            if (external_filename != symbol.filename):
+                raise lce.SymbolAlreadyExists(symbol_name)
 
     # Warning for shadowing other existing symbols in higher level of scope.
     try:
@@ -196,13 +204,13 @@ def createLexicalEnv(lenv, tree):
                     # def creates symbols in the lexical environment of the parent expression
                     # so that they are visible outside of the def statement.
                     #
-                    # functions are evaulated in lexical environment of the def statement, so
+                    # functions are evaluated in lexical environment of the def statement, so
                     # that their variables are not visible outside of the def statement.
                     #
                     if (len(flist)==4):
                         start = len(flist)
                         checkOverride(lenv, flist[1].value)
-                        lenv.symbols[flist[1].value] = Symbol(flist[1].value)
+                        lenv.symbols[flist[1].value] = Symbol(flist[1].value, tree.filename)
                         lenv.symbols[flist[1].value].setv(functions.UserFunction(tree.lenv, tree))
 
             if (start != len(flist)):

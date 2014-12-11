@@ -90,7 +90,7 @@ class UserFunction(LCadFunction):
                 i += 1
 
             interp.checkOverride(self.lenv, arg_name)
-            self.lenv.symbols[arg_name] = interp.Symbol(arg_name)
+            self.lenv.symbols[arg_name] = interp.Symbol(arg_name, tree.filename)
 
         interp.createLexicalEnv(self.lenv, flist[2])
 
@@ -287,7 +287,7 @@ class LCadDef(SpecialFunction):
                         pass
 
                 if not (symbol_name in lenv.symbols):
-                    lenv.symbols[symbol_name] = interp.Symbol(symbol_name)
+                    lenv.symbols[symbol_name] = interp.Symbol(symbol_name, tree.filename)
 
                 val = interp.getv(interp.interpret(model, node))
                 lenv.symbols[symbol_name].setv(val)
@@ -339,7 +339,7 @@ class LCadFor(SpecialFunction):
         if not tree.initialized:
             inc_name = loop_args[0].value
             interp.checkOverride(tree.lenv, inc_name)
-            tree.lenv.symbols[inc_name] = interp.Symbol(inc_name)
+            tree.lenv.symbols[inc_name] = interp.Symbol(inc_name, tree.filename)
             tree.initialized = True
 
     def call(self, model, tree):
@@ -486,7 +486,7 @@ class LCadImport(SpecialFunction):
             for sym_name in module_lenv.symbols:
                 if (not sym_name in interp.builtin_symbols) and (not sym_name in builtin_functions):
                     if local:
-                        interp.checkOverride(lenv, sym_name, True)
+                        interp.checkOverride(lenv, sym_name, module_lenv.symbols[sym_name].filename)
                         lenv.symbols[sym_name] = module_lenv.symbols[sym_name]
                     else:
                         full_name = arg.value + ":" + sym_name
