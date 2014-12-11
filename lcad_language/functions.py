@@ -452,13 +452,6 @@ class LCadImport(SpecialFunction):
 
     def call(self, model, tree):
 
-        # FIXME:
-        #  1. Multiple calls of the same import do nothing. However multiple calls to
-        #     different imports that import the same module are an error.
-        #
-        #  2. Need some mechanism for knowing which files the symbols came from to
-        #     for better handling of symbol override errors / warnings.
-        #
         if tree.initialized:
             return
         else:
