@@ -416,7 +416,7 @@ class LCadIf(SpecialFunction):
             if (len(args)==3):
                 return interp.interpret(model, args[2])
             else:
-                return False
+                return interp.lcad_nil
 
 builtin_functions["if"] = LCadIf()
 
@@ -916,14 +916,14 @@ class LCadAnd(LogicFunction):
     And statement.
 
     Usage:
-     (and (< 1 2) (< 2 3))  ; t
+     (and (< 1 2) (< 2 3)) ; t
      (and (fn x) nil)      ; nil
     """
     def call(self, model, tree):
         for node in tree.value[1:]:
-            if isTrue(model, node):
-                return interp.lcad_t
-        return interp.lcad_nil
+            if not(isTrue(model, node)):
+                return interp.lcad_nil
+        return interp.lcad_t
 
 builtin_functions["and"] = LCadAnd("and")
 
@@ -951,8 +951,8 @@ class LCadNot(SpecialFunction):
     Not statement.
 
     Usage:
-     (not t)  ; t
-     (not ()) ; nil
+     (not t)  ; nil
+     (not ()) ; t
     """
     def argCheck(self, tree):
         if (len(tree.value) != 2):
