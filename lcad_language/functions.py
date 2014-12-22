@@ -151,9 +151,10 @@ class SpecialFunction(LCadFunction):
 
 class LCadAref(SpecialFunction):
     """
-    Returns an element of a list.
+    **aref** - Return an element of a list.
 
-    Usage:
+    Usage::
+
      (aref (list 1 2 3) 1)          ; returns 2
      (set (aref (list 1 2 3) 1) 4)  ; list is now 1, 4, 3
     """
@@ -181,9 +182,10 @@ builtin_functions["aref"] = LCadAref()
 
 class LCadBlock(SpecialFunction):
     """
-    A 'block' of code, similar to progn in Lisp.
+    **block** - A block of code, similar to *progn* in Lisp.
 
-    Usage:
+    Usage::
+
      (block
        (def x 15)    ; local variable x
        (def inc-x () ; function to modify x (and return the current value).
@@ -205,9 +207,10 @@ builtin_functions["block"] = LCadBlock()
 
 class LCadCond(SpecialFunction):
     """
-    A switch statement.
+    **cond** - Switch statement.
 
-    Usage:
+    Usage::
+
      (cond
        ((= x 1) ..) ; do this if x = 1
        ((= x 2) ..) ; do this if x = 2
@@ -236,9 +239,10 @@ builtin_functions["cond"] = LCadCond()
 
 class LCadDef(SpecialFunction):
     """
-    Create a variable or function.
+    **def** - Create a variable or function.
 
-    Usage:
+    Usage::
+
      (def x 15) - Create the variable x with the value 15.
      (def x 15 y 20) - Create x with value 15, y with value 20.
      (def incf (x) (+ x 1)) - Create the function incf.
@@ -301,9 +305,10 @@ builtin_functions["def"] = LCadDef()
 
 class LCadFor(SpecialFunction):
     """
-    For statement.
+    **for** - For statement.
 
-    Usage:
+    Usage::
+
      (for (i 10) ..)           ; increment i from 0 to 9.
      (for (i 1 11) ..)         ; increment i from 1 to 11.
      (for (i 1 0.1 5) ..)      ; increment i from 1 to 5 in steps of 0.1.
@@ -386,13 +391,15 @@ builtin_functions["for"] = LCadFor()
 
 class LCadIf(SpecialFunction):
     """
-    If statement. The first argument must be t or nil.
+    **if** - If statement. 
 
-    Usage:
+    The first argument must be t or nil.
+
+    Usage::
+
      (if t 1 2)       ; returns 1
      (if 1 2 3)       ; error
      (if (= 1 1) 1 2) ; returns 1
-
      (if x 1 0)       ; error if x is not t or nil
      (if (= x 2) 3)
      (if (= (fn) 0)   ; if / else
@@ -423,13 +430,14 @@ builtin_functions["if"] = LCadIf()
 
 class LCadImport(SpecialFunction):
     """
-    Import a module.
+    **import** - Import a module.
 
     Module are searched for in the current working directory first,
     then in the library folder of the openlcad project. The modules
     are assumed to be in files that end with the ".scad" extension.
 
-    Usage:
+    Usage::
+
      (import mod1)      ; import mod1.scad
      (print mod1:x)     ; print the value of x in the mod1.scad module.
      (mod1:fn 1)        ; call the function fn in the mod1.scad module.
@@ -492,9 +500,10 @@ builtin_functions["import"] = LCadImport()
 
 class LCadList(SpecialFunction):
     """
-    Create a list.
+    **list** - Create a list.
 
-    Usage:
+    Usage::
+
      (list 1 2 3)  ; returns the list 1,2,3
      (list)        ; an empty list
     """
@@ -512,13 +521,14 @@ builtin_functions["list"] = LCadList()
 
 class LCadMirror(SpecialFunction):
     """
-    Mirror child elements on a plane through the origin.
+    **mirror** - Mirror child elements on a plane through the origin.
 
     :param mx: mirror on x axis.
     :param my: mirror on y axis.
     :param mz: mirron on z axis.
 
-    Usage:
+    Usage::
+
      (mirror (1 0 0) ..) ; mirrors on the x axis.
     """
     def __init__(self):
@@ -565,12 +575,13 @@ builtin_functions["mirror"] = LCadMirror()
 
 class LCadPart(SpecialFunction):
     """
-    Add a part to the model.
+    **part** - Add a part to the model.
 
     :param part_id: The name of the LDraw .dat file for this part.
     :param part_color: The LDraw name or id of the color.
 
-    Usage:
+    Usage::
+
      (part "32524" 13)
      (part '32524' "yellow")
 
@@ -595,9 +606,10 @@ builtin_functions["part"] = LCadPart()
 
 class LCadPrint(SpecialFunction):
     """
-    Print to the console.
+    **print** - Print to the console.
 
-    Usage:
+    Usage::
+
      (print x "=" 10)
 
     """
@@ -616,6 +628,8 @@ builtin_functions["print"] = LCadPrint()
 
 class LCadRotate(SpecialFunction):
     """
+    **rotate** - Rotate child elements.
+
     Add a rotation to the current transformation matrix, rotation 
     is done first around z, then y and then x. Parts added inside
     a rotate block have this transformation applied to them.
@@ -624,7 +638,8 @@ class LCadRotate(SpecialFunction):
     :param ay: Amount to rotate around the y axis in degrees.
     :param az: Amount to rotate around the z axis in degrees.
 
-    Usage:
+    Usage::
+
      (rotate (0 0 90) .. )
 
     """
@@ -687,9 +702,10 @@ builtin_functions["rotate"] = LCadRotate()
 
 class LCadSet(SpecialFunction):
     """
-    Set the value of an existing symbol.
+    **set** - Set the value of an existing symbol.
 
-    Usage:
+    Usage::
+
      (set x 15) - Set the value of x to 15.
      (set x 15 y 20) - Set x to 15 and y to 20.
      (set x fn) - Set x to be the function fn.
@@ -724,6 +740,8 @@ builtin_functions["set"] = LCadSet()
 
 class LCadTranslate(SpecialFunction):
     """
+    **translate** - Translate child elements.
+
     Add a translation to the current transformation matrix. Parts inside a translate
     block have this transformation applied to them.
 
@@ -731,7 +749,8 @@ class LCadTranslate(SpecialFunction):
     :param dy: Displacement in x in LDU.
     :param dz: Displacement in x in LDU.
 
-    Usage:
+    Usage::
+
      (translate (0 0 5) .. )
 
     """
@@ -776,9 +795,10 @@ builtin_functions["translate"] = LCadTranslate()
 
 class LCadWhile(SpecialFunction):
     """
-    A while loop.
+    **while** - While loop.
 
-    Usage:
+    Usage::
+
      (def x 1)
      (while (< x 10) .. )
     """
@@ -821,9 +841,10 @@ class ComparisonFunction(SpecialFunction):
 
 class LCadEqual(ComparisonFunction):
     """
-    =
+    **=**
 
-    Usage:
+    Usage::
+
      (= 1 1)     ; t
      (= 1 2)     ; nil
      (= 2 2 2 2) ; t
@@ -837,9 +858,10 @@ builtin_functions["="] = LCadEqual("=")
 
 class LCadGt(ComparisonFunction):
     """
-    >
+    **>**
 
-    Usage:
+    Usage::
+
      (> 2 1) ; t
     """
     def call(self, model, tree):
@@ -850,9 +872,10 @@ builtin_functions[">"] = LCadGt(">")
 
 class LCadLt(ComparisonFunction):
     """
-    <
+    **<**
 
-    Usage:
+    Usage::
+
      (< 2 1) ; nil
     """
     def call(self, model, tree):
@@ -863,9 +886,10 @@ builtin_functions["<"] = LCadLt("<")
 
 class LCadGe(ComparisonFunction):
     """
-    >=
+    **>=**
 
-    Usage:
+    Usage::
+
      (>= 2 1) ; t
     """
     def call(self, model, tree):
@@ -876,9 +900,10 @@ builtin_functions[">="] = LCadGe(">=")
 
 class LCadLe(ComparisonFunction):
     """
-    <=
+    **<=**
 
-    Usage:
+    Usage::
+
      (<= 2 1) ; nil
     """
     def call(self, model, tree):
@@ -889,9 +914,10 @@ builtin_functions["<="] = LCadLe("<=")
 
 class LCadNe(ComparisonFunction):
     """
-    !=
+    **!=**
 
-    Usage:
+    Usage::
+
      (!= 2 1) ; t
     """
     def call(self, model, tree):
@@ -913,9 +939,10 @@ class LogicFunction(SpecialFunction):
 
 class LCadAnd(LogicFunction):
     """
-    And statement.
+    **and** - And statement.
 
-    Usage:
+    Usage::
+
      (and (< 1 2) (< 2 3)) ; t
      (and (fn x) nil)      ; nil
     """
@@ -930,9 +957,10 @@ builtin_functions["and"] = LCadAnd("and")
 
 class LCadOr(LogicFunction):
     """
-    Or statement.
+    **or** - Or statement.
 
-    Usage:
+    Usage::
+
      (or (< 1 2) (> 1 3))  ; t
      (or (fn x) t)         ; t
      (or nil nil)          ; nil
@@ -948,9 +976,10 @@ builtin_functions["or"] = LCadOr("or")
 
 class LCadNot(SpecialFunction):
     """
-    Not statement.
+    **not** - Not statement.
 
-    Usage:
+    Usage::
+
      (not t)  ; nil
      (not ()) ; t
     """
@@ -990,10 +1019,11 @@ class BasicMathFunction(MathFunction):
 
 class LCadDivide(BasicMathFunction):
     """
-    Divide the first number by one or more additional numbers.
+    **/** - Divide the first number by one or more additional numbers.
 
-    Usage:
-     (/ 4 2)
+    Usage::
+
+     (/ 4 2) ; 2
 
     """
     def call(self, model, tree):
@@ -1007,11 +1037,12 @@ builtin_functions["/"] = LCadDivide("/")
 
 class LCadMinus(BasicMathFunction):
     """
-    Subtract one or more numbers from the first number.
+    **-** - Subtract one or more numbers from the first number.
 
-    Usage:
-     (- 50 20 y) -> -30 - y
-     (- 50)      -> -50
+    Usage::
+
+     (- 50 20 y) ; -30 - y
+     (- 50)      ; -50
 
     """
     def argCheck(self, tree):
@@ -1032,10 +1063,11 @@ builtin_functions["-"] = LCadMinus("-")
 
 class LCadModulo(BasicMathFunction):
     """
-    Return remainder of the first numner divided by the second number.
+    **%** Return remainder of the first number divided by the second number.
 
-    Usage:
-     (% 10 2)
+    Usage::
+
+     (% 10 2) ; 0
 
     """
     def argCheck(self, tree):
@@ -1052,10 +1084,11 @@ builtin_functions["%"] = LCadModulo("%")
 
 class LCadMultiply(BasicMathFunction):
     """
-    Multiply two or more numbers.
+    ***** - Multiply two or more numbers.
 
-    Usage:
-     (* 2 2 y)
+    Usage::
+
+     (* 2 2 y) ; 4 * y
 
     """
     def call(self, model, tree):
@@ -1069,10 +1102,11 @@ builtin_functions["*"] = LCadMultiply("*")
 
 class LCadPlus(BasicMathFunction):
     """
-    Add together two or more numbers.
+    **+** - Add together two or more numbers.
 
-    Usage:
-     (+ 10 20 y)
+    Usage::
+
+     (+ 10 20 y) ; 30 + y
 
     """
     def call(self, model, tree):
