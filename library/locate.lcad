@@ -1,0 +1,28 @@
+;
+; Functions to make placing bricks easier.
+;
+; Hazen 12/14
+;
+
+(import ldu :local)
+
+; standard bricks
+;
+; x - x location.
+; y - y location.
+; z - z location.
+; ax - rotation angle around x axis (degrees).
+; ay - rotation angle around y axis (degrees).
+; az - rotation angle around z axis (degrees).
+;
+(def sb (x y z ax ay az name color)
+ (translate ((bw x) (bd y) (bh z))
+  (rotate (ax ay az)
+   (part name color))))
+
+; technic bricks
+;
+(def tb (x y z ax ay az name color)
+ (translate ((bw x) (bw y) (bw z))
+  (rotate (ax ay az)
+   (part name color))))
