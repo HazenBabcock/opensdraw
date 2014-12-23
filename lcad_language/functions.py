@@ -434,17 +434,17 @@ class LCadImport(SpecialFunction):
 
     Module are searched for in the current working directory first,
     then in the library folder of the openlcad project. The modules
-    are assumed to be in files that end with the ".scad" extension.
+    are assumed to be in files that end with the ".lcad" extension.
 
     Usage::
 
-     (import mod1)      ; import mod1.scad
-     (print mod1:x)     ; print the value of x in the mod1.scad module.
-     (mod1:fn 1)        ; call the function fn in the mod1.scad module.
+     (import mod1)      ; import mod1.lcad
+     (print mod1:x)     ; print the value of x in the mod1.lcad module.
+     (mod1:fn 1)        ; call the function fn in the mod1.lcad module.
 
      (import mod1 mod2) ; import mod1.lcad and mod2.lcad.
      (def mx mod1:x)    ; use m1 as an alternate name for mod1:x.
-     (print mx)         ; print the value of x in the mod1.scad module.
+     (print mx)         ; print the value of x in the mod1.lcad module.
 
      (import mod1 mod2 :local) ; import mod1.lcad and mod2.lcad into the name space of current module.
     """
