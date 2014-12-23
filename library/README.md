@@ -4,3 +4,4 @@ This is the directory in which to place "generic" .lcad modules. When the lcad l
 
 ### Files ###
 * ldu.lcad - Functions for converting from ldu (LDraw Units) to standard brick sizes.
+* locate.lcad - Convenience functions for placing bricks.
