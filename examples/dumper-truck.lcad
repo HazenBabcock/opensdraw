@@ -1,0 +1,40 @@
+;
+; The dumper truck example in openldraw:
+; http://www.holly-wood.it/mlcad/basic1-en.html
+; 
+; Hazen 12/14
+;
+
+; Use locate module for easier part placement.
+(import locate :local)
+
+; Truck function so that we can make lots of trucks
+; with different dumper tilt angles.
+(def truck (tilt)
+ (block
+  
+  ; 1. Plate 2 x2 with Wheel Holders.
+  (sb -1 0 0 -90 90 0 "4600" "Black")
+  (sb 1 0 0 -90 90 0 "4600" 0)
+
+  ; 2. Plate 1 x 2.
+  (sb -1.5 0 0.33 -90 90 0 "3023" "Light_Gray")
+
+  ; 3. Hinge Tile 1 x 2 with 2 Fingers.
+  (sb 0 0.5 0.66 -90 0 0 "4531" 7)
+  (sb 0 -0.5 0.66 -90 0 0 "4531" 7)
+
+  ; 4. Hinge Plate 1 x 2 with 3 Fingers and Solid Studs.
+  (sb 0 0.5 0.66 -90 0 0 "4275b" 14)
+  (sb 0 -0.5 0.66 -90 0 0 "4275b" "Yellow")
+
+  ; 5. Plate 1 x 1.
+  (sb -1.5 0.5 0.66 -90 90 0 "3024" "Yellow")
+  (sb -1.5 0.5 1.0 -90 90 0 "3024" 47)
+  (sb -1.5 0.5 1.33 -90 90 0 "3024" "Trans_Clear")
+
+  ))
+
+; draw one truck
+(truck 0)
+
