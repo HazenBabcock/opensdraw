@@ -14,26 +14,26 @@ Import the locate module for easier part placement.::
 Step 2
 ------
 
-Create the wheel assembly.::
+Create the wheel assembly. ::
 
-  (def wheel-assembly ()
-   (block
+   (def wheel-assembly ()
+    (block
 
-    ; A. Plate 2 x2 with Wheel Holders.
-    (sb 0 0 0 -90 90 0 "4600" "Black")
+     ; A. Plate 2 x2 with Wheel Holders.
+     (sb 0 0 0 -90 90 0 "4600" "Black")
 
-    ; B. Wheel Rim 6.4 x 8.
-    (sb 0 1.5 -0.2 90 0 0 "4624" "Light_Gray")
-
-    ; C. Tyre 6/50 x 7 Offset Tread.
-    (sb 0 1.5 -0.2 90 0 0 "3641" "Black")
-
-    ; D. Mirror above along the y-axis to add the other wheel and tyre.
-    (mirror (0 1 0)
+     ; B. Wheel Rim 6.4 x 8.
      (sb 0 1.5 -0.2 90 0 0 "4624" "Light_Gray")
-     (sb 0 1.5 -0.2 90 0 0 "3641" "Black"))
 
-    ))
+     ; C. Tyre 6/50 x 7 Offset Tread.
+     (sb 0 1.5 -0.2 90 0 0 "3641" "Black")
+
+     ; D. Mirror above along the y-axis to add the other wheel and tyre.
+     (mirror (0 1 0)
+      (sb 0 1.5 -0.2 90 0 0 "4624" "Light_Gray")
+      (sb 0 1.5 -0.2 90 0 0 "3641" "Black"))
+
+     ))
 
 .. figure:: dumper-truck1.png
    :align: center
@@ -50,7 +50,7 @@ Create the wheel assembly.::
 Step 3
 ------
 
-Create the truck body.::
+Create the truck body. ::
 
   (def truck-body ()
    (block
@@ -96,7 +96,7 @@ Create the truck body.::
 Step 4
 ------
 
-Create the dumper assembly.::
+Create the dumper assembly. ::
 
   (def dumper-assembly ()
 
@@ -125,12 +125,12 @@ Create the dumper assembly.::
 
 .. note::
 
-   The bh() function converts brick widths to LDU (LDraw units).
+   The bh() function converts brick heights to LDU (LDraw units).
 
 Step 5
 ------
 
-Put everything together with a tilt option.::
+Put everything together with a tilt option. ::
 
   (def truck (tilt)
    (block
@@ -152,7 +152,7 @@ Put everything together with a tilt option.::
 Step 6
 ------
 
-Draw a ring of 18 trucks with different tilts.::
+Draw a ring of 18 trucks with different tilts. ::
 
   (for (i 18)
    (rotate (0 0 (* i 20))
