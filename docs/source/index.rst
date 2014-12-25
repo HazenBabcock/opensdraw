@@ -15,20 +15,13 @@ The OpenLDraw project can be obtained `here <https://github.com/HazenBabcock/ope
 User's Guide
 ------------
 
-Contents:
-
 .. toctree::
    
    guide.rst
    example.rst
 
-
-
 API Documentation
 -----------------
-
-The API documentation provides information about the functions
-provided by the OpenLDraw language:
 
 .. toctree::
    
