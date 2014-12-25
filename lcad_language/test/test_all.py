@@ -103,10 +103,10 @@ def test_if_4():
 
 # import
 def test_import_1():
-    assert exe("(import mod) (mod:fn)") == 1
+    assert exe("(import mod) (mod:fn)") == math.pi
 
 def test_import_2():
-    assert exe("(import mod :local) (fn)") == 1
+    assert exe("(import mod :local) (fn)") ==  math.pi
 
 # list
 def test_list_1():
