@@ -41,6 +41,10 @@ def test_e():
 def test_pi():
     assert exe("pi") == math.pi
 
+# time-index
+def text_time_index():
+    assert exe("time-index") == 0
+
 
 ## Functions
 

@@ -21,17 +21,21 @@ class LEnv(object):
     """
     This keeps track of the current lexical environment.
     """
-    def __init__(self, parent = None, add_built_ins = False):
+    def __init__(self, parent = None, add_built_ins = False, time_index = 0):
         self.parent = parent
         self.symbols = {}
 
         if add_built_ins:
-            self.addBuiltIns()
+            self.addBuiltIns(time_index)
 
-    def addBuiltIns(self):
+    def addBuiltIns(self, time_index):
         """
         This should only be called on the root lexical environment.
         """
+        
+        # Set the time step (for animations).
+        builtin_symbols["time-index"].setv(time_index)
+
         # Symbols.
         for sym_name in builtin_symbols.keys():
             self.symbols[sym_name] = builtin_symbols[sym_name]
@@ -140,6 +144,9 @@ builtin_symbols["e"].setv(math.e)
 builtin_symbols["pi"] = Symbol("pi", "builtin")
 builtin_symbols["pi"].setv(math.pi)
 
+builtin_symbols["time-index"] = Symbol("time-index", "builtin")
+builtin_symbols["time-index"].setv(0)
+
 def checkOverride(lenv, symbol_name, external_filename = False):
     """
     Check if symbol_name overrides a builtin or user defined symbol.
@@ -238,7 +245,7 @@ def dispatch(func, model, tree):
         func.argCheck(tree)
     return func.call(model, tree)
 
-def execute(lcad_code, filename = "NA"):
+def execute(lcad_code, filename = "NA", time_index = 0):
     """
     Parses and executes the lcad code in the string lcad_code and returns the model.
 
@@ -246,9 +253,11 @@ def execute(lcad_code, filename = "NA"):
     :type lcad_code: str.
     :param filename: A string containing the filename of the file that contained the lcad code.
     :type filename: str.
+    :param time_index: A time index.
+    :type time_index: integer.
     :returns: Model.
     """
-    lenv = LEnv(add_built_ins = True)
+    lenv = LEnv(add_built_ins = True, time_index = time_index)
     model = Model()
     ast = lexerParser.parse(lcad_code, filename)
     createLexicalEnv(lenv, ast)
