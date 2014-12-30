@@ -7,7 +7,7 @@ using OpenLDraw.
 Step 1
 ------
 
-Import the locate module for easier part placement.::
+Import the locate module for easier part placement. ::
 
   (import locate :local)
 
