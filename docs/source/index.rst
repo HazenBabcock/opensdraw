@@ -19,6 +19,7 @@ User's Guide
    
    guide.rst
    example.rst
+   animation.rst
 
 API Documentation
 -----------------
