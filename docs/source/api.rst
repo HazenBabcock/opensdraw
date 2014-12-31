@@ -3,10 +3,11 @@ API
 
 Symbols
 -------
-* **t** - True.
-* **nil** - False.
+* **t** - True
+* **nil** - False
 * **pi** - 3.14159
 * **e** - 2.7182
+* **time-index** - 0..N, for creating animations.
 
 Basic Functions
 ---------------
