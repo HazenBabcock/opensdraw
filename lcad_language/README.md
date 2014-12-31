@@ -7,3 +7,6 @@ This folder contains the modules that define the lcad language. This is a [prefi
 * lcadExceptions.py - Lcad language specific exceptions.
 * lexerParser.py - The lexer/parser for the lcad language.
 * parts.py - The Part object.
+
+### Directories ###
+* test - Nose tests.
