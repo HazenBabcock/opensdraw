@@ -43,7 +43,7 @@ while (index < time_points):
         os.chdir(os.path.dirname(sys.argv[1]))
 
     # Generate parts.
-    parts = interpreter.execute(ldraw_file_contents, time_index = index).getParts()
+    parts = interpreter.execute(ldraw_file_contents, filename = sys.argv[1], time_index = index).getParts()
 
     if (index == 0):
         print "Model has", len(parts), "parts."
