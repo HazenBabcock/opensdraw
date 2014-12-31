@@ -21,21 +21,17 @@ class LEnv(object):
     """
     This keeps track of the current lexical environment.
     """
-    def __init__(self, parent = None, add_built_ins = False, time_index = 0):
+    def __init__(self, parent = None, add_built_ins = False):
         self.parent = parent
         self.symbols = {}
 
         if add_built_ins:
-            self.addBuiltIns(time_index)
+            self.addBuiltIns()
 
-    def addBuiltIns(self, time_index):
+    def addBuiltIns(self):
         """
         This should only be called on the root lexical environment.
         """
-        
-        # Set the time step (for animations).
-        builtin_symbols["time-index"].setv(time_index)
-
         # Symbols.
         for sym_name in builtin_symbols.keys():
             self.symbols[sym_name] = builtin_symbols[sym_name]
@@ -257,7 +253,10 @@ def execute(lcad_code, filename = "NA", time_index = 0):
     :type time_index: integer.
     :returns: Model.
     """
-    lenv = LEnv(add_built_ins = True, time_index = time_index)
+    # Set the value of the time-index symbol (for animations).
+    builtin_symbols["time-index"].setv(time_index)
+
+    lenv = LEnv(add_built_ins = True)
     model = Model()
     ast = lexerParser.parse(lcad_code, filename)
     createLexicalEnv(lenv, ast)
