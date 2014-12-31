@@ -75,7 +75,10 @@ Step 2
 
 Create a directory to save the .dat files in, change to this directory and generate the dat files. ::
 
-  python path/to/lcad_to_ldraw.py path/to/gears.lcad gears.dat 100
+  cd openldraw/examples
+  mkdir animate
+  cd animate
+  python ../../lcad_to_ldraw.py ../gears.lcad gears.dat 100
 
 .. note::
 
@@ -86,7 +89,7 @@ Step 3
 
 Generate the png files in the same directory. ::
 
-  python path/to/misc/ldview_render.py ./
+  python ../../misc/ldview_render.py ./
 
 .. note::
 
