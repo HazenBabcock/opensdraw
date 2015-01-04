@@ -15,7 +15,7 @@
 		  "[ \r\n\t]+")
 	 (1 font-lock-function-name-face))
 	(,(concat "\\<\\("
-		  (regexp-opt '("e" "nil" "pi" "t"))
+		  (regexp-opt '("e" "nil" "pi" "t" "time-index"))
 		  "\\)\\>"
 		  "[ \r\n\t]+")
 	 (1 font-lock-constant-face))))
