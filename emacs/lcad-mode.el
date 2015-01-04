@@ -16,7 +16,8 @@
 	 (1 font-lock-function-name-face))
 	(,(concat "\\<\\("
 		  (regexp-opt '("e" "nil" "pi" "t"))
-		  "\\)\\>")
+		  "\\)\\>"
+		  "[ \r\n\t]+")
 	 (1 font-lock-constant-face))))
 
 ;; command to comment/uncomment text
@@ -87,6 +88,7 @@
                (funcall method indent-point state)))))))
 
 (defun compile ()
+  (save-buffer)
   (interactive)
   (shell-command (concat "python ~/Code/openldraw/lcad_to_ldraw.py " 
 			 (buffer-file-name) " "
