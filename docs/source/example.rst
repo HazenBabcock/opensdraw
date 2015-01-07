@@ -7,7 +7,7 @@ using OpenLDraw.
 Step 1
 ------
 
-Import the locate module for easier part placement. ::
+Import the *locate* library for easier part placement. ::
 
   (import locate :local)
 
@@ -41,7 +41,7 @@ Create the wheel assembly. ::
 
 .. note::
 
-   The arguments for the sb() function (standard brick) are x, y, z position in bricks, x-axis, y-axis, z-axis rotation in degrees, LDraw part number, part color.
+   The arguments for the **sb()** function (standard brick) are x, y, z position in bricks, x-axis, y-axis, z-axis rotation in degrees, LDraw part number, part color.
    
 .. note::
 
@@ -91,7 +91,7 @@ Create the truck body. ::
 
 .. note::
 
-   The bw() function converts brick widths to LDU (LDraw units).
+   The **bw()** function converts brick widths to LDU (LDraw units).
 
 Step 4
 ------
@@ -125,7 +125,7 @@ Create the dumper assembly. ::
 
 .. note::
 
-   The bh() function converts brick heights to LDU (LDraw units).
+   The **bh()** function converts brick heights to LDU (LDraw units).
 
 Step 5
 ------
@@ -164,4 +164,4 @@ Draw a ring of 18 trucks with different tilts. ::
 
 .. note::
 
-   The complete code for this example is in the examples folder.
+   The complete code for this example is in the examples folder (dumper-truck.lcad).
