@@ -36,11 +36,14 @@ Usage
 
 The basic work flow is:
 
-1. Use the partviewer to determine the LDraw part number and LDraw color of the part you wish to add to your MOC.
+1. Use the partviewer to determine the LDraw part number and LDraw color of the part you wish to add to your MOC. ::
+
+     python /path/to/openldraw/partviewer/partviewer.py
+
 2. Edit your MOC .lcad file to include this part in the desired location.
 3. Convert the MOC .lcad file to a .dat file using *lcad_to_ldraw.py*. ::
 
-     python ./lcad_to_ldraw.py file.lcad file.dat
+     python /path/to/openldraw/lcad_to_ldraw.py file.lcad file.dat
 
 4. Visualize the .dat file with LDView (or equivalent).
 
