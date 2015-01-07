@@ -64,7 +64,7 @@ Create the lcad file. ::
 
 .. note::
 
-   time-index is the animation variable. It will count up from 0 in increments of 1.
+   *time-index* is the animation variable. It will count up from 0 in increments of 1.
 
 .. note::
    
