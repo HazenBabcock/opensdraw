@@ -525,7 +525,7 @@ class LCadMirror(SpecialFunction):
 
     :param mx: mirror on x axis.
     :param my: mirror on y axis.
-    :param mz: mirron on z axis.
+    :param mz: mirror on z axis.
 
     Usage::
 
@@ -579,11 +579,13 @@ class LCadPart(SpecialFunction):
 
     :param part_id: The name of the LDraw .dat file for this part.
     :param part_color: The LDraw name or id of the color.
+    :param part_step: (Optional) Which building step to add the part (default = first step).
 
     Usage::
 
      (part "32524" 13)
      (part '32524' "yellow")
+     (part "32524" "yellow" 10)
 
     """
     def __init__(self):
@@ -591,14 +593,18 @@ class LCadPart(SpecialFunction):
 
     def argCheck(self, tree):
         flist = tree.value
-        if (len(flist) != 3):
-            raise lce.NumberArgumentsException(2, len(flist) - 1)
+        if (len(flist) != 3) and (len(flist) != 4):
+            raise lce.NumberArgumentsException("2-3", len(flist) - 1)
 
     def call(self, model, tree):
         args = tree.value[1:]
         part_id = interp.getv(interp.interpret(model, args[0]))
         part_color = interp.getv(interp.interpret(model, args[1]))
-        model.parts_list.append(parts.Part(model.m, part_id, part_color))
+        if (len(args) == 3):
+            part_step = interp.getv(interp.interpret(model, args[2]))
+        else:
+            part_step = 0
+        model.parts_list.append(parts.Part(model.m, part_id, part_color, part_step))
         return None
 
 builtin_functions["part"] = LCadPart()
@@ -746,8 +752,8 @@ class LCadTranslate(SpecialFunction):
     block have this transformation applied to them.
 
     :param dx: Displacement in x in LDU.
-    :param dy: Displacement in x in LDU.
-    :param dz: Displacement in x in LDU.
+    :param dy: Displacement in y in LDU.
+    :param dz: Displacement in z in LDU.
 
     Usage::
 
