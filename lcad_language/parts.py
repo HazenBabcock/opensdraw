@@ -24,7 +24,7 @@ def formatNumber(a_number, precision):
 
 class Part(object):
 
-    def __init__(self, model_matrix, part_id, part_color):
+    def __init__(self, model_matrix, part_id, part_color, step):
         self.model_matrix = model_matrix
         try:
             self.part_color = int(part_color)
@@ -32,6 +32,7 @@ class Part(object):
             self.part_color = part_color
 
         self.part_id = part_id
+        self.step = step
 
         self.loc = numpy.array([0.0, 0.0, 0.0, 1.0])
         self.loc = numpy.dot(self.model_matrix, self.loc)
