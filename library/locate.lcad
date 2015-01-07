@@ -26,3 +26,26 @@
  (translate ((bw x) (bw y) (bw z))
   (rotate (ax ay az)
    (part name color))))
+
+; standard bricks w/ build step
+;
+; x - x location.
+; y - y location.
+; z - z location.
+; ax - rotation angle around x axis (degrees).
+; ay - rotation angle around y axis (degrees).
+; az - rotation angle around z axis (degrees).
+; step - build step when the part is added.
+;
+(def sbs (x y z ax ay az name color step)
+ (translate ((bw x) (bd y) (bh z))
+  (rotate (ax ay az)
+   (part name color step))))
+
+; technic bricks w/ build step
+;
+(def tbs (x y z ax ay az name color)
+ (translate ((bw x) (bw y) (bw z))
+  (rotate (ax ay az)
+   (part name color step))))
+
