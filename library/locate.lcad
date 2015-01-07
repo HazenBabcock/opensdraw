@@ -44,7 +44,7 @@
 
 ; technic bricks w/ build step
 ;
-(def tbs (x y z ax ay az name color)
+(def tbs (x y z ax ay az name color step)
  (translate ((bw x) (bw y) (bw z))
   (rotate (ax ay az)
    (part name color step))))
