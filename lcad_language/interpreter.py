@@ -84,11 +84,18 @@ class Model(object):
     def getParts(self):
         return self.parts_list
 
+    def getSortedParts(self):
+        """
+        Return the parts list sorted by step.
+        """
+        return sorted(self.parts_list, key = lambda part: part.step)
+
     def makeCopy(self):
         a_copy = Model()
         a_copy.m = self.m.copy()
         a_copy.parts_list = self.parts_list
         return a_copy
+
 
 class Symbol(object):
     """
