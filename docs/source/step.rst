@@ -31,6 +31,10 @@ Create the .lcad file. ::
 
 .. note::
 
+   The step number does not have to be an integer, floating point numbers (and even strings) are also accepted. Steps are ordered using the Python **sorted()** function.
+
+.. note::
+
    We don't use the *locate* library functions **sbs()** or **tbs()** because we want to rotate first, then translate.
 
 Step 3
