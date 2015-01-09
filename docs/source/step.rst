@@ -60,4 +60,8 @@ Load the .dat file with your favorite viewer (LDView renderings shown here).
 
 .. note::
 
-   The complete code for this example is in the examples folder (steps.lcad).
+   The complete code is in the examples folder (steps.lcad).
+
+.. note::
+
+   There is also a global *step-offset* symbol, see examples/auto-step.lcad for an example of how to use this.

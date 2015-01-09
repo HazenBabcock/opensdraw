@@ -7,6 +7,7 @@ Symbols
 * **nil** - False
 * **pi** - 3.14159
 * **e** - 2.7182
+* **step-offset** - User settable to a number, or a function with no arguments that returns a number. This number is added to the *part_step* parameter of the **part()** function. The default value is 0.
 * **time-index** - 0..N, for creating animations.
 
 Basic Functions
