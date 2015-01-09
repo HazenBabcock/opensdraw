@@ -16,6 +16,7 @@ import functions
 import lexerParser
 
 builtin_symbols = {}
+mutable_symbols = []
 
 class LEnv(object):
     """
@@ -147,6 +148,10 @@ builtin_symbols["e"].setv(math.e)
 builtin_symbols["pi"] = Symbol("pi", "builtin")
 builtin_symbols["pi"].setv(math.pi)
 
+builtin_symbols["step-offset"] = Symbol("step-offset", "builtin")
+builtin_symbols["step-offset"].setv(0)
+mutable_symbols.append("step-offset")
+
 builtin_symbols["time-index"] = Symbol("time-index", "builtin")
 builtin_symbols["time-index"].setv(0)
 
@@ -179,7 +184,7 @@ def checkOverride(lenv, symbol_name, external_filename = False):
     except lce.SymbolNotDefined:
         return
 
-    print "Warning", symbol_name, "shadows existing symbol with the same name."
+    print "Warning", symbol_name, "shadows existing symbol with the same name!!"
 
 def createLexicalEnv(lenv, tree):
     """

@@ -16,7 +16,7 @@ class BooleanException(LCadException):
 
 class CannotOverrideBuiltIn(LCadException):
     def __init__(self):
-        LCadException.__init__(self, "overriding builtin symbols (t, nil, ..) is not allowed.")
+        LCadException.__init__(self, "cannot override builtin symbol.")
 
 class CannotSetException(LCadException):
     def __init__(self, item_type):

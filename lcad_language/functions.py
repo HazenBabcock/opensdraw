@@ -38,6 +38,15 @@ def printSymbolTableIds(lenv):
         lenv = lenv.parent
     print "-"
 
+
+class EmptyTree(object):
+    """
+    An empty AST.
+    """
+    def __init__(self):
+        self.value = [False]
+
+
 class LCadFunction(object):
     """
     The base class for all functions.
@@ -600,10 +609,18 @@ class LCadPart(SpecialFunction):
         args = tree.value[1:]
         part_id = interp.getv(interp.interpret(model, args[0]))
         part_color = interp.getv(interp.interpret(model, args[1]))
+
+        # Get step offset.
+        step_offset = interp.getv(interp.builtin_symbols["step-offset"])
+
+        # Check if it is a function, if so, call the function (which cannot take any arguments).
+        if not isinstance(step_offset, numbers.Number):
+            step_offset = interp.getv(step_offset.call(model, EmptyTree()))
+
         if (len(args) == 3):
-            part_step = interp.getv(interp.interpret(model, args[2]))
+            part_step = interp.getv(interp.interpret(model, args[2])) + step_offset
         else:
-            part_step = 0
+            part_step = step_offset
         model.parts_list.append(parts.Part(model.m, part_id, part_color, part_step))
         return None
 
@@ -733,8 +750,11 @@ class LCadSet(SpecialFunction):
             sym = interp.interpret(model, sym_node)
             if not isinstance(sym, interp.Symbol):
                 raise lce.CannotSetException(type(sym))
-            if sym.name in interp.builtin_symbols:
-                raise lce.CannotOverrideBuiltIn()
+            if (sym.name in builtin_functions):
+                print "Warning, overwriting builtin function:", sym.name, "!!"
+            if (sym.name in interp.builtin_symbols):
+                if not (sym.name in interp.mutable_symbols):
+                    raise lce.CannotOverrideBuiltIn()
 
             val = interp.getv(interp.interpret(model, val_node))
             sym.setv(val)
