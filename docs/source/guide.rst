@@ -21,7 +21,7 @@ integration is provided. The following steps should enable this:
 
 1. Add a sub-folder to your .emacs.d directory called *lcad-mode*.
 2. Copy the *lcad-mode.el* file into this directory.
-3. Edit the path to *lcad_to_ldraw.py* in the compile function in *lcad-mode.el*.
+3. Edit the path to *lcad_to_ldraw.py* in the **compile()** function in *lcad-mode.el*.
 4. Add the following to your .emacs file. ::
 
    (add-to-list 'load-path "~/.emacs.d/lcad-mode")
