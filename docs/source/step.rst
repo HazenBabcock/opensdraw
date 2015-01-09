@@ -31,7 +31,7 @@ Create the .lcad file. ::
 
 .. note::
 
-   The step number does not have to be an integer, floating point numbers (and even strings) are also accepted. Steps are ordered using the Python **sorted()** function.
+   The step number does not have to be an integer, floating point numbers are also ok. Steps are ordered using the Python **sorted()** function.
 
 .. note::
 
