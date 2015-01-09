@@ -1,0 +1,27 @@
+;
+; An example of how to automatically increment the part number.
+;
+; Hazen 01/15
+;
+
+(import locate :local)
+
+; The auto-stepping function generator.
+(def auto-inc-fn ()
+ (block
+  (def step 0)
+  (def auto-inc ()
+   (block
+    (set step (+ step 1))
+    step))
+  auto-inc))
+
+(set step-offset (auto-inc-fn))
+
+; Technic Beam 15.
+(tb 0 0 0 0 0 0 "32278" 14)
+
+(for (i 15)
+
+  ; Technic Pin with Friction and Slots
+ (tb 0 0.5 (- i 7) 0 0 90 "2780" 0))
