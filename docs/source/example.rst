@@ -164,4 +164,4 @@ Draw a ring of 18 trucks with different tilts. ::
 
 .. note::
 
-   The complete code for this example is in the examples folder (dumper-truck.lcad).
+   The complete code is in the examples folder (dumper-truck.lcad).
