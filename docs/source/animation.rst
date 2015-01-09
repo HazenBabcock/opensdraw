@@ -99,3 +99,6 @@ Step 4
 ------
 
 Create a movie. I find `ImageJ <http://fiji.sc/Fiji>`_ be a handy tool for this. You can import the series of .png files as an image sequence (File -> Import -> Image Sequence).
+
+.. figure:: gears_00001.png
+   :align: center
