@@ -617,6 +617,9 @@ class LCadPart(SpecialFunction):
         if not isinstance(step_offset, numbers.Number):
             step_offset = interp.getv(step_offset.call(model, EmptyTree()))
 
+        if not isinstance(step_offset, numbers.Number):
+            raise lce.WrongTypeException("number", type(step_offset))
+
         if (len(args) == 3):
             part_step = interp.getv(interp.interpret(model, args[2])) + step_offset
         else:
