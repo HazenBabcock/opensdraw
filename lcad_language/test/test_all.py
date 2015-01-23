@@ -8,6 +8,7 @@
 """
 
 import math
+import numbers
 
 import lcad_language.interpreter as interpreter
 import lcad_language.lexerParser as lexerParser
@@ -251,3 +252,28 @@ def test_py_math_3():
 
 def test_py_math_4():
     assert int(round(exe("(sin (/ pi 2))"))) == 1
+
+# random numbers
+def test_rand_seed_1():
+    assert isinstance(exe("(rand-seed 10)"), numbers.Number)
+
+def test_rand_choice_1():
+    assert isinstance(exe("(rand-choice (list 1 2 3))"), numbers.Number)
+
+def test_rand_choice_2():
+    assert isinstance(exe("(def a () 10) (def b () 20) (def c (rand-choice (list a b))) (c)"), numbers.Number)
+    
+def test_rand_gauss_1():
+    assert isinstance(exe("(rand-gauss)"), numbers.Number)
+
+def test_rand_gauss_2():
+    assert isinstance(exe("(rand-gauss 1 2)"), numbers.Number)
+
+def test_rand_integer_1():
+    assert isinstance(exe("(rand-integer 0 10)"), numbers.Number)
+
+def test_rand_uniform_1():
+    assert isinstance(exe("(rand-uniform)"), numbers.Number)
+
+def test_rand_uniform_2():
+    assert isinstance(exe("(rand-uniform 1 10)"), numbers.Number)

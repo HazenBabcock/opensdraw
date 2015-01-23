@@ -14,6 +14,7 @@ import numbers
 import numpy
 import operator
 import os
+import random
 
 import interpreter as interp
 import lcadExceptions as lce
@@ -1170,6 +1171,116 @@ for name in dir(math):
     obj = getattr(math, name)
     if callable(obj):
         builtin_functions[name] = AdvMathFunction(name, obj)
+
+
+# Random number functions.
+
+class LCadRandSeed(MathFunction):
+    """
+    **rand-seed** - Initialize the random number generator.
+
+    Usage::
+     (rand-seed 10)
+    """
+    def argCheck(self, tree):
+        if (len(tree.value) != 2):
+            raise lce.NumberArgumentsException("1", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        seed = self.isNumber(interp.interpret(model, tree.value[1]))
+        random.seed(seed)
+        return seed
+
+builtin_functions["rand-seed"] = LCadRandSeed("rand-seed")
+
+
+class LCadRandChoice(SpecialFunction):
+    """
+    **rand-choice** - Return a random element from a list.
+
+    Usage::
+     (rand-choice (list 1 2 3)) ; return 1,2 or 3.
+     (rand-choice (list a b)) ; return a or b
+    """
+    def argCheck(self, tree):
+        if (len(tree.value) != 2):
+            raise lce.NumberArgumentsException("1", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        tlist = interp.getv(interp.interpret(model, tree.value[1]))
+
+        if not isinstance(tlist, interp.List):
+            raise lce.WrongTypeException("List", type(tlist))
+
+        return random.choice(tlist.getl())
+
+builtin_functions["rand-choice"] = LCadRandChoice("rand-choice")
+
+
+class LCadRandGauss(MathFunction):
+    """
+    **rand-gauss** - Return a gaussian distributed random number.
+
+    Usage::
+     (rand-uniform)      ; mean = 0, standard deviation = 1.0
+     (rand-uniform 1 10) ; mean = 1, standard deviation = 10.0
+    """
+    def argCheck(self, tree):
+        if (len(tree.value) != 1) and (len(tree.value) != 3):
+            raise lce.NumberArgumentsException("0 or 2", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        if (len(tree.value) == 3):
+            mu = self.isNumber(interp.interpret(model, tree.value[1]))
+            sigma = self.isNumber(interp.interpret(model, tree.value[2]))
+            return random.gauss(mu, sigma)
+        else:
+            return random.gauss(0, 1)
+
+builtin_functions["rand-gauss"] = LCadRandGauss("rand-gauss")
+
+
+class LCadRandInteger(MathFunction):
+    """
+    **rand-integer** - Return a random integer
+
+    Usage::
+     (rand-integer 0 100) ; random integer between 0 and 100.
+     (rand-uniform 2 30)  ; random integer between 2 and 30.
+    """
+    def argCheck(self, tree):
+        if (len(tree.value) != 3):
+            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        start = self.isNumber(interp.interpret(model, tree.value[1]))
+        end = self.isNumber(interp.interpret(model, tree.value[2]))
+        return random.randint(start, end)
+
+builtin_functions["rand-integer"] = LCadRandInteger("rand-integer")
+
+
+class LCadRandUniform(MathFunction):
+    """
+    **rand-uniform** - Return a uniformly distributed random number.
+
+    Usage::
+     (rand-uniform)      ; distributed on 0 - 1.
+     (rand-uniform 1 10) ; distributed on 1 - 10.
+    """
+    def argCheck(self, tree):
+        if (len(tree.value) != 1) and (len(tree.value) != 3):
+            raise lce.NumberArgumentsException("0 or 2", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        if (len(tree.value) == 3):
+            start = self.isNumber(interp.interpret(model, tree.value[1]))
+            end = self.isNumber(interp.interpret(model, tree.value[2]))
+            return random.uniform(start, end)
+        else:
+            return random.random()
+
+builtin_functions["rand-uniform"] = LCadRandUniform("rand-uniform")
 
 
 #
