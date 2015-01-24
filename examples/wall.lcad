@@ -1,0 +1,43 @@
+;
+; Build a wall using random length & color bricks.
+;
+; Hazen 01/15
+;
+
+; Use locate module for easier part placement.
+(import locate :local)
+
+; List of component brick choices, length, part#.
+(def bricks (list 
+	     (list 1 "30071")
+	     (list 2 "93792")
+	     (list 3 "45505")
+	     (list 4 "3010")))
+
+; List of brick colors. Double up some colors to make them more likely to be picked.
+(def colors (list "Pearl_Light_Gold" "Pearl_Gold" "Flat_Dark_Gold" "Flat_Dark_Gold"))
+
+; Wall creating function.
+(def wall (width height)
+ (block
+
+  ; Iterate to wall height
+  (for (h height)
+
+    ; Fill till we only need one more brick to finish.
+    (def x 0)
+    (while (< x (- width 4))
+      (def brick (rand-choice bricks) size (aref brick 0))
+	(sb (+ x (/ size 2.0)) 0 h -90 0 0 (aref brick 1) (rand-choice colors))
+	(set x (+ x (aref brick 0))))
+
+   ; Figure out size of final brick to insert to make the wall square.
+      (def dx (- width x) i 0)
+      (while (!= (aref (aref bricks i) 0) dx)
+	(set i (+ i 1)))
+      (sb (+ x (/ dx 2.0)) 0 h -90 0 0 (aref (aref bricks i) 1) (rand-choice colors)))
+  ))
+
+; Set seed to always get the same "random" wall.
+(rand-seed 0)
+(wall 40 20)
