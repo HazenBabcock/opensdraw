@@ -21,6 +21,7 @@ User's Guide
    example.rst
    step.rst
    animation.rst
+   examples_list.rst
 
 API Documentation
 -----------------
