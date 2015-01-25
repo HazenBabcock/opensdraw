@@ -1180,6 +1180,7 @@ class LCadRandSeed(MathFunction):
     **rand-seed** - Initialize the random number generator.
 
     Usage::
+
      (rand-seed 10)
     """
     def argCheck(self, tree):
@@ -1199,6 +1200,7 @@ class LCadRandChoice(SpecialFunction):
     **rand-choice** - Return a random element from a list.
 
     Usage::
+
      (rand-choice (list 1 2 3)) ; return 1,2 or 3.
      (rand-choice (list a b)) ; return a or b
     """
@@ -1222,8 +1224,9 @@ class LCadRandGauss(MathFunction):
     **rand-gauss** - Return a gaussian distributed random number.
 
     Usage::
-     (rand-uniform)      ; mean = 0, standard deviation = 1.0
-     (rand-uniform 1 10) ; mean = 1, standard deviation = 10.0
+
+     (rand-gauss)      ; mean = 0, standard deviation = 1.0
+     (rand-gauss 1 10) ; mean = 1, standard deviation = 10.0
     """
     def argCheck(self, tree):
         if (len(tree.value) != 1) and (len(tree.value) != 3):
@@ -1245,8 +1248,9 @@ class LCadRandInteger(MathFunction):
     **rand-integer** - Return a random integer
 
     Usage::
+
      (rand-integer 0 100) ; random integer between 0 and 100.
-     (rand-uniform 2 30)  ; random integer between 2 and 30.
+     (rand-integer 2 30)  ; random integer between 2 and 30.
     """
     def argCheck(self, tree):
         if (len(tree.value) != 3):
@@ -1265,6 +1269,7 @@ class LCadRandUniform(MathFunction):
     **rand-uniform** - Return a uniformly distributed random number.
 
     Usage::
+
      (rand-uniform)      ; distributed on 0 - 1.
      (rand-uniform 1 10) ; distributed on 1 - 10.
     """

@@ -45,3 +45,8 @@ Usage::
   (sin x)
   ...
 
+Random Number Functions
+-----------------------
+
+.. automodule:: lcad_language.functions
+   :members: LCadRandSeed, LCadRandChoice, LCadRandGauss, LCadRandInteger, LCadRandUniform
