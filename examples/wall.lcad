@@ -26,16 +26,18 @@
 
     ; Fill till we only need one more brick to finish.
    (def x 0)
-   (while (< x (- width 4))
+   (while (< x (- width 3))
     (def brick (rand-choice bricks) size (aref brick 0))
     (sb (+ x (/ size 2.0)) 0 h -90 0 0 (aref brick 1) (rand-choice colors))
     (set x (+ x (aref brick 0))))
 
    ; Figure out size of final brick to insert to make the wall square.
    (def dx (- width x) i 0)
-   (while (!= (aref (aref bricks i) 0) dx)
-    (set i (+ i 1)))
-   (sb (+ x (/ dx 2.0)) 0 h -90 0 0 (aref (aref bricks i) 1) (rand-choice colors)))
+   (if (!= dx 0)
+     (block
+      (while (!= (aref (aref bricks i) 0) dx)
+       (set i (+ i 1)))
+      (sb (+ x (/ dx 2.0)) 0 h -90 0 0 (aref (aref bricks i) 1) (rand-choice colors)))))
   ))
 
 ; Set seed to always get the same "random" wall.
