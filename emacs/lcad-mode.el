@@ -50,12 +50,6 @@
 (put 'while 'lcad-indent-function 1)
 
 (defun lcad-indent-function (indent-point state)
-  (let ((temp (lcad-indent-function-try1 indent-point state)))
-    (print "indent")
-    (print temp)
-    temp))
-
-(defun lcad-indent-function-try1 (indent-point state)
   (let ((normal-indent (current-column)))
     (goto-char (1+ (elt state 1)))
     (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
