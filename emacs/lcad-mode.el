@@ -39,24 +39,23 @@
 (progn
   (add-to-list 'auto-mode-alist '("\\.lcad\\'" . lcad-mode)))
 
+(defvar lcad-indent-offset 1)
+
 ;; lcad specific offsets here
-;(put 'aref 'lcad-indent-function 1)
-;(put 'block 'lcad-indent-function 1)
-;(put 'cond 'lcad-indent-function 1)
-;(put 'def 'lcad-indent-function 1)
-;(put 'for 'lcad-indent-function 1)
-;(put 'if 'lcad-indent-function 1)
-;(put 'import 'lcad-indent-function 1)
-;(put 'list 'lcad-indent-function 1)
-;(put 'mirror 'lcad-indent-function 1)
-;(put 'part 'lcad-indent-function 1)
-;(put 'print 'lcad-indent-function 1)
-;(put 'rotate 'lcad-indent-function 1)
-;(put 'set 'lcad-indent-function 1)
-;(put 'translate 'lcad-indent-function 1)
-;(put 'while 'lcad-indent-function 1)
+(put 'def 'lcad-indent-function 'defun)
+(put 'for 'lcad-indent-function 1)
+(put 'mirror 'lcad-indent-function 1)
+(put 'rotate 'lcad-indent-function 1)
+(put 'translate 'lcad-indent-function 1)
+(put 'while 'lcad-indent-function 1)
 
 (defun lcad-indent-function (indent-point state)
+  (let ((temp (lcad-indent-function-try1 indent-point state)))
+    (print "indent")
+    (print temp)
+    temp))
+
+(defun lcad-indent-function-try1 (indent-point state)
   (let ((normal-indent (current-column)))
     (goto-char (1+ (elt state 1)))
     (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
@@ -72,8 +71,7 @@
           (backward-prefix-chars)
           (current-column))
       (let ((function (buffer-substring (point)
-                                        (progn (forward-sexp 1) (point))))
-            method)
+                                        (progn (forward-sexp 1) (point)))))
         (setq method (or (get (intern-soft function) 'lcad-indent-function)
                          (get (intern-soft function) 'lisp-indent-hook)))
         (cond ((or (eq method 'defun)
@@ -84,7 +82,7 @@
               ((integerp method)
                (lisp-indent-specform method state
                                      indent-point normal-indent))
-              (method
+	      (method
                (funcall method indent-point state)))))))
 
 (defun compile ()
@@ -94,18 +92,24 @@
 			 (buffer-file-name) " "
 			 (file-name-sans-extension (buffer-file-name)) ".dat")))
 
-;(define-derived-mode lcad-mode lisp-mode 
-(define-derived-mode lcad-mode c-mode 
+(define-derived-mode lcad-mode lisp-mode "lcad"
   "lcad-mode is a major mode for editing the lcad language."
   :syntax-table lcad-syntax-table
   (setq font-lock-defaults '(lcad-keywords))
-  (setq mode-name "lcad")
-  ;(setq lisp-indent-function 'lcad-indent-function)
+
+  (set (make-local-variable 'lisp-indent-function) 'lcad-indent-function)
+  (set (make-local-variable 'lisp-body-indent) 1)
 
   (local-set-key [f5] 'compile)
   (define-key lcad-mode-map [remap comment-dwim] 'lcad-comment-dwim))
 
 (provide 'lcad-mode)
+
+(defun lcad-disable-slime ()
+  (slime-mode -1)
+  (slime-autodoc-mode -1)
+  (set (make-local-variable 'lisp-indent-function) 'lcad-indent-function)
+  (set (make-local-variable 'lisp-body-indent) 1))
 
 ;
 ; The MIT License
