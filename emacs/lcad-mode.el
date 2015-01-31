@@ -44,6 +44,7 @@
 ;; lcad specific offsets here
 (put 'def 'lcad-indent-function 'defun)
 (put 'for 'lcad-indent-function 1)
+(put 'if 'lcad-indent-function 2)
 (put 'mirror 'lcad-indent-function 1)
 (put 'rotate 'lcad-indent-function 1)
 (put 'translate 'lcad-indent-function 1)
