@@ -10,6 +10,7 @@ Consult [this](http://www.gnu.org/software/emacs/manual/html_node/emacs/Windows-
 ```
 (add-to-list 'load-path "~/.emacs.d/lcad-mode")
 (require 'lcad-mode)
+(add-hook 'lcad-mode-hook 'lcad-disable-slime) ; You only need this if you also use SLIME for Lisp
 ```
 
 ### Notes ###
