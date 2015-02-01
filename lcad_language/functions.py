@@ -185,7 +185,7 @@ class LCadAref(SpecialFunction):
         if ((index >= 0) and (index < tlist.size())):
             return tlist.getv(index)
         else:
-            raise lce.OutOfRangeException(tlist.size(), index)
+            raise lce.OutOfRangeException(tlist.size() - 1, index)
 
 builtin_functions["aref"] = LCadAref()
 
