@@ -26,6 +26,7 @@ integration is provided. The following steps should enable this:
 
    (add-to-list 'load-path "~/.emacs.d/lcad-mode")
    (require 'lcad-mode)
+   (add-hook 'lcad-mode-hook 'lcad-disable-slime) ; You only need this if you also use the SLIME mode.
 
 Once everything is setup up this will provide syntax high-lighting
 and pressing **F5** will automatically convert your .lcad file to a .dat
