@@ -15,7 +15,7 @@ class ChainSegment(object):
         self.d = d          # The distance along the chain of this particular segment in LDU.
         self.x = x          # The x position of the segment in LDU.
         self.y = y          # The y position of the segment in LDU.
-        self.theta = theta  # The orientation of the segment in LDU.
+        self.theta = theta  # The angle in the XY plane of the vector that is normal to the segment.
 
 class Sprocket(object):
 
@@ -104,23 +104,48 @@ class Sprocket(object):
         # Add first segment.
         x = self.x + self.r * math.cos(self.start_angle)
         y = self.y + self.r * math.sin(self.start_angle)
-        if (self.winding == 1):
-            theta = self.start_angle + 0.5 * math.pi
-        else:
-            theta = self.start_angle - 0.5 * math.pi
 
-        d = 0
+        distance = 0
         if not (len(chain) == 0):
             dx = x - chain[-1].x
             dy = y - chain[-1].y
-            d = math.sqrt(dx*dx + dy*dy) + chain[-1].d
+            distance = math.sqrt(dx*dx + dy*dy) + chain[-1].d
 
-        chain.append(ChainSegment(d,x,y,theta))
+        chain.append(ChainSegment(distance, x, y, self.start_angle))
 
         # Add additional segments.
-        angle = start_angle
+        d_angle = math.pi/180.0
+        d_distance = math.pi * self.r/180.0
+        distance += d_distance
+        angle = self.start_angle + d_angle
         if (self.winding == 1):
-            while(
+            while (angle < self.stop_angle):
+                chain.append(ChainSegment(distance,
+                                          self.x + self.r * math.cos(angle),
+                                          self.y + self.r * math.sin(angle),
+                                          angle))
+                distance += d_distance
+                angle += d_angle
+            angle -= d_angle
+            distance += (self.stop_angle - angle) * self.r
+
+        else:
+            while (angle > self.stop_angle):
+                chain.append(ChainSegment(distance,
+                                          self.x + self.r * math.cos(angle),
+                                          self.y + self.r * math.sin(angle),
+                                          angle))
+                distance += d_distance
+                angle -= d_angle
+            angle += d_angle
+            distance += (angle - self.stop_angle) * self.r
+
+        # Add final segment.
+        chain.append(ChainSegment(distance,
+                                  self.x + self.r * math.cos(self.stop_angle),
+                                  self.y + self.r * math.sin(self.stop_angle),
+                                  angle))
+
 
 #
 # Testing
