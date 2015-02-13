@@ -9,6 +9,66 @@
 
 import math
 
+
+class Chain(object):
+
+    def __init__(self):
+        self.chain_length = 0
+        self.chain = []
+
+    def addSegment(self, d, x, y, theta):
+        self.chain_length += d
+        self.chain.append(ChainSegment(self.chain_length, x, y, theta))
+
+    def finishChain(self):
+        """
+        Add segment to connect the end of the chain back to the beginning.
+        """
+        dx = self.chain[-1].x - self.chain[0].x
+        dy = self.chain[-1].y - self.chain[0].y
+        self.addSegment(math.sqrt(dx*dx + dy*dy),
+                        self.chain[0].x,
+                        self.chain[0].y,
+                        self.chain[0].theta)
+        print self.chain_length
+
+    def getLen(self):
+        return len(self.chain)
+
+    def getPositionOrientation(self, distance):
+        """
+        Return the position and orientation for a segment at distance along the chain.
+        distance is modulo the chain length.
+        """
+
+        # modulo d.
+        while (distance < 0):
+            distance += self.chain_length
+        while (distance > self.chain_length):
+            distance -= self.chain_length
+
+        # mid-point bisection to find the bracketing chain segments.
+        start = 0
+        end = len(self.chain)-1
+        mid = (end - start)/2
+        while ((end - start) > 1):
+            if (distance > self.chain[mid].d):
+                start = mid
+            elif (distance == self.chain[mid].d):
+                start = mid
+                end = start + 1
+            else:
+                end = mid
+            mid = (end - start)/2 + start
+
+        normed_d = (distance - self.chain[start].d)/(self.chain[end].d - self.chain[start].d)
+        dx = normed_d * (self.chain[end].x - self.chain[start].x)
+        dy = normed_d * (self.chain[end].y - self.chain[start].y)
+        return [self.chain[start].x + dx,
+                self.chain[start].y + dy,
+                self.chain[start].theta]
+
+
 class ChainSegment(object):
 
     def __init__(self, d, x, y, theta):
@@ -16,6 +76,7 @@ class ChainSegment(object):
         self.x = x          # The x position of the segment in LDU.
         self.y = y          # The y position of the segment in LDU.
         self.theta = theta  # The angle in the XY plane of the vector that is normal to the segment.
+
 
 class Sprocket(object):
 
@@ -76,7 +137,7 @@ class Sprocket(object):
 
         # Rotate results into the actual coordinate system.
         ori = math.atan2(dy, dx)
-        print ori
+        #print ori
 
         self.end_angle += ori
         a_sprocket.start_angle += ori
@@ -86,8 +147,13 @@ class Sprocket(object):
         self.chain_dx = t_dx * math.cos(ori) - t_dy * math.sin(ori)
         self.chain_dy = t_dx * math.sin(ori) + t_dy * math.cos(ori)
 
-        # Adjust end angle based on winding for later processing convenience.
-        # Basically we want the end angle to be 0 - 2pi ahead of the start angle in the winding direction.
+    def addToChain(self, a_chain):
+        """
+        Add segments for this sprocket to the chain.
+        """
+
+        # Adjust end angle based on winding. Basically we want the end angle 
+        # to be 0 - 2pi ahead of the start angle in the winding direction.
         if (self.winding == 1):
             while (self.end_angle > (self.start_angle + 2.0 * math.pi)):
                 self.end_angle -= 2.0 * math.pi
@@ -99,52 +165,49 @@ class Sprocket(object):
             while (self.end_angle < (self.start_angle - 2.0 * math.pi)):
                 self.end_angle += 2.0 * math.pi
 
-    def addToChain(self, chain):
+        #print self.start_angle, self.end_angle
 
         # Add first segment.
         x = self.x + self.r * math.cos(self.start_angle)
         y = self.y + self.r * math.sin(self.start_angle)
 
         distance = 0
-        if not (len(chain) == 0):
-            dx = x - chain[-1].x
-            dy = y - chain[-1].y
-            distance = math.sqrt(dx*dx + dy*dy) + chain[-1].d
+        if not (chain.getLen() == 0):
+            dx = x - chain.chain[-1].x
+            dy = y - chain.chain[-1].y
+            distance = math.sqrt(dx*dx + dy*dy)
 
-        chain.append(ChainSegment(distance, x, y, self.start_angle))
+        a_chain.addSegment(distance, x, y, self.start_angle)
 
         # Add additional segments.
         d_angle = math.pi/180.0
         d_distance = math.pi * self.r/180.0
-        distance += d_distance
-        angle = self.start_angle + d_angle
         if (self.winding == 1):
-            while (angle < self.stop_angle):
-                chain.append(ChainSegment(distance,
-                                          self.x + self.r * math.cos(angle),
-                                          self.y + self.r * math.sin(angle),
-                                          angle))
-                distance += d_distance
+            angle = self.start_angle + d_angle
+            while (angle < self.end_angle):
+                a_chain.addSegment(d_distance,
+                                   self.x + self.r * math.cos(angle),
+                                   self.y + self.r * math.sin(angle),
+                                   angle)
                 angle += d_angle
             angle -= d_angle
-            distance += (self.stop_angle - angle) * self.r
-
+            distance = (self.end_angle - angle) * self.r
         else:
-            while (angle > self.stop_angle):
-                chain.append(ChainSegment(distance,
-                                          self.x + self.r * math.cos(angle),
-                                          self.y + self.r * math.sin(angle),
-                                          angle))
-                distance += d_distance
+            angle = self.start_angle - d_angle
+            while (angle > self.end_angle):
+                a_chain.addSegment(d_distance,
+                                   self.x + self.r * math.cos(angle),
+                                   self.y + self.r * math.sin(angle),
+                                   angle)
                 angle -= d_angle
             angle += d_angle
-            distance += (angle - self.stop_angle) * self.r
+            distance = (angle - self.end_angle) * self.r
 
         # Add final segment.
-        chain.append(ChainSegment(distance,
-                                  self.x + self.r * math.cos(self.stop_angle),
-                                  self.y + self.r * math.sin(self.stop_angle),
-                                  angle))
+        a_chain.addSegment(distance,
+                           self.x + self.r * math.cos(self.end_angle),
+                           self.y + self.r * math.sin(self.end_angle),
+                           self.end_angle)
 
 
 #
@@ -152,9 +215,18 @@ class Sprocket(object):
 #
 if (__name__ == "__main__"):
 
-    s1 = Sprocket(0,0,1,1)
-    s2 = Sprocket(-4,-2,0.5,-1)
+    s1 = Sprocket(-4,0,1.5,-1)
+    s2 = Sprocket(4,0,1.5,-1)
+    s3 = Sprocket(0,-1.5,1,-1)
     s1.addNextSprocket(s2)
+    s2.addNextSprocket(s3)
+    s3.addNextSprocket(s1)
+
+    chain = Chain()
+    s1.addToChain(chain)
+    s2.addToChain(chain)
+    s3.addToChain(chain)
+    chain.finishChain()
 
     # Create plot.
     import matplotlib.pyplot as plt
@@ -163,29 +235,39 @@ if (__name__ == "__main__"):
     # Sprockets.
     circle1=plt.Circle((s1.x,s1.y),s1.r, fc='none', ec='b')
     circle2=plt.Circle((s2.x,s2.y),s2.r, fc='none', ec='b')
+    circle3=plt.Circle((s3.x,s3.y),s3.r, fc='none', ec='b')
     fig = plt.gcf()
     fig.gca().add_artist(circle1)
     fig.gca().add_artist(circle2)
+    fig.gca().add_artist(circle3)
 
-    # Chain.
-    ax.arrow(s1.r * math.cos(s1.end_angle),
-             s1.r * math.sin(s1.end_angle),
-             s1.chain_dx,
-             s1.chain_dy,
-             head_width=0.05, head_length=0.1, fc='k', ec='k')
+    if 0:
+        # Chain.
+        ax.arrow(s1.r * math.cos(s1.end_angle) + s1.x,
+                 s1.r * math.sin(s1.end_angle) + s1.y,
+                 s1.chain_dx,
+                 s1.chain_dy,
+                 head_width=0.05, head_length=0.1, fc='k', ec='k')
 
-    # Show start & end angles.
-    ax.arrow(s1.x,
-             s1.y,
-             s1.r * math.cos(s1.end_angle),
-             s1.r * math.sin(s1.end_angle),
-             head_width=0.05, head_length=0.1, fc='k', ec='k')
-    ax.arrow(s2.x,
-             s2.y,
-             s2.r * math.cos(s2.start_angle),
-             s2.r * math.sin(s2.start_angle),
-             head_width=0.05, head_length=0.1, fc='k', ec='k')
+        # Show start & end angles.
+        ax.arrow(s1.x,
+                 s1.y,
+                 s1.r * math.cos(s1.end_angle),
+                 s1.r * math.sin(s1.end_angle),
+                 head_width=0.05, head_length=0.1, fc='k', ec='k')
+        ax.arrow(s2.x,
+                 s2.y,
+                 s2.r * math.cos(s2.start_angle),
+                 s2.r * math.sin(s2.start_angle),
+                 head_width=0.05, head_length=0.1, fc='k', ec='k')
 
+    if 1:
+        for i in range(50):
+            [x, y, theta] = chain.getPositionOrientation(0.5*i)
+            dx = math.cos(theta)
+            dy = math.sin(theta)
+            ax.arrow(x, y, dx, dy, head_width=0.05, head_length=0.1, fc='k', ec='k')
+    
     ax.set_xlim([-10,10])
     ax.set_ylim([-10,10])
 
