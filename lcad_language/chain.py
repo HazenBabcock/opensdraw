@@ -8,8 +8,135 @@
 """
 
 import math
+import numbers
+import numpy
+
+import functions
+import interpreter as interp
+import lcadExceptions
+import lexerParser
+
+builtin_functions = {}
 
 
+#
+# These classes create a chain function that can be used in openldraw.
+#
+class ChainFunction(functions.LCadFunction):
+
+    def __init__(self, chain):
+        self.chain = chain
+        self.name = "user created chain function"
+
+    def argCheck(self, tree):
+        if (len(tree.value) != 3):
+            raise lcadExceptions.NumberArgumentsException("2", len(tree.value) - 1)
+
+    def call(self, model, tree):
+
+        # Get distance along chain.
+        distance = interp.getv(interp.interpret(model, tree.value[1]))
+        if not isinstance(distance, numbers.Number):
+            raise lcadExceptions.WrongTypeException("number", type(val))
+
+        # Determine position and orientation.
+        [x, y, theta] = self.chain.getPositionOrientation(distance)
+
+        # Add to current transform matrix.
+        new_model = model.makeCopy()
+        tm = numpy.identity(4)
+        tm[0,3] = x
+        tm[1,3] = y
+
+        rz = numpy.identity(4)
+        rz[0,0] = math.cos(theta)
+        rz[0,1] = -math.sin(theta)
+        rz[1,0] = -rz[0,1]
+        rz[1,1] = rz[0,0]
+
+        new_model.m = numpy.dot(new_model.m, (numpy.dot(tm, rz)))
+
+        # Evaluate & return second argument in the context of the new transformation matrix.
+        return interp.interpret(new_model, tree.value[2])
+
+class LCadChain(functions.SpecialFunction):
+    """
+    **chain** - Creates a chain function.
+
+    This function creates and returns a function that parametrizes a chain,
+    making it easier to add chains, tracks, etc. to a MOC. All units are LDU.
+    A chain must have at least two sprockets. Each sprocket is specified by 
+    a 4 member list consisting of (x y radius winding-direction), where 
+    winding-direction specifies which way the chain goes around the sprocket 
+    (1 = counter-clockwise, -1 = clockwise).
+
+    Chains are always in the XY plane, but can be translated / rotated as desired.
+
+    Usage::
+    (def my-chain (chain (-4 0 1 1) (4 0 1 1)))  ; Create a chain with two sprockets, the 1st at (-4,0) and
+                                                 ; the second at (4,0). Both sprockets have radius 1 and a
+                                                 ; counter-clockwise winding direction.
+    (my-chain 1 (part ..))                       ; Add a part at distance 1 along the chain.
+    (my-chain 1 (block (..)))                    ; Do/add a bunch of stuff at distance 1 along the chain.
+    """
+    def __init__(self):
+        self.name = "chain"
+
+    def argCheck(self, tree):
+
+        # Check for at least two sprockets.
+        if (len(tree.value) < 3):
+            raise NumberSprocketsException(len(tree.value)-1)
+
+        # Check that there are four arguments per sprocket.
+        args = tree.value[1:]
+        for arg in args:
+            if not isinstance(arg.value, list):
+                raise SprocketException(1)
+            if (len(arg.value) != 4):
+                raise SprocketException(len(arg.value))
+
+    def call(self, model, tree):
+        args = tree.value[1:]
+
+        # Create sprockets.
+        sprockets = []
+        for arg in args:
+            vals = []
+            for i in range(4):
+                val = interp.getv(interp.interpret(model, arg.value[i]))
+                if not isinstance(val, numbers.Number):
+                    raise lcadExceptions.WrongTypeException("number", type(val))
+                vals.append(val)
+            sprockets.append(Sprocket(*vals))
+
+        # Create chain.
+        for i in range(len(sprockets)-1):
+            sprockets[i].addNextSprocket(sprockets[i+1])
+        sprockets[-1].addNextSprocket(sprockets[0])
+
+        chain = Chain()
+        for sprocket in sprockets:
+            sprocket.addToChain(chain)
+        chain.finishChain()
+
+        # Return chain function.
+        return ChainFunction(chain)
+
+builtin_functions["chain"] = LCadChain()
+        
+class NumberSprocketsException(lcadExceptions.LCadException):
+    def __init__(self, got):
+        lcadExceptions.LCadException.__init__(self, "A chain must have 2 sprockets, got " + str(got))
+
+class SprocketException(lcadExceptions.LCadException):
+    def __init__(self, got):
+        lcadExceptions.LCadException.__init__(self, "A sprocket must have 4 arguments, got " + str(got))
+
+
+#
+# The classes below do the math necessary to create a chain.
+#
 class Chain(object):
 
     def __init__(self):
@@ -30,7 +157,7 @@ class Chain(object):
                         self.chain[0].x,
                         self.chain[0].y,
                         self.chain[0].theta)
-        print self.chain_length
+        #print self.chain_length
 
     def getLen(self):
         return len(self.chain)
@@ -41,13 +168,13 @@ class Chain(object):
         distance is modulo the chain length.
         """
 
-        # modulo d.
+        # Modulo d.
         while (distance < 0):
             distance += self.chain_length
         while (distance > self.chain_length):
             distance -= self.chain_length
 
-        # mid-point bisection to find the bracketing chain segments.
+        # Mid-point bisection to find the bracketing chain segments.
         start = 0
         end = len(self.chain)-1
         mid = (end - start)/2
@@ -57,16 +184,29 @@ class Chain(object):
             elif (distance == self.chain[mid].d):
                 start = mid
                 end = start + 1
+                #if (end == len(self.chain)):
+                #    end = 0
             else:
                 end = mid
             mid = (end - start)/2 + start
 
+        # Interpolate between the two segments.
         normed_d = (distance - self.chain[start].d)/(self.chain[end].d - self.chain[start].d)
         dx = normed_d * (self.chain[end].x - self.chain[start].x)
         dy = normed_d * (self.chain[end].y - self.chain[start].y)
+
+        # Adjust angles so that we can properly interpolate the angles.
+        theta1 = self.chain[start].theta
+        theta2 = self.chain[end].theta
+        while ((theta2 - theta1) > math.pi):
+            theta1 += 2.0 * math.pi
+        while ((theta2 - theta1) < -math.pi):
+            theta1 -= 2.0 * math.pi
+        dtheta = normed_d * (theta2 - theta1)
+
         return [self.chain[start].x + dx,
                 self.chain[start].y + dy,
-                self.chain[start].theta]
+                self.chain[start].theta + dtheta]
 
 
 class ChainSegment(object):
@@ -172,12 +312,15 @@ class Sprocket(object):
         y = self.y + self.r * math.sin(self.start_angle)
 
         distance = 0
-        if not (chain.getLen() == 0):
-            dx = x - chain.chain[-1].x
-            dy = y - chain.chain[-1].y
+        if not (a_chain.getLen() == 0):
+            dx = x - a_chain.chain[-1].x
+            dy = y - a_chain.chain[-1].y
             distance = math.sqrt(dx*dx + dy*dy)
 
-        a_chain.addSegment(distance, x, y, self.start_angle)
+        if (self.winding == 1):
+            a_chain.addSegment(distance, x, y, self.start_angle + 0.5 * math.pi)
+        else:
+            a_chain.addSegment(distance, x, y, self.start_angle - 0.5 * math.pi)
 
         # Add additional segments.
         d_angle = math.pi/180.0
@@ -188,7 +331,7 @@ class Sprocket(object):
                 a_chain.addSegment(d_distance,
                                    self.x + self.r * math.cos(angle),
                                    self.y + self.r * math.sin(angle),
-                                   angle)
+                                   angle + 0.5 * math.pi)
                 angle += d_angle
             angle -= d_angle
             distance = (self.end_angle - angle) * self.r
@@ -198,16 +341,22 @@ class Sprocket(object):
                 a_chain.addSegment(d_distance,
                                    self.x + self.r * math.cos(angle),
                                    self.y + self.r * math.sin(angle),
-                                   angle)
+                                   angle - 0.5 * math.pi)
                 angle -= d_angle
             angle += d_angle
             distance = (angle - self.end_angle) * self.r
 
         # Add final segment.
-        a_chain.addSegment(distance,
-                           self.x + self.r * math.cos(self.end_angle),
-                           self.y + self.r * math.sin(self.end_angle),
-                           self.end_angle)
+        if (self.winding == 1):
+            a_chain.addSegment(distance,
+                               self.x + self.r * math.cos(self.end_angle),
+                               self.y + self.r * math.sin(self.end_angle),
+                               self.end_angle + 0.5 * math.pi)
+        else:
+            a_chain.addSegment(distance,
+                               self.x + self.r * math.cos(self.end_angle),
+                               self.y + self.r * math.sin(self.end_angle),
+                               self.end_angle - 0.5 * math.pi)
 
 
 #
@@ -217,7 +366,7 @@ if (__name__ == "__main__"):
 
     s1 = Sprocket(-4,0,1.5,-1)
     s2 = Sprocket(4,0,1.5,-1)
-    s3 = Sprocket(0,-1.5,1,-1)
+    s3 = Sprocket(0,-1.5,1,1)
     s1.addNextSprocket(s2)
     s2.addNextSprocket(s3)
     s3.addNextSprocket(s1)
