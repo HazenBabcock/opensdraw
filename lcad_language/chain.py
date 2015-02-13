@@ -11,127 +11,113 @@ import math
 import numbers
 import numpy
 
-import functions
-import interpreter as interp
-import lcadExceptions
-import lexerParser
+# If run as main, only load the math part to avoid problems created by a circular import.
+if not (__name__ == "__main__"):
 
-builtin_functions = {}
+    import functions
+    import interpreter as interp
+    import lcadExceptions
+
+    builtin_functions = {}
 
 
-#
-# These classes create a chain function that can be used in openldraw.
-#
-class ChainFunction(functions.LCadFunction):
+    #
+    # These classes create a chain function that can be used in openldraw.
+    #
+    class ChainFunction(functions.LCadFunction):
 
-    def __init__(self, chain):
-        self.chain = chain
-        self.name = "user created chain function"
+        def __init__(self, chain):
+            self.chain = chain
+            self.name = "user created chain function"
 
-    def argCheck(self, tree):
-        if (len(tree.value) != 3):
-            raise lcadExceptions.NumberArgumentsException("2", len(tree.value) - 1)
+        def argCheck(self, tree):
+            if (len(tree.value) != 2):
+                raise lcadExceptions.NumberArgumentsException("1", len(tree.value) - 1)
 
-    def call(self, model, tree):
+        def call(self, model, tree):
 
-        # Get distance along chain.
-        distance = interp.getv(interp.interpret(model, tree.value[1]))
-        if not isinstance(distance, numbers.Number):
-            raise lcadExceptions.WrongTypeException("number", type(val))
+            # Get distance along chain.
+            distance = interp.getv(interp.interpret(model, tree.value[1]))
+            if not isinstance(distance, numbers.Number):
+                raise lcadExceptions.WrongTypeException("number", type(val))
 
-        # Determine position and orientation.
-        [x, y, theta] = self.chain.getPositionOrientation(distance)
+            # Determine position and orientation.
+            return interp.List(self.chain.getPositionOrientation(distance))
 
-        # Add to current transform matrix.
-        new_model = model.makeCopy()
-        tm = numpy.identity(4)
-        tm[0,3] = x
-        tm[1,3] = y
 
-        rz = numpy.identity(4)
-        rz[0,0] = math.cos(theta)
-        rz[0,1] = -math.sin(theta)
-        rz[1,0] = -rz[0,1]
-        rz[1,1] = rz[0,0]
-
-        new_model.m = numpy.dot(new_model.m, (numpy.dot(tm, rz)))
-
-        # Evaluate & return second argument in the context of the new transformation matrix.
-        return interp.interpret(new_model, tree.value[2])
-
-class LCadChain(functions.SpecialFunction):
-    """
-    **chain** - Creates a chain function.
-
-    This function creates and returns a function that parametrizes a chain,
-    making it easier to add chains, tracks, etc. to a MOC. All units are LDU.
-    A chain must have at least two sprockets. Each sprocket is specified by 
-    a 4 member list consisting of (x y radius winding-direction), where 
-    winding-direction specifies which way the chain goes around the sprocket 
-    (1 = counter-clockwise, -1 = clockwise).
-
-    Chains are always in the XY plane, but can be translated / rotated as desired.
-
-    Usage::
-    (def my-chain (chain (-4 0 1 1) (4 0 1 1)))  ; Create a chain with two sprockets, the 1st at (-4,0) and
-                                                 ; the second at (4,0). Both sprockets have radius 1 and a
-                                                 ; counter-clockwise winding direction.
-    (my-chain 1 (part ..))                       ; Add a part at distance 1 along the chain.
-    (my-chain 1 (block (..)))                    ; Do/add a bunch of stuff at distance 1 along the chain.
-    """
-    def __init__(self):
-        self.name = "chain"
-
-    def argCheck(self, tree):
-
-        # Check for at least two sprockets.
-        if (len(tree.value) < 3):
-            raise NumberSprocketsException(len(tree.value)-1)
-
-        # Check that there are four arguments per sprocket.
-        args = tree.value[1:]
-        for arg in args:
-            if not isinstance(arg.value, list):
-                raise SprocketException(1)
-            if (len(arg.value) != 4):
-                raise SprocketException(len(arg.value))
-
-    def call(self, model, tree):
-        args = tree.value[1:]
-
-        # Create sprockets.
-        sprockets = []
-        for arg in args:
-            vals = []
-            for i in range(4):
-                val = interp.getv(interp.interpret(model, arg.value[i]))
-                if not isinstance(val, numbers.Number):
-                    raise lcadExceptions.WrongTypeException("number", type(val))
-                vals.append(val)
-            sprockets.append(Sprocket(*vals))
-
-        # Create chain.
-        for i in range(len(sprockets)-1):
-            sprockets[i].addNextSprocket(sprockets[i+1])
-        sprockets[-1].addNextSprocket(sprockets[0])
-
-        chain = Chain()
-        for sprocket in sprockets:
-            sprocket.addToChain(chain)
-        chain.finishChain()
-
-        # Return chain function.
-        return ChainFunction(chain)
-
-builtin_functions["chain"] = LCadChain()
+    class LCadChain(functions.SpecialFunction):
+        """
+        **chain** - Creates a chain function.
         
-class NumberSprocketsException(lcadExceptions.LCadException):
-    def __init__(self, got):
-        lcadExceptions.LCadException.__init__(self, "A chain must have 2 sprockets, got " + str(got))
+        This function creates and returns a function that parametrizes a chain,
+        making it easier to add chains, tracks, etc. to a MOC. All units are LDU.
+        A chain must have at least two sprockets. Each sprocket is specified by 
+        a 4 member list consisting of (x y radius winding-direction), where 
+        winding-direction specifies which way the chain goes around the sprocket 
+        (1 = counter-clockwise, -1 = clockwise).
 
-class SprocketException(lcadExceptions.LCadException):
-    def __init__(self, got):
-        lcadExceptions.LCadException.__init__(self, "A sprocket must have 4 arguments, got " + str(got))
+        Usage::
+        (def a-chain (chain (-4 0 1 1) (4 0 1 1)))  ; Create a chain with two sprockets, the 1st at (-4,0) and
+                                                    ; the second at (4,0). Both sprockets have radius 1 and a
+                                                    ; counter-clockwise winding direction.
+        (def c1 (a-chain 1))                        ; c1 is the list (x y theta), where x,y are position and 
+                                                    ; theta is the orientation (in degrees).
+        """
+        def __init__(self):
+            self.name = "chain"
+
+        def argCheck(self, tree):
+
+            # Check for at least two sprockets.
+            if (len(tree.value) < 3):
+                raise NumberSprocketsException(len(tree.value)-1)
+
+            # Check that there are four arguments per sprocket.
+            args = tree.value[1:]
+            for arg in args:
+                if not isinstance(arg.value, list):
+                    raise SprocketException(1)
+                if (len(arg.value) != 4):
+                    raise SprocketException(len(arg.value))
+
+        def call(self, model, tree):
+            args = tree.value[1:]
+
+            # Create sprockets.
+            sprockets = []
+            for arg in args:
+                vals = []
+                for i in range(4):
+                    val = interp.getv(interp.interpret(model, arg.value[i]))
+                    if not isinstance(val, numbers.Number):
+                        raise lcadExceptions.WrongTypeException("number", type(val))
+                    vals.append(val)
+                sprockets.append(Sprocket(*vals))
+
+            # Create chain.
+            for i in range(len(sprockets)-1):
+                sprockets[i].addNextSprocket(sprockets[i+1])
+            sprockets[-1].addNextSprocket(sprockets[0])
+
+            chain = Chain()
+            for sprocket in sprockets:
+                sprocket.addToChain(chain)
+            chain.finishChain()
+
+            # Return chain function.
+            return ChainFunction(chain)
+
+    builtin_functions["chain"] = LCadChain()
+
+        
+    class NumberSprocketsException(lcadExceptions.LCadException):
+        def __init__(self, got):
+            lcadExceptions.LCadException.__init__(self, "A chain must have 2 sprockets, got " + str(got))
+
+
+    class SprocketException(lcadExceptions.LCadException):
+        def __init__(self, got):
+            lcadExceptions.LCadException.__init__(self, "A sprocket must have 4 arguments, got " + str(got))
 
 
 #
@@ -204,9 +190,16 @@ class Chain(object):
             theta1 -= 2.0 * math.pi
         dtheta = normed_d * (theta2 - theta1)
 
+        # Modulo angle to 2pi.
+        ftheta = (self.chain[start].theta + dtheta)
+        while (ftheta > (2.0 * math.pi)):
+            ftheta -= 2.0 * math.pi
+        while (ftheta < 0.0):
+            ftheta += 2.0 * math.pi
+
         return [self.chain[start].x + dx,
                 self.chain[start].y + dy,
-                self.chain[start].theta + dtheta]
+                ftheta * 180.0/math.pi]
 
 
 class ChainSegment(object):
@@ -413,8 +406,10 @@ if (__name__ == "__main__"):
     if 1:
         for i in range(50):
             [x, y, theta] = chain.getPositionOrientation(0.5*i)
-            dx = math.cos(theta)
-            dy = math.sin(theta)
+            #dx = math.cos(theta)
+            #dy = math.sin(theta)
+            dx = math.cos(theta * math.pi/180.0)
+            dy = math.sin(theta * math.pi/180.0)
             ax.arrow(x, y, dx, dy, head_width=0.05, head_length=0.1, fc='k', ec='k')
     
     ax.set_xlim([-10,10])
