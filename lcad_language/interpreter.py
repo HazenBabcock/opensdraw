@@ -11,6 +11,7 @@ import copy
 import math
 import numpy
 
+import chain
 import lcadExceptions as lce
 import functions
 import lexerParser
@@ -38,9 +39,19 @@ class LEnv(object):
             self.symbols[sym_name] = builtin_symbols[sym_name]
 
         # Functions.
-        for fn_name in functions.builtin_functions.keys():
-            self.symbols[fn_name] = Symbol(fn_name, "builtin")
-            self.symbols[fn_name].setv(functions.builtin_functions[fn_name])
+        fn_modules = [functions, chain]
+        for module in fn_modules:
+            for fn_name in module.builtin_functions.keys():
+                self.symbols[fn_name] = Symbol(fn_name, "builtin")
+                self.symbols[fn_name].setv(module.builtin_functions[fn_name])
+
+#        for fn_name in functions.builtin_functions.keys():
+#            self.symbols[fn_name] = Symbol(fn_name, "builtin")
+#            self.symbols[fn_name].setv(functions.builtin_functions[fn_name])
+
+#        for fn_name in chain.builtin_functions.keys():
+#            self.symbols[fn_name] = Symbol(fn_name, "builtin")
+#            self.symbols[fn_name].setv(chain.builtin_functions[fn_name])
 
 class List(object):
     """
