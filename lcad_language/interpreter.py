@@ -45,14 +45,6 @@ class LEnv(object):
                 self.symbols[fn_name] = Symbol(fn_name, "builtin")
                 self.symbols[fn_name].setv(module.builtin_functions[fn_name])
 
-#        for fn_name in functions.builtin_functions.keys():
-#            self.symbols[fn_name] = Symbol(fn_name, "builtin")
-#            self.symbols[fn_name].setv(functions.builtin_functions[fn_name])
-
-#        for fn_name in chain.builtin_functions.keys():
-#            self.symbols[fn_name] = Symbol(fn_name, "builtin")
-#            self.symbols[fn_name].setv(chain.builtin_functions[fn_name])
-
 class List(object):
     """
     Array class.
