@@ -102,3 +102,8 @@ Create a movie. I find `ImageJ <http://fiji.sc/Fiji>`_ be a handy tool for this.
 
 .. figure:: gears_00001.png
    :align: center
+
+See Also
+--------
+
+The chain.lcad example, which demonstrates animating a chain and sprocket system.
