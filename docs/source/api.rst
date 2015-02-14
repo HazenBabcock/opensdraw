@@ -34,6 +34,12 @@ Math Functions
 .. automodule:: lcad_language.functions
    :members: LCadPlus, LCadMinus, LCadMultiply, LCadDivide, LCadModulo
 
+Miscellaneous Functions
+-----------------------
+
+.. automodule:: lcad_language.chain
+   :members: LCadChain
+
 Python Math Functions
 ---------------------
 
