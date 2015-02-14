@@ -548,6 +548,8 @@ class LCadMirror(SpecialFunction):
         flist = tree.value
         if (len(flist)<3):
             raise lce.NumberArgumentsException("2+", 0)
+        if not isinstance(flist[1].value, list):
+            raise lce.WrongTypeException("list", type(flist[1].value))
         if (len(flist[1].value) != 3):
             raise lce.NumberArgumentsException("3", len(flist[1].value))
 
@@ -677,6 +679,8 @@ class LCadRotate(SpecialFunction):
         flist = tree.value
         if (len(flist)<3):
             raise lce.NumberArgumentsException("2+", 0)
+        if not isinstance(flist[1].value, list):
+            raise lce.WrongTypeException("list", type(flist[1].value))
         if (len(flist[1].value) != 3):
             raise lce.NumberArgumentsException("3", len(flist[1].value))
 
@@ -791,6 +795,8 @@ class LCadTranslate(SpecialFunction):
         flist = tree.value
         if (len(flist)<3):
             raise lce.NumberArgumentsException("2+", 1)
+        if not isinstance(flist[1].value, list):
+            raise lce.WrongTypeException("list", type(flist[1].value))
         if (len(flist[1].value) != 3):
             raise lce.NumberArgumentsException("3", len(flist[1].value))
 
