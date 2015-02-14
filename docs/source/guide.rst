@@ -53,3 +53,33 @@ Example .lcad files are provided in the examples directory.
 .. note::
 
    LDView can be configured to automatically poll for changes to .dat files.
+
+Understanding Error Messages
+----------------------------
+
+Occasionally things will go wrong and you will get a possibly long and confusing back-trace like this: ::
+
+   !Error in function 'chain1' at line 76 in file '/home/hbabcock/Code/openldraw/examples/chain.lcad'
+
+   Traceback (most recent call last):
+     File "/home/hbabcock/Code/openldraw/lcad_to_ldraw.py", line 46, in <module>
+       parts = interpreter.execute(ldraw_file_contents, filename = sys.argv[1], time_index = index).getSortedParts()
+     File "/home/hbabcock/Code/openldraw/lcad_language/interpreter.py", line 280, in execute
+       interpret(model, ast)
+     File "/home/hbabcock/Code/openldraw/lcad_language/interpreter.py", line 366, in interpret
+       ret = interpret(model, node)
+     File "/home/hbabcock/Code/openldraw/lcad_language/interpreter.py", line 349, in interpret
+       val = dispatch(func, model, tree)
+     File "/home/hbabcock/Code/openldraw/lcad_language/interpreter.py", line 257, in dispatch
+       func.argCheck(tree)
+     File "/home/hbabcock/Code/openldraw/lcad_language/functions.py", line 122, in argCheck
+       raise lce.NumberArgumentsException(self.min_args, len(args))
+   lcad_language.lcadExceptions.NumberArgumentsException: !Error, wrong number of standard arguments, got 0 expected 1
+
+This trace consists of 3 parts:
+
+1. One or more lines telling you what line in the .lcad file caused the problem.
+2. A Python traceback.
+3. A final line containing the exception that was triggered and some additional information.
+
+At some point in the future the Python traceback may disappear, but at present I don't yet have enough confidence that the .lcad traceback alone is always sufficient to figure out what went wrong.
