@@ -54,11 +54,12 @@ class LCadChain(functions.SpecialFunction):
     (1 = counter-clockwise, -1 = clockwise).
     
     Usage::
-    (def a-chain (chain (-4 0 1 1) (4 0 1 1)))  ; Create a chain with two sprockets, the 1st at (-4,0) and
-                                                ; the second at (4,0). Both sprockets have radius 1 and a
-                                                ; counter-clockwise winding direction.
-    (def c1 (a-chain 1))                        ; c1 is the list (x y theta), where x,y are position and 
-                                                ; theta is the orientation (in degrees).
+
+     (def a-chain (chain (-4 0 1 1) (4 0 1 1)))  ; Create a chain with two sprockets, the 1st at (-4,0) and
+                                                 ; the second at (4,0). Both sprockets have radius 1 and a
+                                                 ; counter-clockwise winding direction.
+     (def c1 (a-chain 1))                        ; c1 is the list (x y theta), where x,y are position and 
+                                                 ; theta is the orientation (in degrees).
     """
     def __init__(self):
         self.name = "chain"
