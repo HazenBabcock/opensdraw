@@ -120,6 +120,10 @@ def test_list_1():
 def test_list_2():
     assert exe("(list 1 2 3)").getl()[1].getv() == 2
 
+# lambda
+def test_lambda_1():
+    assert exe("(def fn (lambda (x) (+ x 1))) (fn 1)") == 2
+
 # mirror
 def test_mirror_1():
     assert exe("(mirror (1 (if t 0 1) (if nil 0 1)) 1)") == 1
