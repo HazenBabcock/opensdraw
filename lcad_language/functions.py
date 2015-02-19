@@ -66,16 +66,25 @@ class UserFunction(LCadFunction):
     """
     'Normal' user defined functions.
     """
-    def __init__(self, lenv, tree):
+    def __init__(self, tree):
         flist = tree.value[1:]
 
-        self.arg_list = flist[1].value
-        self.body = flist[2]
+        # Named function.
+        if (len(flist) == 3):
+            self.name = flist[0].value
+            self.arg_list = flist[1].value
+            self.body = flist[2]
+
+        # Anonymous (lambda) function.
+        elif (len(flist) == 2):
+            self.name = "anonymous"
+            self.arg_list = flist[0].value
+            self.body = flist[1]
+
         self.default_values = []
-        self.lenv = lenv
+        self.lenv = tree.lenv
         self.have_keyword_args = False
         self.min_args = 0
-        self.name = flist[0].value
 
         i = 0
         while (i < len(self.arg_list)):
@@ -102,7 +111,7 @@ class UserFunction(LCadFunction):
             interp.checkOverride(self.lenv, arg_name)
             self.lenv.symbols[arg_name] = interp.Symbol(arg_name, tree.filename)
 
-        interp.createLexicalEnv(self.lenv, flist[2])
+        interp.createLexicalEnv(self.lenv, self.body)
 
     def argCheck(self, tree):
         args = tree.value[1:]
@@ -276,14 +285,16 @@ class LCadDef(SpecialFunction):
 
     def call(self, model, tree):
         args = tree.value[1:]
+
         # Symbols are created in the lexical environment of the parent expression.
         lenv = tree.lenv.parent
 
-        # Create function.
+        # Functions have already been created (so that they can be called out of
+        # order), just return the function.
         if (len(args) == 3):
             return lenv.symbols[args[0].value].getv()
 
-        # Create variables.
+        # Create Symbols.
         if ((len(args)%2) == 0):
             ret = None
             kv_pairs = izip(*[iter(args)]*2)
@@ -506,6 +517,29 @@ class LCadImport(SpecialFunction):
                         #sym.name = full_name
 
 builtin_functions["import"] = LCadImport()
+
+
+class LCadLambda(SpecialFunction):
+    """
+    **lambda** - Create an anonymous function.
+
+    Usage::
+
+    (def fn (lambda (x) (+ x 1)))           ; Create a function and assign to symbol fn.
+    (fn 1)                                  ; -> 2
+    (def myp (lambda () (part "32524" 15))) ; Create function that creates a particular part.
+    """
+    def __init__(self):
+        self.name = "lambda"
+
+    def argCheck(self, tree):
+        if (len(tree.value) != 3):
+            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        return UserFunction(tree)
+
+builtin_functions["lambda"] = LCadLambda()
 
 
 class LCadList(SpecialFunction):

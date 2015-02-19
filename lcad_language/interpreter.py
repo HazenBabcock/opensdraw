@@ -230,7 +230,7 @@ def createLexicalEnv(lenv, tree):
                         start = len(flist)
                         checkOverride(lenv, flist[1].value)
                         lenv.symbols[flist[1].value] = Symbol(flist[1].value, tree.filename)
-                        lenv.symbols[flist[1].value].setv(functions.UserFunction(tree.lenv, tree))
+                        lenv.symbols[flist[1].value].setv(functions.UserFunction(tree))
 
             if (start != len(flist)):
                 for node in flist[start:]:
