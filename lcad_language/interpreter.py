@@ -18,6 +18,7 @@ import lexerParser
 builtin_symbols = {}
 mutable_symbols = []
 
+
 class LEnv(object):
     """
     This keeps track of the current lexical environment.
@@ -45,6 +46,7 @@ class LEnv(object):
             for fn_name in module.builtin_functions.keys():
                 self.symbols[fn_name] = Symbol(fn_name, "builtin")
                 self.symbols[fn_name].setv(module.builtin_functions[fn_name])
+
 
 class List(object):
     """
@@ -76,6 +78,7 @@ class List(object):
 
     def size(self):
         return len(self.py_list)
+
 
 class Model(object):
     """
@@ -127,6 +130,7 @@ class Symbol(object):
         self.is_set = True
         self.value = value
         
+
 # t and nil are objects so that we can do comparisons using 'is' and
 # be gauranteed that there is only one truth and one false.
 
@@ -159,6 +163,7 @@ mutable_symbols.append("step-offset")
 builtin_symbols["time-index"] = Symbol("time-index", "builtin")
 builtin_symbols["time-index"].setv(0)
 
+
 def checkOverride(lenv, symbol_name, external_filename = False):
     """
     Check if symbol_name overrides a builtin or user defined symbol.
@@ -189,6 +194,7 @@ def checkOverride(lenv, symbol_name, external_filename = False):
         return
 
     print "Warning", symbol_name, "shadows existing symbol with the same name!!"
+
 
 def createLexicalEnv(lenv, tree):
     """
@@ -227,7 +233,7 @@ def createLexicalEnv(lenv, tree):
                     # that their variables are not visible outside of the def statement.
                     #
                     if (len(flist)==4):
-                        start = len(flist)
+                        start = len(flist) - 1
                         checkOverride(lenv, flist[1].value)
                         lenv.symbols[flist[1].value] = Symbol(flist[1].value, tree.filename)
                         lenv.symbols[flist[1].value].setv(functions.UserFunction(tree))
@@ -247,6 +253,7 @@ def createLexicalEnv(lenv, tree):
         for node in tree:
             createLexicalEnv(lenv, node)
 
+
 def dispatch(func, model, tree):
     """
     This handles function calls to both user-defined and built-in functions.
@@ -256,6 +263,7 @@ def dispatch(func, model, tree):
     if not tree.initialized:
         func.argCheck(tree)
     return func.call(model, tree)
+
 
 def execute(lcad_code, filename = "NA", time_index = 0):
     """
@@ -284,6 +292,7 @@ def execute(lcad_code, filename = "NA", time_index = 0):
         raise
     return model
 
+
 def findSymbol(lenv, symbol_name):
     """
     Recursively searchs up the tree of lexical environments to find
@@ -302,6 +311,7 @@ def findSymbol(lenv, symbol_name):
         return lenv.symbols[symbol_name]
     return findSymbol(lenv.parent, symbol_name)
 
+
 def getv(node):
     """
     A convenience function, interpret() will return a symbol or a 
@@ -312,6 +322,7 @@ def getv(node):
         return node.getv()
     else:
         return node
+
 
 def interpret(model, tree):
     """
@@ -348,8 +359,6 @@ def interpret(model, tree):
         try:
             val = dispatch(func, model, tree)
         except Exception as e:
-            #except lce.LCadException:
-            #print "!Error in function '" + func.name + "' at line " + str(tree.start_line) + " in file '" + str(tree.filename) + "'"
             err_string = "!Error in function '" + func.name + "' at line " + str(tree.start_line) + " in file '" + str(tree.filename) + "'\n"
             if hasattr(e, "lcad_err"):
                 e.lcad_err = err_string + e.lcad_err
@@ -366,18 +375,19 @@ def interpret(model, tree):
             ret = interpret(model, node)
         return ret
 
-def walk(tree, func):
+
+def walk(tree, func, indent = ""):
     """
     Recursively walks the AST evaluating func on each of the nodes.
     """
     if isinstance(tree, list):
         for node in tree:
-            walk(node, func)
+            walk(node, func, indent)
     else:
-        func(tree)
+        func(tree, indent)
         if isinstance(tree, lexerParser.LCadExpression):
             for node in tree.value:
-                walk(node, func)
+                walk(node, func, indent + " ")
 
 
 #
