@@ -9,7 +9,7 @@
 
 (defconst lcad-keywords
       `((,(concat "(\\("
-		  (regexp-opt '("aref" "block" "cond" "def" "for" "if" "import" "list" 
+		  (regexp-opt '("aref" "block" "cond" "def" "for" "if" "import" "lambda" "list" 
 				"mirror" "part" "print" "rotate" "set" "translate" "while"))
 		  "\\)\\>"
 		  "[ \r\n\t]+")
