@@ -111,8 +111,6 @@ class UserFunction(LCadFunction):
             interp.checkOverride(self.lenv, arg_name)
             self.lenv.symbols[arg_name] = interp.Symbol(arg_name, tree.filename)
 
-        interp.createLexicalEnv(self.lenv, self.body)
-
     def argCheck(self, tree):
         args = tree.value[1:]
         if self.have_keyword_args:
