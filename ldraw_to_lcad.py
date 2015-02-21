@@ -12,6 +12,9 @@
 # This assumes that the path to the ldraw parts directory in the 
 # parts.xml file is correct.
 #
+# Refs:
+#  1. http://nghiaho.com/?page_id=846
+#
 # Hazen 02/15
 #
 
