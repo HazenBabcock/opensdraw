@@ -87,6 +87,7 @@ class Model(object):
     """
     def __init__(self, debug = False):
         self.m = numpy.identity(4)
+        self.header = []
         self.parts_list = []
 
     def getParts(self):

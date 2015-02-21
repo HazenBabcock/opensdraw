@@ -408,6 +408,35 @@ class LCadFor(SpecialFunction):
 builtin_functions["for"] = LCadFor()
 
 
+class LCadHeader(SpecialFunction):
+    """
+    **header** - Adds header information to the model.
+
+    This will add a line of text, prepended with "0 ", to the
+    current model. Multiple calls will add multiple lines, in
+    the same order as the calls.
+
+    Usage::
+    
+    (header "FILE mymoc")
+    (header "Name: mymoc")
+    (header "Author: My Name")
+    """
+    def __init__(self):
+        self.name = "header"
+
+    def argCheck(self, tree):
+        if (len(tree.value) != 2):
+            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        text = str(tree.value[1].value)
+        model.header.append(text)
+        return text
+
+builtin_functions["header"] = LCadHeader()
+
+
 class LCadIf(SpecialFunction):
     """
     **if** - If statement. 
