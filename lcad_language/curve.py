@@ -64,10 +64,92 @@ class ControlPointException(lcadExceptions.LCadException):
 #
 # The classes below do the math necessary to create a curve.
 #
+
+def normVector(vector):
+    return vector/numpy.sqrt(numpy.sum(vector * vector))
+
+
 class Curve(object):
 
     def __init__(self):
         pass
+
+
+class ControlPoint(object):
+
+    def __init__(self, x, y, z, dx, dy, dz, tx = 0, ty = 0, tz = 0):
+        
+        self.location = numpy.array([x, y, z])
+        self.derivative = numpy.array([dx, dy, dz])
+        self.tangent = numpy.array([tx, ty, tz])
+
+        self.norm_derivative = normVector(self.derivative)
+
+        # Only the first point has a tangent vector.
+        if (numpy.sum(self.tangent * self.tangent) > 0.1):
+            self.norm_tangent = normVector(self.tangent)
+            
+            # Adjust tangent to make exactly normal to derivative
+            # and normalize it's length to one.
+            proj = numpy.dot(self.norm_derivative, self.norm_tangent) * self.norm_derivative
+            self.norm_tangent = normVector(self.norm_tangent - proj)
+        else:
+            self.tangent = None
+            self.norm_tangent = None
+
+
+class Segment(object):
+
+    def __init__(self, control_point_1, control_point_2, normalize, scale):
+        self.cp1 = control_point_1
+        self.cp2 = control_point_2
+
+        # Calculate x, y, z polynomial coefficients. Basically we are creating
+        # a cubic-spline that goes through the two control points with the
+        # specified derivative at the control points.
+        A = numpy.array([[0, 0, 0, 1],
+                         [0, 0, 1, 0],
+                         [1, 1, 1, 1],
+                         [3, 2, 1, 0]])
+
+        # If normalization is requested, then we scale the magnitude of the
+        # derivative by the distance between the control points. This is
+        # somewhat arbitrary, but hopefully looks reasonable to the eye.
+        if normalize:
+            dv = self.cp1.location - self.cp2.location
+            scale = scale * numpy.sqrt(numpy.sum(dv * dv))
+            deriv1 = self.cp1.norm_derivative
+            deriv2 = self.cp2.norm_derivative
+        else:
+            scale = 1.0
+            deriv1 = self.cp1.derivative
+            deriv2 = self.cp2.derivative
+        print scale
+
+        vx = numpy.array([self.cp1.location[0],
+                          deriv1[0]*scale,
+                          self.cp2.location[0],
+                          deriv2[0]*scale])
+
+        vy = numpy.array([self.cp1.location[1],
+                          deriv1[1]*scale,
+                          self.cp2.location[1],
+                          deriv2[1]*scale])
+
+        vz = numpy.array([self.cp1.location[2],
+                          deriv1[2]*scale,
+                          self.cp2.location[2],
+                          deriv2[2]*scale])
+
+        self.x_coeff = numpy.linalg.solve(A, vx)
+        self.y_coeff = numpy.linalg.solve(A, vy)
+        self.z_coeff = numpy.linalg.solve(A, vz)
+
+    def xyz(self, p):
+        p_vec = numpy.array([p*p*p, p*p, p, 1.0])
+        return [numpy.sum(self.x_coeff * p_vec),
+                numpy.sum(self.y_coeff * p_vec),
+                numpy.sum(self.z_coeff * p_vec)]
 
 
 #
@@ -75,44 +157,27 @@ class Curve(object):
 #
 if (__name__ == "__main__"):
 
-    vx = numpy.array([0, 0.5, 1, 0.5])
-    vy = numpy.array([0, 3, 0, -3])
+    cp1 = ControlPoint(0, 0, 0, -1.0, 1.0, 0)
+    cp2 = ControlPoint(5, 0, 0, 1.0, -1.0, 0)
 
-    A = numpy.array([[0, 0, 0, 1],
-                     [0, 0, 1, 0],
-                     [1, 1, 1, 1],
-                     [3, 2, 1, 0]])
+    s = Segment(cp1, cp2, True, 1.9)
+    #print s.x_coeff, s.y_coeff
+    #exit()
 
-    xc = numpy.linalg.solve(A, vx)
-    yc = numpy.linalg.solve(A, vy)
-
-    if 0:
-        print xc
-        print yc
-        exit()
-    
-    # Check derivatives.
-    if 0:
-        print xc[2], yc[2]
-        print 3.0*xc[0] + 2.0*xc[1] + xc[2], 3.0*yc[0] + 2.0*yc[1] + yc[2]
-        exit()
-
-
-    x = numpy.arange(0.0, 1.001, 0.01)
+    x = numpy.arange(0.0, 1.001, 0.05)
     xf = numpy.zeros(x.size)
     yf = numpy.zeros(x.size)
     for i in range(x.size):
-        x1 = x[i]
-        x2 = x1*x1
-        x3 = x2*x1
-        xf[i] = xc[0]*x3 + xc[1]*x2 + xc[2]*x1 + xc[3]
-        yf[i] = yc[0]*x3 + yc[1]*x2 + yc[2]*x1 + yc[3]
+        xyz = s.xyz(x[i])
+        xf[i] = xyz[0]
+        yf[i] = xyz[1]
 
     import matplotlib.pyplot as plt
     fig = plt.figure()
-    #ax = fig.add_subplot(1,1,1, aspect = 1.0)
-    ax = fig.add_subplot(1,1,1)
-    ax.plot(xf, yf)
+    ax = fig.add_subplot(1,1,1, aspect = 1.0)
+    #ax = fig.add_subplot(1,1,1)
+    #ax.plot(xf, yf)
+    ax.scatter(xf, yf)
     plt.show()
 
 
