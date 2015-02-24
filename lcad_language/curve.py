@@ -19,7 +19,7 @@ builtin_functions = {}
 
 
 #
-# These classes create a chain function that can be used in openldraw.
+# These classes create a curve function that can be used in openldraw.
 #
 class CurveFunction(functions.LCadFunction):
 
@@ -50,57 +50,107 @@ class LCadCurve(functions.SpecialFunction):
 
 builtin_functions["curve"] = LCadCurve()
 
+
+class ControlPointException(lcadExceptions.LCadException):
+    def __init__(self, got):
+        lcadExceptions.LCadException.__init__(self, "A control point must have 6 arguments, got " + str(got))
+
         
 class NumberControlPointsException(lcadExceptions.LCadException):
     def __init__(self, got):
         lcadExceptions.LCadException.__init__(self, "A curve must have at least 2 control points, got " + str(got))
 
 
-class ControlPointException(lcadExceptions.LCadException):
-    def __init__(self, got):
-        lcadExceptions.LCadException.__init__(self, "A control point must have 6 arguments, got " + str(got))
+class TangentException(lcadExceptions.LCadException):
+    def __init__(self):
+        lcadExceptions.LCadException.__init__(self, "The length of the tangent line must be greater than 0.")
 
 
 #
 # The classes below do the math necessary to create a curve.
 #
+# In the curve coordinate system the z vector is the tangent to the
+# curve and x/y vectors are perpendicular to the curve.
+#
+
+def dotpVector(v1, v2):
+    return numpy.sum(v1 * v2)
 
 def normVector(vector):
     return vector/numpy.sqrt(numpy.sum(vector * vector))
 
+# Return the projection of vector1 onto vector2.
+def projVector(v1, v2):
+    return numpy.dot(v1, v2) * v2
 
-class Curve(object):
-
-    def __init__(self):
-        pass
+def toDegrees(angle):
+    return 180.0 * angle/math.pi
 
 
 class ControlPoint(object):
 
-    def __init__(self, x, y, z, dx, dy, dz, tx = 0, ty = 0, tz = 0):
+    def __init__(self, x, y, z, dx, dy, dz, px = 0, py = 0, pz = 0):
         
         self.location = numpy.array([x, y, z])
-        self.derivative = numpy.array([dx, dy, dz])
-        self.tangent = numpy.array([tx, ty, tz])
+        self.raw_z_vec = numpy.array([dx, dy, dz])
+        self.x_vec = numpy.array([px, py, pz])
 
-        self.norm_derivative = normVector(self.derivative)
+        if (dotpVector(self.raw_z_vec, self.raw_z_vec) == 0.0):
+            raise TangentException
 
-        # Only the first point has a tangent vector.
-        if (numpy.sum(self.tangent * self.tangent) > 0.1):
-            self.norm_tangent = normVector(self.tangent)
+        self.z_vec = normVector(self.raw_z_vec)
+
+        # Only the first point has a perpendicular vector.
+        if (dotpVector(self.x_vec, self.x_vec) > 0.1):
+
+            # Normalize perpendicular vector.
+            self.x_vec = normVector(self.x_vec)
             
-            # Adjust tangent to make exactly normal to derivative
+            # Adjust x_vec to make it exactly perpendicular to z_vec
             # and normalize it's length to one.
-            proj = numpy.dot(self.norm_derivative, self.norm_tangent) * self.norm_derivative
-            self.norm_tangent = normVector(self.norm_tangent - proj)
-        else:
-            self.tangent = None
-            self.norm_tangent = None
+            self.x_vec = normVector(self.x_vec - projVector(self.z_vec, self.x_vec))
 
+            # Compute cross-product of z_vec and x_vec to create y vector.
+            cpx = self.z_vec[1]*self.x_vec[2] - self.z_vec[2]*self.x_vec[1]
+            cpy = self.z_vec[2]*self.x_vec[0] - self.z_vec[0]*self.x_vec[2]
+            cpz = self.z_vec[0]*self.x_vec[1] - self.z_vec[1]*self.x_vec[0]
+            self.y_vec = numpy.array([cpx, cpy, cpz])
+
+        else:
+            self.x_vec = None
+            self.y_vec = None
+
+
+class Curve(object):
+
+    def __init__(self, normalize, scale, total_twist):
+        self.length = 0
+        self.normalize = normalize
+        self.rz = 0
+        self.scale = scale
+        self.segments = []
+        self.total_twist = total_twist
+
+    def addSegment(self, control_point_1, control_point_2):
+        segment = Segment(control_point_1, control_point_2, self.normalize, self.scale, self.length)
+        self.segments.append(segment)
+        self.length += segment.length
+
+    def getCoords(self, dist):
+        if (dist < 0):
+            dist = 0
+        if (dist >= self.length):
+            dist = self.length
+        for seg in self.segments:
+            if (dist >= seg.dist_lut[0][1]) and (dist <= seg.dist_lut[-1][1]):
+                [x, y, z, rx, ry] = seg.getCoords(dist)
+                rz = self.rz + self.total_twist * (dist / self.length)
+                return [x, y, z, rx, ry, rz]
+                
 
 class Segment(object):
 
-    def __init__(self, control_point_1, control_point_2, normalize, scale):
+    def __init__(self, control_point_1, control_point_2, normalize, scale, dist_offset):
         self.cp1 = control_point_1
         self.cp2 = control_point_2
 
@@ -115,16 +165,16 @@ class Segment(object):
         # If normalization is requested, then we scale the magnitude of the
         # derivative by the distance between the control points. This is
         # somewhat arbitrary, but hopefully looks reasonable to the eye.
+        dv = self.cp1.location - self.cp2.location
+        cp_dist = numpy.sqrt(numpy.sum(dv * dv))
         if normalize:
-            dv = self.cp1.location - self.cp2.location
-            scale = scale * numpy.sqrt(numpy.sum(dv * dv))
-            deriv1 = self.cp1.norm_derivative
-            deriv2 = self.cp2.norm_derivative
+            scale = scale * cp_dist
+            deriv1 = self.cp1.z_vec
+            deriv2 = self.cp2.z_vec
         else:
             scale = 1.0
-            deriv1 = self.cp1.derivative
-            deriv2 = self.cp2.derivative
-        print scale
+            deriv1 = self.cp1.raw_z_vec
+            deriv2 = self.cp2.raw_z_vec
 
         vx = numpy.array([self.cp1.location[0],
                           deriv1[0]*scale,
@@ -145,11 +195,66 @@ class Segment(object):
         self.y_coeff = numpy.linalg.solve(A, vy)
         self.z_coeff = numpy.linalg.solve(A, vz)
 
+        # Compute distance look-up table and segment length
+        self.dist_lut = numpy.zeros((round(4.0 * cp_dist),2))
+        self.dist_lut[0][1] = dist_offset
+        total_dist = 0.0
+        startp = self.xyz(0.0)
+        for i in range(self.dist_lut.shape[0] - 1):
+            p = float(i+1)/float(self.dist_lut.shape[0] - 1)
+            endp = self.xyz(p)
+            dp = endp - startp
+            total_dist += numpy.sqrt(numpy.sum(dp*dp))
+            self.dist_lut[i+1][0] = p
+            self.dist_lut[i+1][1] = total_dist + dist_offset
+            startp = endp
+        self.length = total_dist
+
+    def angles(self, p):
+        dp = normVector(self.d_xyz(p))
+        print dp
+        return [math.atan2(dp[1], dp[2]),
+                math.atan2(dp[0], dp[2])]
+
+    def d_xyz(self, p):
+        p_vec = numpy.array([3.0*p*p, 2.0*p, 1.0, 0.0])
+        return numpy.array([numpy.sum(self.x_coeff * p_vec),
+                            numpy.sum(self.y_coeff * p_vec),
+                            numpy.sum(self.z_coeff * p_vec)])
+
+    def getCoords(self, distance):
+
+        # Mid-point bisection to find the bracketing 
+        # points in the distance look up table.
+        start = 0
+        end = len(self.dist_lut) - 1
+        mid = (end - start)/2
+        while ((end - start) > 1):
+            if (distance > self.dist_lut[mid][1]):
+                start = mid
+            elif (distance == self.dist_lut[mid][1]):
+                start = mid
+                end = start + 1
+            else:
+                end = mid
+            mid = (end - start)/2 + start
+
+        # Interpolate between bracketing points.
+        ratio = (distance - self.dist_lut[start][1])/(self.dist_lut[end][1] - self.dist_lut[start][1])
+        p = ratio * (self.dist_lut[end][0] - self.dist_lut[start][0]) + self.dist_lut[start][0]
+        
+        # Get xyz
+        a_xyz = self.xyz(p)
+
+        # Get angles
+        [rx, ry] = self.angles(p)
+        return [a_xyz[0], a_xyz[1], a_xyz[2], rx, ry]
+
     def xyz(self, p):
         p_vec = numpy.array([p*p*p, p*p, p, 1.0])
-        return [numpy.sum(self.x_coeff * p_vec),
-                numpy.sum(self.y_coeff * p_vec),
-                numpy.sum(self.z_coeff * p_vec)]
+        return numpy.array([numpy.sum(self.x_coeff * p_vec),
+                            numpy.sum(self.y_coeff * p_vec),
+                            numpy.sum(self.z_coeff * p_vec)])
 
 
 #
@@ -157,26 +262,29 @@ class Segment(object):
 #
 if (__name__ == "__main__"):
 
-    cp1 = ControlPoint(0, 0, 0, -1.0, 1.0, 0)
+    cp1 = ControlPoint(0, 0, 0, 1.0, 1.0, 0, 0, 0, 1.0)
     cp2 = ControlPoint(5, 0, 0, 1.0, -1.0, 0)
+    cp3 = ControlPoint(10, 0, 0, 1.0, 1.0, 0)
 
-    s = Segment(cp1, cp2, True, 1.9)
-    #print s.x_coeff, s.y_coeff
-    #exit()
+    curve = Curve(True, 1.0, 0)
+    curve.addSegment(cp1, cp2)
+    curve.addSegment(cp2, cp3)
+    
+    print curve.length
 
-    x = numpy.arange(0.0, 1.001, 0.05)
+    x = numpy.arange(0.0, curve.length, 0.4)
     xf = numpy.zeros(x.size)
     yf = numpy.zeros(x.size)
     for i in range(x.size):
-        xyz = s.xyz(x[i])
-        xf[i] = xyz[0]
-        yf[i] = xyz[1]
+        [cx, cy, cz, rx, ry, rz] = curve.getCoords(x[i])
+        #print rx, ry
+        xf[i] = cx
+        yf[i] = cy
 
     import matplotlib.pyplot as plt
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1, aspect = 1.0)
     #ax = fig.add_subplot(1,1,1)
-    #ax.plot(xf, yf)
     ax.scatter(xf, yf)
     plt.show()
 
