@@ -373,7 +373,6 @@ class LCadFor(SpecialFunction):
         # Iterate over list.
         arg1 = interp.getv(interp.interpret(model, loop_args[1]))
         if ((len(loop_args)==2) and (isinstance(arg1, interp.List))):
-            print "is list"
             ret = None
             for elt in arg1.getl():
                 inc_var.setv(interp.getv(elt))
@@ -383,7 +382,6 @@ class LCadFor(SpecialFunction):
 
         # "Normal" iteration.
         else:
-            print "is not list"
             start = 0
             inc = 1
             if (len(loop_args)==2):
