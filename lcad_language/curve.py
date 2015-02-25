@@ -32,14 +32,18 @@ class CurveFunction(functions.LCadFunction):
             raise lcadExceptions.NumberArgumentsException("1", len(tree.value) - 1)
 
     def call(self, model, tree):
+        arg = interp.getv(interp.interpret(model, tree.value[1]))
+
+        # If arg is t return the curve length.
+        if (arg is interp.lcad_t):
+            return self.curve.length
 
         # Get distance along curve.
-        distance = interp.getv(interp.interpret(model, tree.value[1]))
-        if not isinstance(distance, numbers.Number):
-            raise lcadExceptions.WrongTypeException("number", type(val))
+        if not isinstance(arg, numbers.Number):
+            raise lcadExceptions.WrongTypeException("number", type(arg))
 
         # Determine position and orientation.
-        return interp.List(self.curve.getCoords(distance))
+        return interp.List(self.curve.getCoords(arg))
 
 
 class LCadCurve(functions.SpecialFunction):
@@ -62,6 +66,9 @@ class LCadCurve(functions.SpecialFunction):
     argument to the created curve function will be adjusted to be in the range 0 - curve
     length if argument falls outside of this range.
 
+    If you call the created curve function with the argument t it will return the length
+    of the curve.
+
     Additionally curve has several key word arguments.
       :auto-scale t/nil        ; default is t, automatically scale the derivative.
       :scale      float > 0.0  ; multiplier for auto-scale mode, defaults to 1.
@@ -74,7 +81,8 @@ class LCadCurve(functions.SpecialFunction):
                                                     ; not specify :auto-scale nil, the derivative will
                                                     ; be scaled to create a hopefully pleasing curve.
 
-     (def p1 (my-curve))                            ; p1 is the list (x y z rx ry rz)
+     (def p1 (my-curve 1))                          ; p1 is the list (x y z rx ry rz)
+     (my-curve t)                                   ; Returns the length of the curve.
 
     """
     def __init__(self):
@@ -87,22 +95,76 @@ class LCadCurve(functions.SpecialFunction):
             raise NumberControlPointsException(len(tree.value)-1)
 
         # Check for 3 x 2 or (3 x 3) arguments per control point.
+        # Keyword arguments come after control points.
         args = tree.value[1:]
-        for arg in args:
+        index = 0
+        n_control_points = 0
+        while (index < len(args)):
+            arg = args[index]
+            
+            # Check if argument is a keyword.
+            if not isinstance(arg.value, list):
+                if (arg.value[0] == ":"):
+                    if (n_control_points < 2):
+                        raise NumberControlPointsException(n_control_points)
+                    if not (arg.value in [":auto-scale", ":scale", ":twist"]):
+                        raise lcadExceptions.UnknownKeywordException(arg.value)
+                    index += 2
+                    if (index > len(args)):
+                        raise lcadExceptions.KeywordValueException()
+                    continue
+                else:
+                    raise ControlPointException(arg.value + " is not a list or a keyword")
+
+            # If it is a list, check that it is properly composed.
             if not isinstance(arg.value, list):
                 raise ControlPointException("Argument must be a list of lists")
+            if (index == 0):
+                if (len(arg.value) != 3):
+                    raise ControlPointException("First control point must include a perpendicular vector.")
+            else:
+                if (len(arg.value) != 2):
+                    raise ControlPointException("Control point must include only a location and a derivative (tangent) vector.")
+
+            # Check that the sub-lists have the right number of arguments.
             for vec in arg.value:
                 if not isinstance(vec.value, list):
                     raise ControlPointException("Argument must be a list")
                 if (len(vec.value) != 3):
                     raise ControlPointException("List must have 3 elements")
+            
+            n_control_points += 1
+            index += 1
 
     def call(self, model, tree):
         args = tree.value[1:]
 
+        auto_scale = True
+        scale = 1.0
+        twist = 0.0
+
         # Create control points.
+        index = 0
         control_points = []
-        for arg in args:
+        while (index < len(args)):
+            arg = args[index]
+
+            # Process keyword.
+            if not isinstance(arg.value, list):
+                if (arg.value == ":auto-scale"):
+                    auto_scale = functions.isTrue(model, args[index+1])
+                if (arg.value == ":scale"):
+                    scale = interp.getv(interp.interpret(model, args[index+1]))
+                    if not isinstance(scale, numbers.Number):
+                        raise lcadExceptions.WrongTypeException("number", type(scale))
+                if (arg.value == ":twist"):
+                    twist = interp.getv(interp.interpret(model, args[index+1]))
+                    if not isinstance(twist, numbers.Number):
+                        raise lcadExceptions.WrongTypeException("number", type(twist))
+                index += 2
+                continue
+
+            # Create control point.
             vals = []
             for vec in arg.value:
                 for i in range(3):
@@ -111,9 +173,10 @@ class LCadCurve(functions.SpecialFunction):
                         raise lcadExceptions.WrongTypeException("number", type(val))
                     vals.append(val)
             control_points.append(ControlPoint(*vals))
+            index += 1
 
         # Create curve.
-        curve = Curve(True, 1.0, 0)
+        curve = Curve(auto_scale, scale, twist)
         for i in range(len(control_points)-1):
             curve.addSegment(control_points[i], control_points[i+1])
 
