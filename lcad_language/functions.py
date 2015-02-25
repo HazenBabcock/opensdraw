@@ -371,8 +371,9 @@ class LCadFor(SpecialFunction):
         inc_var = tree.lenv.symbols[loop_args[0].value]
 
         # Iterate over list.
-        arg1 = interp.interpret(model, loop_args[1])
+        arg1 = interp.getv(interp.interpret(model, loop_args[1]))
         if ((len(loop_args)==2) and (isinstance(arg1, interp.List))):
+            print "is list"
             ret = None
             for elt in arg1.getl():
                 inc_var.setv(interp.getv(elt))
@@ -382,6 +383,7 @@ class LCadFor(SpecialFunction):
 
         # "Normal" iteration.
         else:
+            print "is not list"
             start = 0
             inc = 1
             if (len(loop_args)==2):
@@ -567,6 +569,32 @@ class LCadLambda(SpecialFunction):
         return UserFunction(tree)
 
 builtin_functions["lambda"] = LCadLambda()
+
+
+class LCadLen(SpecialFunction):
+    """
+    **len** - Return the length of a list.
+
+    Usage::
+
+     (len (list 1 2 3)) ; returns 3
+    """
+    def __init__(self):
+        self.name = "len"
+
+    def argCheck(self, tree):
+        if (len(tree.value) != 2):
+            raise lce.NumberArgumentsException("1", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        tlist = interp.getv(interp.interpret(model, tree.value[1]))
+
+        if not isinstance(tlist, interp.List):
+            raise lce.WrongTypeException("List", type(tlist))
+
+        return tlist.size()
+
+builtin_functions["len"] = LCadLen()
 
 
 class LCadList(SpecialFunction):
