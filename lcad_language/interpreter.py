@@ -39,9 +39,13 @@ class LEnv(object):
             self.symbols[sym_name] = builtin_symbols[sym_name]
 
         # Functions.
-        import chain  # Import chain here to avoid a circular dependency & because we only need it here.
 
-        fn_modules = [functions, chain]
+        # Import extra modules here to avoid circular dependencies and
+        # because this is the only place they are needed.
+        import chain
+        import curve
+
+        fn_modules = [functions, chain, curve]
         for module in fn_modules:
             for fn_name in module.builtin_functions.keys():
                 self.symbols[fn_name] = Symbol(fn_name, "builtin")

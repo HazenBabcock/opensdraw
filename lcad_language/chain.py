@@ -32,14 +32,18 @@ class ChainFunction(functions.LCadFunction):
             raise lcadExceptions.NumberArgumentsException("1", len(tree.value) - 1)
 
     def call(self, model, tree):
+        arg = interp.getv(interp.interpret(model, tree.value[1]))
+
+        # If arg is t return the curve length.
+        if (arg is interp.lcad_t):
+            return self.chain.chain_length        
 
         # Get distance along chain.
-        distance = interp.getv(interp.interpret(model, tree.value[1]))
-        if not isinstance(distance, numbers.Number):
-            raise lcadExceptions.WrongTypeException("number", type(val))
+        if not isinstance(arg, numbers.Number):
+            raise lcadExceptions.WrongTypeException("number", type(arg))
 
         # Determine position and orientation.
-        return interp.List(self.chain.getPositionOrientation(distance))
+        return interp.List(self.chain.getPositionOrientation(arg))
 
 
 class LCadChain(functions.SpecialFunction):
@@ -51,8 +55,17 @@ class LCadChain(functions.SpecialFunction):
     A chain must have at least two sprockets. Each sprocket is specified by 
     a 4 member list consisting of (x y radius winding-direction), where 
     winding-direction specifies which way the chain goes around the sprocket 
-    (1 = counter-clockwise, -1 = clockwise).
-    
+    (1 = counter-clockwise, -1 = clockwise). The chain goes around the sprockets
+    in the order in which they are specified, and returns from the last sprocket
+    to the first sprocket to close the loop.
+
+    When you call the created chain function you will get a 3 element list 
+    (x y theta). The distance argument that is provided to created chain function
+    will be adjusted to be modulo the length of the chain.
+
+    If you call the created chain function with the argument t it will return the 
+    length of the chain.
+
     Usage::
 
      (def a-chain (chain (-4 0 1 1) (4 0 1 1)))  ; Create a chain with two sprockets, the 1st at (-4,0) and
@@ -60,6 +73,8 @@ class LCadChain(functions.SpecialFunction):
                                                  ; counter-clockwise winding direction.
      (def c1 (a-chain 1))                        ; c1 is the list (x y theta), where x,y are position and 
                                                  ; theta is the orientation (in degrees).
+     (a-chain t)                                 ; Returns the length of the chain.
+
     """
     def __init__(self):
         self.name = "chain"
