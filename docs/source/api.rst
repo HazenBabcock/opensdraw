@@ -39,6 +39,8 @@ Miscellaneous Functions
 
 .. automodule:: lcad_language.chain
    :members: LCadChain
+.. automodule:: lcad_language.curve
+   :members: LCadCurve
 
 Python Math Functions
 ---------------------

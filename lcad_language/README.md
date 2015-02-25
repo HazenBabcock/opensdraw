@@ -3,6 +3,7 @@ This folder contains the modules that define the lcad language. This is a [prefi
 
 ### Files ###
 * chain.py - A function for creating chains, tracks, etc.
+* curve.py - A function for creating curves (cubic splines).
 * functions.py - The basic functions that are available in the lcad language.
 * interpreter.py - The lcad language interpreter.
 * lcadExceptions.py - Lcad language specific exceptions.
