@@ -64,12 +64,13 @@ class LCadCurve(functions.SpecialFunction):
     coordinate system z is along the curve and x is perpendicular to the coordinate system
     as defined by the perpendicular vector provided for the 1st control point. The distance
     argument to the created curve function will be adjusted to be in the range 0 - curve
-    length if argument falls outside of this range.
+    length if the argument falls outside of this range.
 
     If you call the created curve function with the argument t it will return the length
     of the curve.
 
-    Additionally curve has several key word arguments.
+    Additionally curve has several keyword arguments::
+
       :auto-scale t/nil        ; default is t, automatically scale the derivative.
       :scale      float > 0.0  ; multiplier for auto-scale mode, defaults to 1.
       :twist      angle        ; additional twist along the curve, defaults to 0.
