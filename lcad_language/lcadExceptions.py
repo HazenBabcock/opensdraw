@@ -42,6 +42,10 @@ class KeywordException(LCadException):
     def __init__(self, item):
         LCadException.__init__(self, str(item) + " is not a keyword.")
 
+class KeywordValueException(LCadException):
+    def __init__(self):
+        LCadException.__init__(self, "Keyword with no corresponding value")
+
 class NotAFunctionException(LCadException):
     def __init__(self):
         LCadException.__init__(self, "not a function.")
@@ -61,6 +65,10 @@ class SymbolAlreadyExists(LCadException):
 class SymbolNotDefined(LCadException):
     def __init__(self, symbol_name):
         LCadException.__init__(self, "symbol '" + symbol_name + "' not defined.")
+
+class UnknownKeywordException(LCadException):
+    def __init__(self, item):
+        LCadException.__init__(self, str(item) + " is not a valid keyword.")
 
 class VariableNotSetException(LCadException):
     def __init__(self, variable_name):
