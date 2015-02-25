@@ -52,13 +52,15 @@ class LCadCurve(functions.SpecialFunction):
     control point and dx, dy, dz specify the derivative (tangent) of the line as it 
     passes through the control point. A curve must have at least two control points, and
     additionally you must provide a (approximately) perpendicular vector to the
-    derivate ((xp yp zp) (dx dy dz) (px py pz))
+    derivate ((xp yp zp) (dx dy dz) (px py pz)) for the first control point.
 
-    When you call the curve function you will get the 6 element list (x y z rx ry rz) where
-    x, y, z are the location of the curve and rx, ry, rz are the angles that will rotate
+    When you call the created curve function you will get the 6 element list (x y z rx ry rz) 
+    where x, y, z are the location of the curve and rx, ry, rz are the angles that will rotate
     from the current coordinate system to the curve coordinate system. In the curve
     coordinate system z is along the curve and x is perpendicular to the coordinate system
-    as defined by the perpendicular vector provided for the 1st control point.
+    as defined by the perpendicular vector provided for the 1st control point. The distance
+    argument to the created curve function will be adjusted to be in the range 0 - curve
+    length if argument falls outside of this range.
 
     Additionally curve has several key word arguments.
       :auto-scale t/nil        ; default is t, automatically scale the derivative.
