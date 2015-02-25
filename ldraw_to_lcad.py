@@ -2,6 +2,8 @@
 #
 # Generates a .lcad file from a LDraw format .dat, .ldr or .mpd file.
 # Depending on the LDraw file the conversion may not be that pretty.
+# In particular matrices that include a scale term are going to play
+# havoc with angle extraction.
 #
 # Since openldraw does not handle primitives, subfiles that contain
 # primitives are broken out into separate files.
