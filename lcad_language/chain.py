@@ -51,8 +51,14 @@ class LCadChain(functions.SpecialFunction):
     A chain must have at least two sprockets. Each sprocket is specified by 
     a 4 member list consisting of (x y radius winding-direction), where 
     winding-direction specifies which way the chain goes around the sprocket 
-    (1 = counter-clockwise, -1 = clockwise).
-    
+    (1 = counter-clockwise, -1 = clockwise). The chain goes around the sprockets
+    in the order in which they are specified, and returns from the last sprocket
+    to the first sprocket to close the loop.
+
+    When you call the created chain function you will get a 3 element list 
+    (x y theta). The distance argument that is provided to created chain function
+    will be adjusted to be modulo the length of the chain.
+
     Usage::
 
      (def a-chain (chain (-4 0 1 1) (4 0 1 1)))  ; Create a chain with two sprockets, the 1st at (-4,0) and
