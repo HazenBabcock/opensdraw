@@ -23,39 +23,109 @@ builtin_functions = {}
 #
 class CurveFunction(functions.LCadFunction):
 
-    def __init__(self, chain):
-        self.chain = chain
+    def __init__(self, curve):
+        self.curve = curve
         self.name = "user created curve function"
 
     def argCheck(self, tree):
-        pass
+        if (len(tree.value) != 2):
+            raise lcadExceptions.NumberArgumentsException("1", len(tree.value) - 1)
 
     def call(self, model, tree):
-        pass
+
+        # Get distance along curve.
+        distance = interp.getv(interp.interpret(model, tree.value[1]))
+        if not isinstance(distance, numbers.Number):
+            raise lcadExceptions.WrongTypeException("number", type(val))
+
+        # Determine position and orientation.
+        return interp.List(self.curve.getCoords(distance))
 
 
 class LCadCurve(functions.SpecialFunction):
     """
     **curve** - Creates a curve function.
     
+    This function creates and returns a function that parametrizes a curve, specifically
+    a cubic spline. All units are LDU. Each control point is specified by a list of lists
+    in the form ((xp yp zp) (dx dy dz)), where xp, yp and zp specify the location of the
+    control point and dx, dy, dz specify the derivative (tangent) of the line as it 
+    passes through the control point. A curve must have at least two control points, and
+    additionally you must provide a (approximately) perpendicular vector to the
+    derivate ((xp yp zp) (dx dy dz) (px py pz))
+
+    When you call the curve function you will get the 6 element list (x y z rx ry rz) where
+    x, y, z are the location of the curve and rx, ry, rz are the angles that will rotate
+    from the current coordinate system to the curve coordinate system. In the curve
+    coordinate system z is along the curve and x is perpendicular to the coordinate system
+    as defined by the perpendicular vector provided for the 1st control point.
+
+    Additionally curve has several key word arguments.
+      :auto-scale t/nil        ; default is t, automatically scale the derivative.
+      :scale      float > 0.0  ; multiplier for auto-scale mode, defaults to 1.
+      :twist      angle        ; additional twist along the curve, defaults to 0.
+
+    Usage::
+
+     (def my-curve (curve ((0 0 0) (1 1 0) (0 0 1)) ; Create a curve going through (0,0,0), (5,0,0)
+                          ((5 0 0) (1 0 0))))       ; With derivative (1,1,0) and (1,0,0). Since we did
+                                                    ; not specify :auto-scale nil, the derivative will
+                                                    ; be scaled to create a hopefully pleasing curve.
+
+     (def p1 (my-curve))                            ; p1 is the list (x y z rx ry rz)
+
     """
     def __init__(self):
         self.name = "curve"
 
     def argCheck(self, tree):
-        pass
+        
+        # Check for at least two control points.
+        if (len(tree.value) < 3):
+            raise NumberControlPointsException(len(tree.value)-1)
+
+        # Check for 3 x 2 or (3 x 3) arguments per control point.
+        args = tree.value[1:]
+        for arg in args:
+            if not isinstance(arg.value, list):
+                raise ControlPointException("Argument must be a list of lists")
+            for vec in arg.value:
+                if not isinstance(vec.value, list):
+                    raise ControlPointException("Argument must be a list")
+                if (len(vec.value) != 3):
+                    raise ControlPointException("List must have 3 elements")
 
     def call(self, model, tree):
-        pass
+        args = tree.value[1:]
+
+        # Create control points.
+        control_points = []
+        for arg in args:
+            vals = []
+            for vec in arg.value:
+                for i in range(3):
+                    val = interp.getv(interp.interpret(model, vec.value[i]))
+                    if not isinstance(val, numbers.Number):
+                        raise lcadExceptions.WrongTypeException("number", type(val))
+                    vals.append(val)
+            control_points.append(ControlPoint(*vals))
+
+        # Create curve.
+        curve = Curve(True, 1.0, 0)
+        for i in range(len(control_points)-1):
+            curve.addSegment(control_points[i], control_points[i+1])
+
+        # Return curve function.
+        return CurveFunction(curve)
 
 builtin_functions["curve"] = LCadCurve()
 
 
 class ControlPointException(lcadExceptions.LCadException):
-    def __init__(self, got):
-        lcadExceptions.LCadException.__init__(self, "A control point must have 6 arguments, got " + str(got))
-
+    def __init__(self, msg):
+        lcadExceptions.LCadException.__init__(self, msg)
         
+
 class NumberControlPointsException(lcadExceptions.LCadException):
     def __init__(self, got):
         lcadExceptions.LCadException.__init__(self, "A curve must have at least 2 control points, got " + str(got))
@@ -269,7 +339,7 @@ class Segment(object):
             rx = math.atan2(-z_vec[1], z_vec[2])
             rz = math.atan2(-y_vec[0], x_vec[0])
 
-        return [rx, ry, rz]
+        return map(lambda(x): x * 180.0/math.pi, [rx, ry, rz])
 
     def d_xyz(self, p):
         p_vec = numpy.array([3.0*p*p, 2.0*p, 1.0, 0.0])
@@ -318,13 +388,16 @@ class Segment(object):
 if (__name__ == "__main__"):
 
     cp1 = ControlPoint(0, 0, 0, 1.0, 1.0, 0, 0, 0, 1.0)
-    cp2 = ControlPoint(5, 0, 0, 1.0, -1.0, 0)
+    cp2 = ControlPoint(5, 0, 0, 1.0, 0, 0)
     cp3 = ControlPoint(10, 0, 0, 1.0, 1.0, 0)
 
     curve = Curve(True, 1.0, 0)
     curve.addSegment(cp1, cp2)
     curve.addSegment(cp2, cp3)
     
+    print curve.getCoords(1)
+    exit()
+
     print curve.length
 
     x = numpy.arange(0.0, curve.length, 0.4)
