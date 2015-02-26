@@ -14,7 +14,7 @@ Basic Functions
 ---------------
 
 .. automodule:: lcad_language.functions
-   :members: LCadAref, LCadBlock, LCadCond, LCadDef, LCadFor, LCadHeader, LCadIf, LCadImport, LCadLambda, LCadList, LCadMirror, LCadPart, LCadPrint, LCadRotate, LCadSet, LCadTranslate, LCadWhile
+   :members: LCadAref, LCadBlock, LCadCond, LCadDef, LCadFor, LCadHeader, LCadIf, LCadImport, LCadLambda, LCadLen, LCadList, LCadMirror, LCadPart, LCadPrint, LCadRotate, LCadScale, LCadSet, LCadTranslate, LCadWhile
 
 Comparison Operators
 --------------------
