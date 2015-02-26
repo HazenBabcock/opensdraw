@@ -1,0 +1,133 @@
+;
+; Function to make adding flexible axles to a MOC easier.
+;
+; Hazen 02/15
+;
+
+(import locate :local)
+
+; Position / orientation helper function.
+(def ftr (po fn)
+  (translate ((aref po 0) (aref po 1) (aref po 2)) ; Translate to position.
+   (rotate ((aref po 3) (aref po 4) (aref po 5))   ; Rotate to curve orientation.
+    (fn))))
+
+; Create an axle of the specified length that goes along the specified curve.
+; The curve starts after the initial straight end stud.
+;
+; length - The total length of the axle in bricks / studs.
+; a-curve - The curve function that the axle should follow.
+; color - The color of the axle.
+; stretch - Amount to stretch sub-parts to minimize the appearance of breaks in a bent axle.
+;
+(def flexible-axle (length a-curve color :stretch 1.05)
+ (block
+
+  (def disp 2)
+
+  (def start-parts (list "s\faxle1.dat" 
+			 "s\faxle2.dat" 
+			 "s\faxle3.dat" 
+			 "s\faxle4.dat" 
+			 "s\faxle5.dat"))
+
+  ; hmm, maybe a reverse function would be useful..
+  (def end-parts (list "s\faxle5.dat" 
+		       "s\faxle4.dat" 
+		       "s\faxle3.dat" 
+		       "s\faxle2.dat" 
+		       "s\faxle1.dat"))
+
+  ; stud start element.
+  (ftr (a-curve 0) 
+       (lambda ()
+  	(tr 0 0 0 90 0 0 
+  	    (lambda () 
+  	     (scale (1 5 1) (part "stud3a.dat" color))))))
+
+  ; start parts
+  (for (p start-parts)
+   (ftr (a-curve disp)
+	(lambda ()
+	 ; translate so that the part is rotated around it's center
+	 ; instead of around it's end.
+	 (tr 0 0 2 0 -90 0
+	     (lambda ()
+	      (scale (stretch 1 1) (part p color))))))
+   (set disp (+ disp 4)))
+
+  ; middle parts1
+  (for (p (* 5 (- length 4)))
+   (ftr (a-curve disp)
+	(lambda ()
+	 (tr 0 0 2 -90 0 0
+	     (lambda ()
+	      (scale (1 (* 4 stretch) 1) (part "axlehol8.dat" color))))))
+   (set disp (+ disp 4)))
+
+  ; end parts
+  (for (p end-parts)
+   (ftr (a-curve disp)
+	(lambda ()
+	 ; translate so that the part is rotated around it's center
+	 ; instead of around it's end.
+	 (tr 0 0 -2 0 90 0
+	     (lambda ()
+	      (scale (stretch 1 1) (part p color))))))
+   (set disp (+ disp 4)))
+
+  ; stud end element.
+  (set disp (- disp 2))
+  (ftr (a-curve disp) 
+       (lambda ()
+  	(tr 0 0 0 -90 0 0 
+  	    (lambda () 
+  	     (scale (1 5 1) (part "stud3a.dat" color))))))
+  ))
+
+
+; Layout the (flexible) parts that make up a flexible axle.
+;  (<number of repititions> <displacement> <part> <rx> <ry> <rz>)
+;
+; This corresponds to the technic flexible axle 16.
+
+;(def axle (list (list 1 4 "s\faxle1.dat" 0 -90 0)
+;		(list 1 4 "s\faxle2.dat" 0 -90 0)
+;		(list 1 4 "s\faxle3.dat" 0 -90 0)
+;		(list 1 4 "s\faxle4.dat" 0 -90 0)
+;		(list 1 0 "s\faxle5.dat" 0 -90 0)
+;		(list 239 1 "axlehol8.dat" 90 0 0)
+;		(list 1 0 "axlehol8.dat" 0 90 0)
+;		(list 1 4 "s\faxle5.dat" 0 90 0)
+;		(list 1 4 "s\faxle4.dat" 0 90 0)
+;		(list 1 4 "s\faxle3.dat" 0 90 0)
+;		(list 1 4 "s\faxle2.dat" 0 90 0)
+;		(list 1 4 "s\faxle1.dat" 0 90 0)))
+
+; Create the curve.
+
+;(def a-curve (curve ((0 0 0) (1 0 0) (0 0 1))
+		    ;(((bw 8.8) (bw 8.8) 0) (0 1 0))))
+;		    (((bw 6) (bw 6) 0) (1 1 0))))
+
+; Start element.
+;(tr -4 0 0 0 0 -90 (lambda () (scale (1 5 1) (part "stud3a.dat" 7))))
+
+;(tb -0.5 0 0 0 0 -90 "4-4cyli.dat" 7)
+
+; Middle elements.
+;(def disp 0)
+;(for (p axle)                                      ; Iterate through the parts.
+; (for (i (aref p 0))                               ; Repeat specified number of times.
+;  (def po (a-curve disp))                          ; Get position and orientation at current displacement.
+;  (translate ((aref po 0) (aref po 1) (aref po 2)) ; Translate to position.
+;   (rotate ((aref po 3) (aref po 4) (aref po 5))   ; Rotate to curve orientation.
+;    (rotate ((aref p 3) (aref p 4) (aref p 5))     ; Orient part.
+;     (part (aref p 2) 7)
+;     (set disp (+ disp (aref p 1))))))))
+;
+; End element.
+;(def po (a-curve disp))
+;(translate ((aref po 0) (aref po 1) (aref po 2))
+; (rotate ((aref po 3) (aref po 4) (aref po 5))
+;  (tr 0 0 -1 -90 0 0 (lambda () (scale (1 5 1) (part "stud3a.dat" 7))))))
