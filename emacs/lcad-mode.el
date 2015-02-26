@@ -10,7 +10,7 @@
 (defconst lcad-keywords
       `((,(concat "(\\("
 		  (regexp-opt '("aref" "block" "chain" "cond" "curve" "def" "for" "header" "if" "import" "lambda"
-				"len" "list" "mirror" "part" "print" "rotate" "set" "translate" "while"))
+				"len" "list" "mirror" "part" "print" "rotate" "scale" "set" "translate" "while"))
 		  "\\)\\>"
 		  "[ \r\n\t]+")
 	 (1 font-lock-function-name-face))
@@ -49,6 +49,7 @@
 (put 'mirror 'lcad-indent-function 1)
 (put 'rotate 'lcad-indent-function 1)
 (put 'translate 'lcad-indent-function 1)
+(put 'scale 'lcad-indent-function 1)
 (put 'while 'lcad-indent-function 1)
 
 (defun lcad-indent-function (indent-point state)
