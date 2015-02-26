@@ -4,43 +4,16 @@
 ; Hazen 02/15
 ;
 
-(import locate :local)
+; Use flexible axle library function for easier creation of flexible axles.
+(import flexible-axle :local)
 
-; Layout the (flexible) parts that make up a flexible axle.
-;  (<number of repititions> <displacement> <part> <rx> <ry> <rz>)
-;
-; This corresponds to the technic flexible axle 16.
-
-(def axle (list (list 1 4 "s\faxle1.dat" 0 -90 0)
-		(list 1 4 "s\faxle2.dat" 0 -90 0)
-		(list 1 4 "s\faxle3.dat" 0 -90 0)
-		(list 1 4 "s\faxle4.dat" 0 -90 0)
-		(list 1 0 "s\faxle5.dat" 0 -90 0)
-		(list 239 1 "axlehol8.dat" 90 0 0)
-		(list 1 0 "axlehol8.dat" 0 90 0)
-		(list 1 4 "s\faxle5.dat" 0 90 0)
-		(list 1 4 "s\faxle4.dat" 0 90 0)
-		(list 1 4 "s\faxle3.dat" 0 90 0)
-		(list 1 4 "s\faxle2.dat" 0 90 0)
-		(list 1 4 "s\faxle1.dat" 0 90 0)))
-
-; Create the curve.
-
+; Create curve that defines the axle.
 (def a-curve (curve ((0 0 0) (1 0 0) (0 0 1))
-		    (((bw 8.8) (bw 8.8) 0) (0 1 0))))
+		    (((bw 100) 0 0) (1 0 0))))
 
-; Start and end elements.
-(tb -1 0 0 0 0 -90 "stud3a.dat" 7)
-(tb -0.5 0 0 0 0 -90 "4-4cyli.dat" 7)
-
-; Middle elements.
-(def disp 0)
-(for (p axle)                                      ; Iterate through the parts.
- (for (i (aref p 0))                               ; Repeat specified number of times.
-  (def po (a-curve disp))                          ; Get position and orientation at current displacement.
-  (translate ((aref po 0) (aref po 1) (aref po 2)) ; Translate to position.
-   (rotate ((aref po 3) (aref po 4) (aref po 5))   ; Rotate to curve orientation.
-    (rotate ((aref p 3) (aref p 4) (aref p 5))     ; Orient part.
-     (part (aref p 2) 7)
-     (set disp (+ disp (aref p 1))))))))
-
+; Draw the axle.
+(flexible-axle 9 a-curve 7)
+	       
+; Reference length object.
+(import locate :local)
+(tb 3.5 0.2 0 0 0 0 "60485" 0)
