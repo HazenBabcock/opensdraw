@@ -71,9 +71,13 @@ class LCadCurve(functions.SpecialFunction):
 
     Additionally curve has several keyword arguments::
 
-      :auto-scale t/nil        ; default is t, automatically scale the derivative.
-      :scale      float > 0.0  ; multiplier for auto-scale mode, defaults to 1.
-      :twist      angle        ; additional twist along the curve, defaults to 0.
+      :auto-scale   t/nil        ; default is t, automatically scale the derivative.
+      :extrapolate  t/nil        ; default is t, distances outside of the curve will be
+                                 ; linearly extrapolated from the end of the curve. If nil
+                                 ; then the distance will be modulo the curve length.
+      :scale        float > 0.0  ; multiplier for auto-scale mode, defaults to 1.
+      :twist        angle        ; additional twist along the curve, defaults to 0.
+
 
     Usage::
 
@@ -82,7 +86,8 @@ class LCadCurve(functions.SpecialFunction):
                                                     ; not specify :auto-scale nil, the derivative will
                                                     ; be scaled to create a hopefully pleasing curve.
 
-     (def p1 (my-curve 1))                          ; p1 is the list (x y z rx ry rz)
+     (def p1 (my-curve 1))                          ; p1 is the list (x y z rx ry rz) which defines the
+                                                    ; curve at distance one along the curve.
      (my-curve t)                                   ; Returns the length of the curve.
 
     """
@@ -108,7 +113,7 @@ class LCadCurve(functions.SpecialFunction):
                 if (arg.value[0] == ":"):
                     if (n_control_points < 2):
                         raise NumberControlPointsException(n_control_points)
-                    if not (arg.value in [":auto-scale", ":scale", ":twist"]):
+                    if not (arg.value in [":auto-scale", ":extrapolate", ":scale", ":twist"]):
                         raise lcadExceptions.UnknownKeywordException(arg.value)
                     index += 2
                     if (index > len(args)):
@@ -141,6 +146,7 @@ class LCadCurve(functions.SpecialFunction):
         args = tree.value[1:]
 
         auto_scale = True
+        extrapolate = True
         scale = 1.0
         twist = 0.0
 
@@ -154,6 +160,8 @@ class LCadCurve(functions.SpecialFunction):
             if not isinstance(arg.value, list):
                 if (arg.value == ":auto-scale"):
                     auto_scale = functions.isTrue(model, args[index+1])
+                if (arg.value == ":extrapolate"):
+                    extrapolate = functions.isTrue(model, args[index+1])
                 if (arg.value == ":scale"):
                     scale = interp.getv(interp.interpret(model, args[index+1]))
                     if not isinstance(scale, numbers.Number):
@@ -177,7 +185,7 @@ class LCadCurve(functions.SpecialFunction):
             index += 1
 
         # Create curve.
-        curve = Curve(auto_scale, scale, twist)
+        curve = Curve(auto_scale, extrapolate, scale, twist)
         for i in range(len(control_points)-1):
             curve.addSegment(control_points[i], control_points[i+1])
 
@@ -267,7 +275,8 @@ class ControlPoint(object):
 
 class Curve(object):
 
-    def __init__(self, normalize, scale, total_twist):
+    def __init__(self, normalize, extrapolate, scale, total_twist):
+        self.extrapolate = extrapolate
         self.length = 0
         self.normalize = normalize
         self.scale = scale
@@ -280,19 +289,29 @@ class Curve(object):
         self.length += segment.length
 
     def getCoords(self, dist):
+
+        if not self.extrapolate:
+            while (dist < 0):
+                dist += self.length
+            while (dist > self.length):
+                dist -= self.length
+
         if (dist < 0):
-            dist = 0
-        if (dist >= self.length):
-            dist = self.length
-        for seg in self.segments:
-            if (dist >= seg.dist_lut[0][1]) and (dist <= seg.dist_lut[-1][1]):
+            a_seg = self.segments[0]
+        elif (dist > self.length):
+            a_seg = self.segments[-1]
+        else:
+            for seg in self.segments:
+                if (dist >= seg.dist_lut[0][1]) and (dist <= seg.dist_lut[-1][1]):
+                    a_seg = seg
+                    break
+            
+        # Get position and angles.
+        [x, y, z, rx, ry, rz] = a_seg.getCoords(dist)
 
-                # Get position and angles.
-                [x, y, z, rx, ry, rz] = seg.getCoords(dist)
-
-                # Add twist to the z angle.
-                rz += self.total_twist * (dist / self.length)
-                return [x, y, z, rx, ry, rz]
+        # Add twist to the z angle.
+        rz += self.total_twist * (dist / self.length)
+        return [x, y, z, rx, ry, rz]
                 
 
 class Segment(object):
@@ -346,7 +365,8 @@ class Segment(object):
         self.z_coeff = numpy.linalg.solve(A, vz)
 
         # Compute distance look-up table and segment length
-        table_size = int(round(4.0 * cp_dist))
+        table_size = 100  # Hopefully 100 sections is enough to accurately capture most curves.
+        #table_size = int(round(4.0 * cp_dist))
         self.dist_lut = numpy.zeros((table_size, 2))
         self.dist_lut[0,1] = dist_offset
         total_dist = 0.0
@@ -415,27 +435,41 @@ class Segment(object):
 
     def getCoords(self, distance):
 
-        # Mid-point bisection to find the bracketing 
-        # points in the distance look up table.
-        start = 0
-        end = len(self.dist_lut) - 1
-        mid = (end - start)/2
-        while ((end - start) > 1):
-            if (distance > self.dist_lut[mid, 1]):
-                start = mid
-            elif (distance == self.dist_lut[mid, 1]):
-                start = mid
-                end = start + 1
-            else:
-                end = mid
-            mid = (end - start)/2 + start
+        # Extrapolate from curve start.
+        if (distance <= 0):
+            p = 0
+            start = 0
+            a_xyz = self.xyz(p) + distance * normVector(self.d_xyz(p))
 
-        # Interpolate between bracketing points.
-        ratio = (distance - self.dist_lut[start, 1])/(self.dist_lut[end, 1] - self.dist_lut[start, 1])
-        p = ratio * (self.dist_lut[end, 0] - self.dist_lut[start, 0]) + self.dist_lut[start, 0]
+        # Extrapolate from curve end.
+        elif (distance >= self.length):
+            p = 1
+            start = len(self.dist_lut) - 2
+            a_xyz = self.xyz(p) + (distance - self.length) * normVector(self.d_xyz(p))
+
+        # Interpolate in the middle.
+        else:
+            # Mid-point bisection to find the bracketing 
+            # points in the distance look up table.
+            start = 0
+            end = len(self.dist_lut) - 1
+            mid = (end - start)/2
+            while ((end - start) > 1):
+                if (distance > self.dist_lut[mid, 1]):
+                    start = mid
+                elif (distance == self.dist_lut[mid, 1]):
+                    start = mid
+                    end = start + 1
+                else:
+                    end = mid
+                mid = (end - start)/2 + start
+
+            # Interpolate between bracketing points.
+            ratio = (distance - self.dist_lut[start, 1])/(self.dist_lut[end, 1] - self.dist_lut[start, 1])
+            p = ratio * (self.dist_lut[end, 0] - self.dist_lut[start, 0]) + self.dist_lut[start, 0]
         
-        # Get xyz
-        a_xyz = self.xyz(p)
+            # Get xyz
+            a_xyz = self.xyz(p)
 
         # Get angles
         [rx, ry, rz] = self.angles(p, self.xvec_lut[start,:])
