@@ -15,7 +15,7 @@
 ; ay - rotation angle around y axis (degrees).
 ; az - rotation angle around z axis (degrees).
 ; fn - a function.
-(def tr (x y z ax ay az fn)
+(def trf (x y z ax ay az fn)
  (translate (x y z)
   (rotate (ax ay az)
    (fn))))
@@ -32,11 +32,11 @@
 ; fn - a function.
 ;
 (def trf-sb (x y z ax ay az fn)
- (tr (bw x) (bd y) (bh z) ax ay az fn))
+ (trf (bw x) (bd y) (bh z) ax ay az fn))
 
 ; translate-rotate-function technic-bricks.
 (def trf-tb (x y z ax ay az fn)
- (tr (bw x) (bw y) (bw z) ax ay az fn))
+ (trf (bw x) (bw y) (bw z) ax ay az fn))
 
 ; standard bricks
 ;
