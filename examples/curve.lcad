@@ -4,16 +4,61 @@
 ; Hazen 02/15
 ;
 
+(import locate :local)
+
 ; Use flexible axle library function for easier creation of flexible axles.
 (import flexible-axle :local)
 
-; Create curve that defines the axle.
-(def a-curve (curve ((0 0 0) (1 0 0) (0 0 1))
-		    (((bw 100) 0 0) (1 0 0))))
+; Technic Beam 15
+(tb 6 0 0 0 90 90 "32278" 14)
 
-; Draw the axle.
-(flexible-axle 9 a-curve 7)
-	       
-; Reference length object.
-(import locate :local)
-(tb 3.5 0.2 0 0 0 0 "60485" 0)
+;
+; Create mounting structure.
+;
+(for (i 14)
+
+ ; Technic Axle 3
+ (tb i 0 0 0 90 0 "4519" 7)
+
+ ; Technic Angle Connector #6 (90 degree).
+ (tb i 0 2 0 0 0 "32014" 7)
+ (tb i 0 -2 0 180 0 "32014" 7))
+
+(for (i 13)
+
+ ; Technic Pin with Friction
+ (if (= (% i 2) 0)
+   (tb (+ i 0.5) 0 2 0 0 0 "4459" 0)
+  (tb (+ i 0.5) 0 -2 0 0 0 "4459" 0)))
+
+;
+; Add flexible axles.
+;
+(for (i 14)
+
+ ; Some math to calculate the curve end point & tangent.
+ ; Basically we want the end points to be on a circle around 
+ ; the starting point with the derivative's intersecting at
+ ; a point that is equi-distant the two end-points.
+ (def ang-1 (/ (* (+ i 1) pi 5) 180))
+ (def ang-2 (- (/ pi 2) (* 2 ang-1)))
+ (def y (bw (* 6 (cos ang-1))))
+ (def z (bw (* 6 (sin ang-1))))
+ (def d-y (sin ang-2))
+ (def d-z (cos ang-2))
+
+ ; Create curve that defines the axle.
+ ; Adjust scale multiplier based on the amount of curvature so that the
+ ; curves look smoother.
+ (def a-curve (curve ((0 0 0) (0 1 0) (1 0 0))
+		     ((0 y z) (0 d-y d-z))
+		     :scale (+ 1.0 (/ i 25.0))))
+
+ ; Technic Axle Flexible 11
+ ; Increase the stretch slightly to remove gaps.
+ (trf-tb i -1.5 -2 180 0 0 (lambda ()
+			    (flexible-axle 11 a-curve 0 :stretch 1.1)))
+
+ (trf-tb i -1.5 2 180 180 0 (lambda ()
+			     (flexible-axle 11 a-curve 0 :stretch 1.1))))
+
