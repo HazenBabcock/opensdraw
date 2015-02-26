@@ -6,6 +6,20 @@
 
 (import ldu :local)
 
+; Combine translation and rotation in a single function.
+;
+; x - x location.
+; y - y location.
+; z - z location.
+; ax - rotation angle around x axis (degrees).
+; ay - rotation angle around y axis (degrees).
+; az - rotation angle around z axis (degrees).
+; fn - a function.
+(def tr (x y z ax ay az fn)
+ (translate (x y z)
+  (rotate (ax ay az)
+   (fn))))
+
 ; Combine translation and rotation in a single function for standard bricks.
 ; translate-rotate-function standard-bricks.
 ;
@@ -18,15 +32,11 @@
 ; fn - a function.
 ;
 (def trf-sb (x y z ax ay az fn)
- (translate ((bw x) (bd y) (bh z))
-  (rotate (ax ay az)
-   (fn))))
+ (tr (bw x) (bd y) (bh z) ax ay az fn))
 
 ; translate-rotate-function technic-bricks.
 (def trf-tb (x y z ax ay az fn)
- (translate ((bw x) (bw y) (bw z))
-  (rotate (ax ay az)
-   (fn))))
+ (tr (bw x) (bw y) (bw z) ax ay az fn))
 
 ; standard bricks
 ;
