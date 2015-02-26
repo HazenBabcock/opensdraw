@@ -52,13 +52,13 @@ class LCadCurve(functions.SpecialFunction):
     
     This function creates and returns a function that parametrizes a curve, specifically
     a cubic spline. All units are LDU. Each control point is specified by a list of lists
-    in the form ((xp yp zp) (dx dy dz)), where xp, yp and zp specify the location of the
+    in the form *((xp yp zp) (dx dy dz))*, where xp, yp and zp specify the location of the
     control point and dx, dy, dz specify the derivative (tangent) of the line as it 
     passes through the control point. A curve must have at least two control points, and
     additionally you must provide a (approximately) perpendicular vector to the
-    derivate ((xp yp zp) (dx dy dz) (px py pz)) for the first control point.
+    derivate *((xp yp zp) (dx dy dz) (px py pz))* for the first control point.
 
-    When you call the created curve function you will get the 6 element list (x y z rx ry rz) 
+    When you call the created curve function you will get the 6 element list *(x y z rx ry rz)* 
     where x, y, z are the location of the curve and rx, ry, rz are the angles that will rotate
     from the current coordinate system to the curve coordinate system. In the curve
     coordinate system z is along the curve and x is perpendicular to the coordinate system
@@ -66,7 +66,7 @@ class LCadCurve(functions.SpecialFunction):
     argument to the created curve function will be adjusted to be in the range 0 - curve
     length if the argument falls outside of this range.
 
-    If you call the created curve function with the argument t it will return the length
+    If you call the created curve function with the argument **t** it will return the length
     of the curve.
 
     Additionally curve has several keyword arguments::
