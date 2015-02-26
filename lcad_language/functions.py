@@ -859,6 +859,64 @@ class LCadSet(SpecialFunction):
 builtin_functions["set"] = LCadSet()
 
 
+class LCadScale(SpecialFunction):
+    """
+    **scale** - Scale child elements.
+
+    Add scale terms to the current transformation matrix. Parts inside a scale
+    block have this transformation applied to them. This is probably not a good
+    idea for standard parts, but it seems to be used with some part primitives.
+
+    :param sx: Scale in x.
+    :param sy: Scale in y.
+    :param sz: Scale in z.
+
+    Usage::
+
+     (scale (2 1 1) .. )  ; stretch by a factor of two in the x dimension.
+
+    """
+    def __init__(self):
+        self.name = "scale"
+
+    def argCheck(self, tree):
+        flist = tree.value
+        if (len(flist)<3):
+            raise lce.NumberArgumentsException("2+", 1)
+        if not isinstance(flist[1].value, list):
+            raise lce.WrongTypeException("list", type(flist[1].value))
+        if (len(flist[1].value) != 3):
+            raise lce.NumberArgumentsException("3", len(flist[1].value))
+
+    def call(self, model, tree):
+        args = tree.value[1].value
+
+        new_model = model.makeCopy()
+        m = numpy.identity(4)
+        sx = interp.getv(interp.interpret(new_model, args[0]))
+        sy = interp.getv(interp.interpret(new_model, args[1]))
+        sz = interp.getv(interp.interpret(new_model, args[2]))
+
+        if not isinstance(sx, numbers.Number):
+            raise lce.WrongTypeException("number", type(sx))
+        if not isinstance(sy, numbers.Number):
+            raise lce.WrongTypeException("number", type(sy))
+        if not isinstance(sz, numbers.Number):
+            raise lce.WrongTypeException("number", type(sz))
+
+        m[0,0] = sx
+        m[1,1] = sy
+        m[2,2] = sz
+
+        new_model.m = numpy.dot(new_model.m, m)
+        if (len(tree.value) > 2):
+            return interp.interpret(new_model, tree.value[2:])
+        else:
+            return None
+
+builtin_functions["scale"] = LCadScale()
+
+
 class LCadTranslate(SpecialFunction):
     """
     **translate** - Translate child elements.
