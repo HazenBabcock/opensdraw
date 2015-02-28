@@ -15,7 +15,6 @@ import functions
 import interpreter as interp
 import lcadExceptions as lce
 import lexerParser
-import parts
 
 lcad_functions = {}
 
@@ -26,15 +25,6 @@ def printSymbolTableIds(lenv):
         print id(lenv)
         lenv = lenv.parent
     print "-"
-
-
-class EmptyTree(object):
-    """
-    An empty AST.
-    """
-    def __init__(self):
-        self.value = [False]
-
 
 class CoreFunction(functions.LCadFunction):
     pass
@@ -305,7 +295,7 @@ class Header(CoreFunction):
 
     def call(self, model, tree):
         text = str(tree.value[1].value)
-        model.header.append(text)
+        model.curGroup().header.append(text)
         return text
 
 lcad_functions["header"] = Header()
@@ -489,54 +479,6 @@ class List(CoreFunction):
         return interp.List(vals)
     
 lcad_functions["list"] = List()
-
-
-class Part(CoreFunction):
-    """
-    **part** - Add a part to the model.
-
-    :param part_id: The name of the LDraw .dat file for this part.
-    :param part_color: The LDraw name or id of the color.
-    :param part_step: (Optional) Which building step to add the part (default = first step).
-
-    Usage::
-
-     (part "32524" 13)
-     (part '32524' "yellow")
-     (part "32524" "yellow" 10)
-
-    """
-    def __init__(self):
-        CoreFunction.__init__(self, "part")
-
-    def argCheck(self, tree):
-        flist = tree.value
-        if (len(flist) != 3) and (len(flist) != 4):
-            raise lce.NumberArgumentsException("2-3", len(flist) - 1)
-
-    def call(self, model, tree):
-        args = tree.value[1:]
-        part_id = interp.getv(interp.interpret(model, args[0]))
-        part_color = interp.getv(interp.interpret(model, args[1]))
-
-        # Get step offset.
-        step_offset = interp.getv(interp.builtin_symbols["step-offset"])
-
-        # Check if it is a function, if so, call the function (which cannot take any arguments).
-        if not isinstance(step_offset, numbers.Number):
-            step_offset = interp.getv(step_offset.call(model, EmptyTree()))
-
-        if not isinstance(step_offset, numbers.Number):
-            raise lce.WrongTypeException("number", type(step_offset))
-
-        if (len(args) == 3):
-            part_step = interp.getv(interp.interpret(model, args[2])) + step_offset
-        else:
-            part_step = step_offset
-        model.parts_list.append(parts.Part(model.m, part_id, part_color, part_step))
-        return None
-
-lcad_functions["part"] = Part()
 
 
 class Print(CoreFunction):

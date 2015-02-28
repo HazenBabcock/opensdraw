@@ -20,6 +20,36 @@ builtin_symbols = {}
 mutable_symbols = []
 
 
+class Group(object):
+    """
+    A group of parts.
+    """
+    def __init__(self, name):
+        self.name = name
+
+        self.m = numpy.identity(4)
+        self.header = []
+        self.parts_list = []
+
+    def addPart(self, part):
+        self.parts_list.append(part)
+
+    def matrix(self):
+        return self.m
+
+    def parts(self):
+        return self.parts_list
+
+    def setMatrix(self, m):
+        self.m = m
+
+    def sortedParts(self):
+        """
+        Return the parts list sorted by step.
+        """
+        return sorted(self.parts_list, key = lambda part: part.step)
+
+
 class LEnv(object):
     """
     This keeps track of the current lexical environment.
@@ -49,10 +79,11 @@ class LEnv(object):
         import geometryFunctions
         import logicFunctions
         import mathFunctions
+        import partFunctions
         import randomNumberFunctions
 
         fn_modules = [chain, comparisonFunctions, coreFunctions, curve, geometryFunctions, 
-                      logicFunctions, mathFunctions, randomNumberFunctions]
+                      logicFunctions, mathFunctions, partFunctions, randomNumberFunctions]
         for module in fn_modules:
             for fn_name in module.lcad_functions.keys():
                 functions.builtin_functions[fn_name] = True
@@ -95,27 +126,26 @@ class List(object):
 class Model(object):
     """
     This keeps track of the current "model", i.e. the 
-    current transformation matrix and the parts list.
+    current transformation matrix and groups of parts.
     """
-    def __init__(self, debug = False):
-        self.m = numpy.identity(4)
-        self.header = []
-        self.parts_list = []
+    def __init__(self):
+        main = Group("main")
+        self.m_cur_group = [main]
+        self.m_groups = [main]
 
-    def getParts(self):
-        return self.parts_list
+    def curGroup(self):
+        return self.m_cur_group[-1]
 
-    def getSortedParts(self):
-        """
-        Return the parts list sorted by step.
-        """
-        return sorted(self.parts_list, key = lambda part: part.step)
+    def groups(self):
+        return self.m_groups
 
-    def makeCopy(self):
-        a_copy = Model()
-        a_copy.m = self.m.copy()
-        a_copy.parts_list = self.parts_list
-        return a_copy
+    def popGroup(self):
+        self.m_cur_group = self.m_cur_group[:-1]
+
+    def pushGroup(self, name):
+        new_group = Group(name)
+        self.m_cur_group.append(new_group)
+        self.m_groups.append(new_group)
 
 
 class Symbol(object):
