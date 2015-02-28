@@ -113,6 +113,10 @@ def test_import_1():
 def test_import_2():
     assert exe("(import mod :local) (fn)") ==  math.pi
 
+# len
+def test_len_1():
+    assert exe("(len (list 1 2 3))") == 3
+
 # list
 def test_list_1():
     assert exe("(def x (list 1 2 3)) (aref x 0)") == 1
@@ -139,6 +143,10 @@ def test_print_1():
 # rotate
 def test_rotate_1():
     assert exe("(rotate (1 2 3) 1)") == 1
+
+# scale
+def test_scale_1():
+    assert exe("(scale (1 2 3) 1)") == 1
 
 # set
 def test_set_1():
