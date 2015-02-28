@@ -46,7 +46,7 @@ class ChainFunction(functions.LCadFunction):
         return interp.List(self.chain.getPositionOrientation(arg))
 
 
-class Chain(functions.LCadFunction):
+class LCadChain(functions.LCadFunction):
     """
     **chain** - Creates a chain function.
     
@@ -120,7 +120,7 @@ class Chain(functions.LCadFunction):
         # Return chain function.
         return ChainFunction(chain)
 
-lcad_functions["chain"] = Chain()
+lcad_functions["chain"] = LCadChain()
 
         
 class NumberSprocketsException(lcadExceptions.LCadException):

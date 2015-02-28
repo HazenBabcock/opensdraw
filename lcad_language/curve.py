@@ -46,7 +46,7 @@ class CurveFunction(functions.LCadFunction):
         return interp.List(self.curve.getCoords(arg))
 
 
-class Curve(functions.LCadFunction):
+class LCadCurve(functions.LCadFunction):
     """
     **curve** - Creates a curve function.
     
@@ -192,7 +192,7 @@ class Curve(functions.LCadFunction):
         # Return curve function.
         return CurveFunction(curve)
 
-lcad_functions["curve"] = Curve()
+lcad_functions["curve"] = LCadCurve()
 
 
 class ControlPointException(lcadExceptions.LCadException):
