@@ -15,6 +15,7 @@ import lcadExceptions as lce
 import functions
 import lexerParser
 
+# Keeps track of all the built in symbols.
 builtin_symbols = {}
 mutable_symbols = []
 
@@ -40,16 +41,23 @@ class LEnv(object):
 
         # Functions.
 
-        # Import extra modules here to avoid circular dependencies and
-        # because this is the only place they are needed.
+        # Import function modules here.
         import chain
+        import comparisonFunctions
+        import coreFunctions
         import curve
+        import geometryFunctions
+        import logicFunctions
+        import mathFunctions
+        import randomNumberFunctions
 
-        fn_modules = [functions, chain, curve]
+        fn_modules = [chain, comparisonFunctions, coreFunctions, curve, geometryFunctions, 
+                      logicFunctions, mathFunctions, randomNumberFunctions]
         for module in fn_modules:
-            for fn_name in module.builtin_functions.keys():
+            for fn_name in module.lcad_functions.keys():
+                functions.builtin_functions[fn_name] = True
                 self.symbols[fn_name] = Symbol(fn_name, "builtin")
-                self.symbols[fn_name].setv(module.builtin_functions[fn_name])
+                self.symbols[fn_name].setv(module.lcad_functions[fn_name])
 
 
 class List(object):

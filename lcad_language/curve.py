@@ -15,7 +15,7 @@ import functions
 import interpreter as interp
 import lcadExceptions
 
-builtin_functions = {}
+lcad_functions = {}
 
 
 #
@@ -24,8 +24,8 @@ builtin_functions = {}
 class CurveFunction(functions.LCadFunction):
 
     def __init__(self, curve):
+        functions.LCadFunction.__init__(self, "user created curve function")
         self.curve = curve
-        self.name = "user created curve function"
 
     def argCheck(self, tree):
         if (len(tree.value) != 2):
@@ -46,7 +46,7 @@ class CurveFunction(functions.LCadFunction):
         return interp.List(self.curve.getCoords(arg))
 
 
-class LCadCurve(functions.SpecialFunction):
+class Curve(functions.LCadFunction):
     """
     **curve** - Creates a curve function.
     
@@ -92,7 +92,7 @@ class LCadCurve(functions.SpecialFunction):
 
     """
     def __init__(self):
-        self.name = "curve"
+        functions.LCadFunction.__init__(self, "curve")
 
     def argCheck(self, tree):
         
@@ -192,7 +192,7 @@ class LCadCurve(functions.SpecialFunction):
         # Return curve function.
         return CurveFunction(curve)
 
-builtin_functions["curve"] = LCadCurve()
+lcad_functions["curve"] = Curve()
 
 
 class ControlPointException(lcadExceptions.LCadException):

@@ -15,7 +15,7 @@ import functions
 import interpreter as interp
 import lcadExceptions
 
-builtin_functions = {}
+lcad_functions = {}
 
 
 #
@@ -24,8 +24,8 @@ builtin_functions = {}
 class ChainFunction(functions.LCadFunction):
 
     def __init__(self, chain):
+        functions.LCadFunction.__init__(self, "user created chain function")
         self.chain = chain
-        self.name = "user created chain function"
 
     def argCheck(self, tree):
         if (len(tree.value) != 2):
@@ -46,7 +46,7 @@ class ChainFunction(functions.LCadFunction):
         return interp.List(self.chain.getPositionOrientation(arg))
 
 
-class LCadChain(functions.SpecialFunction):
+class Chain(functions.LCadFunction):
     """
     **chain** - Creates a chain function.
     
@@ -77,7 +77,7 @@ class LCadChain(functions.SpecialFunction):
 
     """
     def __init__(self):
-        self.name = "chain"
+        functions.LCadFunction.__init__(self, "chain")
 
     def argCheck(self, tree):
 
@@ -120,7 +120,7 @@ class LCadChain(functions.SpecialFunction):
         # Return chain function.
         return ChainFunction(chain)
 
-builtin_functions["chain"] = LCadChain()
+lcad_functions["chain"] = Chain()
 
         
 class NumberSprocketsException(lcadExceptions.LCadException):
