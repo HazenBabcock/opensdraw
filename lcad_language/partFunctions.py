@@ -43,12 +43,12 @@ class Group(PartFunction):
     matrix, not the current transformation matrix.
 
     2. Group names must be unique (and also not overlap with the
-    names of any LDRaw part files.
+    names of any LDraw part files.
 
     Usage::
 
-    (group "assembly1"   ; Create a group called "assembly1" with
-     (part ..))          ; containing a single part.
+     (group "assembly1"   ; Create a group called "assembly1"
+       (part ..))         ; containing a single part.
 
     """
     def __init__(self):
