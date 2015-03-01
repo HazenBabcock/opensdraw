@@ -129,10 +129,12 @@ class Model(object):
     current transformation matrix and groups of parts.
     """
     def __init__(self):
-        main = Group("main")
-        self.m_cur_group = [main]
-        self.m_groups = [main]
+        self.m_cur_group = []
+        self.m_groups = []
+        self.used_names = {}
 
+        self.pushGroup("main")
+        
     def curGroup(self):
         return self.m_cur_group[-1]
 
@@ -143,6 +145,8 @@ class Model(object):
         self.m_cur_group = self.m_cur_group[:-1]
 
     def pushGroup(self, name):
+        if name in self.used_names:
+            raise lce.GroupExistsException(name)
         new_group = Group(name)
         self.m_cur_group.append(new_group)
         self.m_groups.append(new_group)
