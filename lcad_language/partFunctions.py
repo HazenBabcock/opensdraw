@@ -27,6 +27,42 @@ class PartFunction(functions.LCadFunction):
     pass
 
 
+class PrimitiveFunction(PartFunction):
+    """
+    Base class for primitives like line, triangle, etc.
+    """
+    def __init__(self, name):
+        PartFunction.__init__(self, name)
+
+    def argCheck(self, tree):
+        if (len(tree.value) != self.num_args)  and (len(tree.value) != (self.num_args + 1)):
+            raise lce.NumberArgumentsException(str(self.num_args - 1) + "-" + str(self.num_args),
+                                               len(flist) - 1)
+
+    def call(self, model, tree):
+        coords = []
+
+        # Get color.
+        if (len(tree.value) == (self.num_args + 1)):
+            color = interp.getv(interp.interpret(model, tree.value[-1]))
+            args = tree.value[1:-1]
+        else:
+            color = 16
+            args = tree.value[1:]
+
+        # Get coordinates.
+        for arg in args:
+            coord = interp.getv(interp.interpret(model, arg))
+            if not isinstance(coord, numbers.Number):
+                raise lce.WrongTypeException("number", type(coord))
+            coords.append(coord)
+
+        group = model.curGroup()
+        group.addPart(self.parts_fn(group.matrix(), coords, color))
+
+        return None
+
+
 class Group(PartFunction):
     """
     **group** - Creates a group (or sub-file) in the model.
@@ -102,6 +138,64 @@ class Header(PartFunction):
 lcad_functions["header"] = Header()
 
 
+class Line(PrimitiveFunction):
+    """
+    **line** - Add a line primitive to the model.
+
+    :param x1: x position of vertex 1.
+    :param y1: y position of vertex 1.
+    :param z1: z position of vertex 1.
+    :param x2: x position of vertex 2.
+    :param y2: y position of vertex 2.
+    :param z2: z position of vertex 2.
+    :param color: (optional) line color, defaults to 16, the "main color".
+
+    Usage::
+
+     (line x1 y1 z1 x2 y2 z2 color)  ; A line from (x1, y1, z1) to (x2, y2, z2) with color color.
+     (line x1 y1 z1 x2 y2 z2)        ; Same as above, but now color will be the "main color", i.e. 16.
+
+    """
+    def __init__(self):
+        PrimitiveFunction.__init__(self, "line")
+        self.num_args = 7
+        self.parts_fn = parts.Line
+
+lcad_functions["line"] = Line()
+
+
+class OptionalLine(PrimitiveFunction):
+    """
+    **optional-line** - Add a optional line primitive to the model.
+
+    :param x1: x position of line vertex 1.
+    :param y1: y position of line vertex 1.
+    :param z1: z position of line vertex 1.
+    :param x2: x position of line vertex 2.
+    :param y2: y position of line vertex 2.
+    :param z2: z position of line vertex 2.
+    :param x1: x position of control vertex 1.
+    :param y1: y position of control vertex 1.
+    :param z1: z position of control vertex 1.
+    :param x2: x position of control vertex 2.
+    :param y2: y position of control vertex 2.
+    :param z2: z position of control vertex 2.
+    :param color: (optional) line color, defaults to 16, the "main color".
+
+    Usage::
+
+     (optional-line x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 color) ; A optional line with vertices (x1, y1, z1), (x2, y2, z2) 
+                                                               ; and control point vertices (x3, y3, z3), (x4, y4, z4).
+     (optional-line x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4)       ; Same as above, but now color will be the "main color", i.e. 16.
+    """
+    def __init__(self):
+        PrimitiveFunction.__init__(self, "optional-line")
+        self.num_args = 13
+        self.parts_fn = parts.OptionalLine
+
+lcad_functions["optional-line"] = OptionalLine()
+
+
 class Part(PartFunction):
     """
     **part** - Add a part to the model.
@@ -149,6 +243,77 @@ class Part(PartFunction):
         return None
 
 lcad_functions["part"] = Part()
+
+
+class Quadrilateral(PrimitiveFunction):
+    """
+    **quadrilateral** - Add a quadrilateral primitive to the model.
+
+    :param x1: x position of vertex 1.
+    :param y1: y position of vertex 1.
+    :param z1: z position of vertex 1.
+    :param x2: x position of vertex 2.
+    :param y2: y position of vertex 2.
+    :param z2: z position of vertex 2.
+    :param x3: x position of vertex 3.
+    :param y3: y position of vertex 3.
+    :param z3: z position of vertex 3.
+    :param x4: x position of vertex 4.
+    :param y4: y position of vertex 4.
+    :param z4: z position of vertex 4.
+    :param color: (optional) fill color, defaults to 16, the "main color".
+
+    You should probably also specify a winding order using the header() function.
+
+    Example::
+
+     (header "BFC CERTIFY CCW")
+
+    Usage::
+
+     (quadrilateral x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 color) ; A quadrilateral with vertices (x1, y1, z1), (x2, y2, z2), (x3, y3, z3), (x4, y4, z4).
+     (quadrilateral x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4)       ; Same as above, but now color will be the "main color", i.e. 16.
+    """
+    def __init__(self):
+        PrimitiveFunction.__init__(self, "quadrilateral")
+        self.num_args = 13
+        self.parts_fn = parts.Quadrilateral
+
+lcad_functions["quadrilateral"] = Quadrilateral()
+
+
+class Triangle(PrimitiveFunction):
+    """
+    **triangle** - Add a triangle primitive to the model.
+
+    :param x1: x position of vertex 1.
+    :param y1: y position of vertex 1.
+    :param z1: z position of vertex 1.
+    :param x2: x position of vertex 2.
+    :param y2: y position of vertex 2.
+    :param z2: z position of vertex 2.
+    :param x3: x position of vertex 3.
+    :param y3: y position of vertex 3.
+    :param z3: z position of vertex 3.
+    :param color: (optional) fill color, defaults to 16, the "main color".
+
+    You should probably also specify a winding order using the header() function.
+
+    Example::
+
+     (header "BFC CERTIFY CCW")
+
+    Usage::
+
+     (triangle x1 y1 z1 x2 y2 z2 x3 y3 z3 color) ; A triangle with vertices (x1, y1, z1), (x2, y2, z2), (x3, y3, z3).
+     (triangle x1 y1 z1 x2 y2 z2 x3 y3 z3)       ; Same as above, but now color will be the "main color", i.e. 16.
+    """
+    def __init__(self):
+        PrimitiveFunction.__init__(self, "triangle")
+        self.num_args = 10
+        self.parts_fn = parts.Triangle
+
+lcad_functions["triangle"] = Triangle()
 
 
 #

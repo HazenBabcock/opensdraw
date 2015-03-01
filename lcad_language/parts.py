@@ -22,20 +22,78 @@ def formatNumber(a_number, precision):
     f_string = "{0:." + str(precision) + "f}"
     return f_string.format(a_number)
 
+def toColor(color):
+    if isinstance(color, int):
+        return str(color)
+    else:
+        return lcad_name_dict[self.part_color.lower()].code
+
+
+# LDraw primitives.
+class LDraw(object):
+
+    def __init__(self, matrix, coords, color):
+        self.coords = coords
+        self.color = toColor(color)
+        self.step = 0
+
+        # Transform coordinates using current transformation matrix.
+        for i in range(len(coords)/3):
+            vec = numpy.array([self.coords[3*i],
+                               self.coords[3*i+1],
+                               self.coords[3*i+2],
+                               1.0])
+            loc = numpy.dot(matrix, vec)
+            self.coords[3*i] = loc[0]
+            self.coords[3*i+1] = loc[1]
+            self.coords[3*i+2] = loc[2]
+
+    def toLDraw(self):
+        ld_str = self.prefix + self.color + " "
+        ld_str += " ".join(map(lambda(x): formatNumber(x, 2), self.coords))
+        return ld_str
+
+
+class Line(LDraw):
+
+    def __init__(self, matrix, coords, color):
+        LDraw.__init__(self, matrix, coords, color)
+        self.prefix = "2 "
+
+
+class OptionalLine(LDraw):
+
+    def __init__(self, matrix, coords, color):
+        LDraw.__init__(self, matrix, coords, color)
+        self.prefix = "5 "
+
+
+class Quadrilateral(LDraw):
+
+    def __init__(self, matrix, coords, color):
+        LDraw.__init__(self, matrix, coords, color)
+        self.prefix = "4 "
+
+
+class Triangle(LDraw):
+
+    def __init__(self, matrix, coords, color):
+        LDraw.__init__(self, matrix, coords, color)
+        self.prefix = "3 "
+
+
+# LDraw parts.
 class Part(object):
 
-    def __init__(self, model_matrix, part_id, part_color, step):
-        self.model_matrix = model_matrix
-        try:
-            self.part_color = int(part_color)
-        except ValueError:
-            self.part_color = part_color
+    def __init__(self, matrix, part_id, part_color, step):
 
+        self.matrix = matrix.copy()
+        self.part_color = toColor(part_color)
         self.part_id = part_id
         self.step = step
 
-        self.loc = numpy.array([0.0, 0.0, 0.0, 1.0])
-        self.loc = numpy.dot(self.model_matrix, self.loc)
+        #self.loc = numpy.array([0.0, 0.0, 0.0, 1.0])
+        #self.loc = numpy.dot(self.model_matrix, self.loc)
 
     def toLDraw(self):
         """
@@ -46,20 +104,17 @@ class Part(object):
         ld_str = "1 "
 
         # color
-        if isinstance(self.part_color, int):
-            ld_str += str(self.part_color) + " "
-        else:
-            ld_str += lcad_name_dict[self.part_color.lower()].code + " "
+        ld_str += self.part_color + " "
 
         # xyz
-        ld_str += formatNumber(self.model_matrix[0,3], 2) + " "
-        ld_str += formatNumber(self.model_matrix[1,3], 2) + " "
-        ld_str += formatNumber(self.model_matrix[2,3], 2) + " "
+        ld_str += formatNumber(self.matrix[0,3], 2) + " "
+        ld_str += formatNumber(self.matrix[1,3], 2) + " "
+        ld_str += formatNumber(self.matrix[2,3], 2) + " "
 
         # abcdefghi
         for i in range(3):
             for j in range(3):
-                ld_str += formatNumber(self.model_matrix[i,j], 3) + " "
+                ld_str += formatNumber(self.matrix[i,j], 3) + " "
 
         # part
         if not (".dat" in self.part_id) and not (".ldr" in self.part_id):
