@@ -39,7 +39,7 @@ class Mirror(GeometryFunction):
     def argCheck(self, tree):
         flist = tree.value
         if (len(flist)<3):
-            raise lce.NumberArgumentsException("2+", 0)
+            raise lce.NumberArgumentsException("2+", len(flist)-1)
         if not isinstance(flist[1].value, list):
             raise lce.WrongTypeException("list", type(flist[1].value))
         if (len(flist[1].value) != 3):
@@ -103,7 +103,7 @@ class Rotate(GeometryFunction):
     def argCheck(self, tree):
         flist = tree.value
         if (len(flist)<3):
-            raise lce.NumberArgumentsException("2+", 0)
+            raise lce.NumberArgumentsException("2+", len(flist)-1)
         if not isinstance(flist[1].value, list):
             raise lce.WrongTypeException("list", type(flist[1].value))
         if (len(flist[1].value) != 3):
@@ -181,7 +181,7 @@ class Scale(GeometryFunction):
     def argCheck(self, tree):
         flist = tree.value
         if (len(flist)<3):
-            raise lce.NumberArgumentsException("2+", 1)
+            raise lce.NumberArgumentsException("2+", len(flist)-1)
         if not isinstance(flist[1].value, list):
             raise lce.WrongTypeException("list", type(flist[1].value))
         if (len(flist[1].value) != 3):
@@ -241,7 +241,7 @@ class Translate(GeometryFunction):
     def argCheck(self, tree):
         flist = tree.value
         if (len(flist)<3):
-            raise lce.NumberArgumentsException("2+", 1)
+            raise lce.NumberArgumentsException("2+", len(flist)-1)
         if not isinstance(flist[1].value, list):
             raise lce.WrongTypeException("list", type(flist[1].value))
         if (len(flist[1].value) != 3):
