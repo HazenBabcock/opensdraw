@@ -47,7 +47,7 @@ def text_time_index():
     assert exe("time-index") == 0
 
 
-## Functions
+## coreFunctions
 
 # aref
 def test_aref_1():
@@ -113,6 +113,10 @@ def test_import_1():
 def test_import_2():
     assert exe("(import mod :local) (fn)") ==  math.pi
 
+# lambda
+def test_lambda_1():
+    assert exe("(def fn (lambda (x) (+ x 1))) (fn 1)") == 2
+
 # len
 def test_len_1():
     assert exe("(len (list 1 2 3))") == 3
@@ -124,29 +128,9 @@ def test_list_1():
 def test_list_2():
     assert exe("(list 1 2 3)").getl()[1].getv() == 2
 
-# lambda
-def test_lambda_1():
-    assert exe("(def fn (lambda (x) (+ x 1))) (fn 1)") == 2
-
-# mirror
-def test_mirror_1():
-    assert exe("(mirror (1 (if t 0 1) (if nil 0 1)) 1)") == 1
-
-# part
-def test_part_1():
-    assert exe("(part '1234' 5) 1") == 1
-
 # print
 def test_print_1():
     assert exe("(print \"123\")") == "123"
-
-# rotate
-def test_rotate_1():
-    assert exe("(rotate (1 2 3) 1)") == 1
-
-# scale
-def test_scale_1():
-    assert exe("(scale (1 2 3) 1)") == 1
 
 # set
 def test_set_1():
@@ -158,15 +142,44 @@ def test_set_2():
 def test_set_3():
     assert exe("(def fn () 1) (def x 2) (set x fn) (x)") == 1
 
-# translate
-def test_translate_1():
-    assert exe("(translate (1 2 3) 1)") == 1
-
 # while
 def test_while_1():
     assert exe("(def x 0) (while (< x 9) (set x (+ 2 x))) x") == 10
 
-print exe("(list 1 2 3)").getl()[1].getv()
+
+## Part Functions.
+
+# group
+def test_group_1():
+    assert exe("(group \"adsf\" 1)") == 1
+
+# header
+def test_header_1():
+    assert exe("(header \"asdf\")") == "asdf"
+
+
+# line
+def test_line_1():
+    assert exe("(line 1 2 3 4 5 6) 1") == 1
+
+# optional line
+def test_optional_line_1():
+    assert exe("(optional-line 1 2 3 4 5 6 1 2 3 4 5 6) 1") == 1
+
+# part
+def test_part_1():
+    assert exe("(part '1234' 5) 1") == 1
+
+# quadrilateral
+def test_quadrilateral_1():
+    assert exe("(quadrilateral 1 2 3 4 5 6 1 2 3 4 5 6) 1") == 1
+
+# triangle
+def test_triangle_1():
+    assert exe("(triangle 1 2 3 4 5 6 7 8 9) 1") == 1
+
+
+## Comparison Operators.
 
 # equal
 def test_eq_1():
@@ -210,6 +223,28 @@ def test_ne_1():
 def test_ne_2():
     assert exe("(if (!= 1 1) 0 1)") == 1
 
+
+## Geometry Functions.
+
+# mirror
+def test_mirror_1():
+    assert exe("(mirror (1 (if t 0 1) (if nil 0 1)) 1)") == 1
+
+# rotate
+def test_rotate_1():
+    assert exe("(rotate (1 2 3) 1)") == 1
+
+# scale
+def test_scale_1():
+    assert exe("(scale (1 2 3) 1)") == 1
+
+# translate
+def test_translate_1():
+    assert exe("(translate (1 2 3) 1)") == 1
+
+
+## Logical Operators.
+
 # and
 def test_and_1():
     assert exe("(if (and (< 1 2) (< 2 3)) 0 1)") == 0
@@ -234,7 +269,8 @@ def test_not_2():
 def test_not_3():
     assert exe("(if (not ()) 0 1)") == 0
 
-print exe("(if (and (< 1 2) (> 2 3)) 0 1)")
+
+## Math Functions.
 
 # basic math
 def test_math_1():
@@ -265,7 +301,19 @@ def test_py_math_3():
 def test_py_math_4():
     assert int(round(exe("(sin (/ pi 2))"))) == 1
 
-# random numbers
+
+## Miscellaneous Functions.
+
+# chain
+def test_chain_1():
+    assert exe("(chain (-4 0 1 1) (4 0 1 1)) 1") == 1
+
+# curve
+def test_curve_1():
+    assert exe("(curve ((0 0 0) (1 1 0) (0 0 1)) ((5 0 0) (1 0 0))) 1") == 1
+
+
+# Random Number Functions.
 def test_rand_seed_1():
     assert isinstance(exe("(rand-seed 10)"), numbers.Number)
 
