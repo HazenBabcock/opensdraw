@@ -9,7 +9,7 @@
 
 (defconst lcad-keywords
       `((,(concat "(\\("
-		  (regexp-opt '("aref" "block" "chain" "cond" "curve" "def" "for" "header" "if" "import" "lambda"
+		  (regexp-opt '("aref" "block" "chain" "cond" "curve" "def" "for" "group" "header" "if" "import" "lambda"
 				"len" "list" "mirror" "part" "print" "rotate" "scale" "set" "translate" "while"))
 		  "\\)\\>"
 		  "[ \r\n\t]+")
@@ -44,6 +44,7 @@
 ;; lcad specific offsets here
 (put 'def 'lcad-indent-function 'defun)
 (put 'for 'lcad-indent-function 1)
+(put 'group 'lcad-indent-function 1)
 (put 'if 'lcad-indent-function 2)
 (put 'lambda 'lcad-indent-function 'defun)
 (put 'mirror 'lcad-indent-function 1)
