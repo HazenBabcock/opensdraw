@@ -20,7 +20,7 @@ Part Functions
 --------------
 
 .. automodule:: lcad_language.partFunctions
-   :members: Group, Header, Part
+   :members: Group, Header, Line, OptionalLine, Part, Quadrilateral, Triangle
 
 Comparison Operators
 --------------------
