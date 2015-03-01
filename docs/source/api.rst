@@ -14,7 +14,13 @@ Functions
 ---------
 
 .. automodule:: lcad_language.coreFunctions
-   :members: Aref, Block, Cond, Def, For, Header, If, Import, Lambda, Len, List, Part, Print, Set, While
+   :members: Aref, Block, Cond, Def, For, If, Import, Lambda, Len, List, Print, Set, While
+
+Part Functions
+--------------
+
+.. automodule:: lcad_language.partFunctions
+   :members: Group, Header, Part
 
 Comparison Operators
 --------------------
