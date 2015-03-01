@@ -30,6 +30,10 @@ class FileNotFoundException(LCadException):
     def __init__(self, filename):
         LCadException.__init__(self, filename + " not found.")
 
+class GroupExistsException(LCadException):
+    def __init__(self, name):
+        LCadException.__init__(self, "A group with the name " + name + " already exists.")
+
 class IllegalArgumentTypeException(LCadException):
     def __init__(self):
         LCadException.__init__(self, "arguments in function definition must be symbols.")

@@ -7,14 +7,11 @@
 
 """
 
-from itertools import izip
 import numbers
-import os
 
 import functions
 import interpreter as interp
 import lcadExceptions as lce
-import lexerParser
 import parts
 
 lcad_functions = {}
@@ -28,6 +25,52 @@ class EmptyTree(object):
 
 class PartFunction(functions.LCadFunction):
     pass
+
+
+class Group(PartFunction):
+    """
+    **group** - Creates a group (or sub-file) in the model.
+
+    This allows the grouping of parts to create a multi-part
+    output file. Normally you probably want to group parts
+    into a function, but sometimes you might want to 
+    generate output that is better formatted for tools that
+    work on mpd files. 
+
+    Note that:
+
+    1. When created groups always have the identity transformation 
+    matrix, not the current transformation matrix.
+
+    2. Group names must be unique (and also not overlap with the
+    names of any LDRaw part files.
+
+    Usage::
+
+    (group "assembly1"   ; Create a group called "assembly1" with
+     (part ..))          ; containing a single part.
+
+    """
+    def __init__(self):
+        PartFunction.__init__(self, "group")
+
+    def argCheck(self, tree):
+        if (len(tree.value)<3):
+            raise lce.NumberArgumentsException("2+", len(flist)-1)
+
+    def call(self, model, tree):
+        if (len(tree.value) > 2):
+            name = interp.getv(interp.interpret(model, tree.value[1]))
+            if not isinstance(name, basestring):
+                raise lce.WrongTypeException("string", type(name))
+            model.pushGroup(name)
+            val = interp.interpret(model, tree.value[2:])
+            model.popGroup()
+            return val
+        else:
+            return None
+
+lcad_functions["group"] = Group()
 
 
 class Header(PartFunction):
