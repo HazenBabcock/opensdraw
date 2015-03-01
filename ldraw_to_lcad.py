@@ -94,8 +94,9 @@ class FileGenerator(datFileParser.Parser):
     def __init__(self, lcad_filename, sub_files, technic = False):
         datFileParser.Parser.__init__(self, None, None)
         self.dat_filep = None
-        self.first_file = True
+        self.file_number = 0
         self.indent = ""
+        self.in_header = False
         self.lcad_filename = lcad_filename
         self.lcad_filep = open(lcad_filename, "w")
         self.sub_files = sub_files
@@ -142,44 +143,46 @@ class FileGenerator(datFileParser.Parser):
 
             # If this is not a raw data file, start the next function.
             if self.dat_filep is None:
-                self.indent = "  "
 
                 # End previous function.
-                if not self.first_file:
-                    self.lcad_filep.write("  ))\n")
+                if (self.file_number > 1):
+                    self.lcad_filep.write(" )\n")
 
                 self.lcad_filep.write("\n")
                 
-                # The first file is assumed to be main, which does not have a color parameter.
-                if self.first_file:
-                    self.lcad_filep.write("(def " + file_name + " ()\n")
-                else:
-                    self.lcad_filep.write("(def " + file_name + " (color)\n")
-                self.lcad_filep.write(" (block\n")
+                if (self.file_number > 0):
+                    self.lcad_filep.write("(group \"" + file_name + "\"\n")
+                    self.indent = " "
 
-                self.first_file = False
+                self.file_number += 1
 
             # Reset step counter.
             self.step = 1
+
+            # Header starts after FILE, goes to first command.
+            self.in_header = True
         else:
-            if (parsed_line[1] == "STEP"):
-                self.step += 1
-            self.addLineToDat(parsed_line)
+            if not self.addLineToDat(parsed_line):
+                if (parsed_line[1] == "STEP"):
+                    self.step += 1
+                if self.in_header:
+                    self.lcad_filep.write(self.indent + "(header \"" + " ".join(parsed_line[1:]) + "\")\n")
 
     def endFile(self):
         if self.dat_filep is not None:
             self.dat_filep.close()
             self.dat_filep = None
         if (len(self.sub_files) > 0):
-            self.lcad_filep.write("  ))\n")
+            self.lcad_filep.write(" )\n")
             self.lcad_filep.write("\n")
-            self.lcad_filep.write("(" + self.sub_files[0][0] + ")\n")
         self.lcad_filep.close()
 
     def line(self, parsed_line):
+        self.in_header = False
         self.addLineToDat(parsed_line)
 
     def newFile(self, parsed_line):
+        self.in_header = False
 
         # Handle whitespace in the filename.
         if (len(parsed_line) > 15):
@@ -241,33 +244,27 @@ class FileGenerator(datFileParser.Parser):
             rx = 180.0*rx/math.pi
             ry = 180.0*ry/math.pi
             rz = 180.0*rz/math.pi
-
+            
             pos_string = " " + " ".join(map(formatNumber, [bx, by, bz, rx, ry, rz])) + " "
-            if sub_file:
-                sub_string = pos_string + "(lambda () (" + str(a_file) + " " + color + ")))\n"
-                if self.is_technic:
-                    self.lcad_filep.write(self.indent + "(trf-tb" + sub_string)
-                else:
-                    self.lcad_filep.write(self.indent + "(trf-sb" + sub_string)
+            sub_string = pos_string + "\"" + str(a_file) + "\" " + color + " " + str(self.step) + ")\n"
+            if self.is_technic:
+                self.lcad_filep.write(self.indent + "(tbs" + sub_string)
             else:
-                if (color == "16"):
-                    color = "color"
-                sub_string = pos_string + "\"" + str(a_file) + "\" " + color + " " + str(self.step) + ")\n"
-                if self.is_technic:
-                    self.lcad_filep.write(self.indent + "(tbs" + sub_string)
-                else:
-                    self.lcad_filep.write(self.indent + "(sbs" + sub_string)
+                self.lcad_filep.write(self.indent + "(sbs" + sub_string)
 
     def optionalLine(self, parsed_line):
+        self.in_header = False
         self.addLineToDat(parsed_line)
 
     def quadrilateral(self, parsed_line):
+        self.in_header = False
         self.addLineToDat(parsed_line)
 
     def startFile(self, depth):
         pass
 
     def triangle(self, parsed_line):
+        self.in_header = False
         self.addLineToDat(parsed_line)
 
 
