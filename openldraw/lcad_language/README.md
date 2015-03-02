@@ -13,6 +13,7 @@ This folder contains the modules that define the lcad language. This is a [prefi
 * lexerParser.py - The lexer/parser for the lcad language.
 * logicFunctions.py - And, Or, Not.
 * mathFunctions.py - /, *, +, -, ..
+* partFunctions.py - LDraw parts and primitives (line, triangle, ..).
 * parts.py - The Part object.
 * randomNumberFunctions.py - Random number generating functions.
 
