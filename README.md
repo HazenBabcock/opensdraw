@@ -12,19 +12,7 @@ I use partviewer.py to find LDraw part information, emacs to edit the .lcad file
 ### Directory Layout ###
 * docs - Sphinx documentation.
 * emacs - Minor mode for editing .lcad files with emacs.
-* examples - Sample .lcad format files.
-* lcad_language - The lcad language interpreter.
-* lcad_lib - Supporting modules for partviewer.
-* library - Modules that are part of the lcad language.
-* misc - Some utility scripts.
-* partviewer - A simple utility for finding ldraw part numbers and colors.
-
-### Files ###
-* lcad_to_ldraw.py - Uses the lcad language interpreter to convert a .lcad file to a ldraw .dat file.
-* ldraw_to_lcad.py - Converts a ldraw format .dat, .ldr or .mpd file to a .lcad file.
-* openldraw.pth - A sample .pth file.
-* colors.xml - XML file describing the LDraw colors (created using misc/make_colors_xml.py).
-* parts.xml - XML file describing the available parts (created using misc/make_parts_xml.py).
+* openldraw - The openldraw package.
 
 ### Dependencies ###
 * [LDraw](http://www.ldraw.org)
