@@ -10,7 +10,8 @@
 (defconst lcad-keywords
       `((,(concat "(\\("
 		  (regexp-opt '("aref" "block" "chain" "cond" "curve" "def" "for" "group" "header" "if" "import" "lambda"
-				"len" "list" "mirror" "part" "print" "rotate" "scale" "set" "translate" "while"))
+				"len" "line" "list" "mirror" "optional-line" "part" "print" "quadrilateral" "rotate" 
+				"scale" "set" "translate" "triangle" "while"))
 		  "\\)\\>"
 		  "[ \r\n\t]+")
 	 (1 font-lock-function-name-face))
