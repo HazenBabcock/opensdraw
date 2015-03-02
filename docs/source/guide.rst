@@ -12,10 +12,35 @@ Dependencies
 Setup
 -----
 
+Python path
+~~~~~~~~~~~
 The project root directory needs to be in your Python path. One way to
 do this is to edit the *openldraw.pth* file to have the correct path,
-then copy this file into your Python dist-packages directory.
+then copy this file into your Python dist-packages directory. An example file: ::
 
+   /home/username/Downloads/openldraw/
+
+LDraw path
+~~~~~~~~~~
+Edit the path in *openldraw/xml/ldraw_path.xml* to point to your LDraw directory
+(not the parts sub-directory). An example file: ::
+
+   <?xml version="1.0" encoding="utf-8"?>
+   <ldraw-path>
+    <path path="/home/username/Downloads/ldraw/"/>
+   </ldraw-path>
+
+
+Parts
+~~~~~
+If you want the *openldraw/xml/parts.xml* file to reflect the current content
+of your LDraw parts directory you need to do the following. ::
+
+   cd openldraw/xml
+   python ../scripts/make_parts_xml.py /path/to/ldraw/parts/directory/
+
+Emacs
+~~~~~
 Any text editor can be used to create .lcad files, however emacs
 integration is provided. The following steps should enable this:
 
@@ -44,7 +69,7 @@ The basic work flow is:
 2. Edit your MOC .lcad file to include this part in the desired location.
 3. Convert the MOC .lcad file to a .dat file using *lcad_to_ldraw.py*. ::
 
-     python /path/to/openldraw/lcad_to_ldraw.py file.lcad file.dat
+     python /path/to/openldraw/scripts/lcad_to_ldraw.py file.lcad file.dat
 
 4. Visualize the .dat file with LDView (or equivalent).
 
@@ -59,22 +84,22 @@ Understanding Error Messages
 
 Occasionally things will go wrong and you will get a possibly long and confusing back-trace like this: ::
 
-   !Error in function 'chain1' at line 76 in file '/home/hbabcock/Code/openldraw/examples/chain.lcad'
+   !Error in function 'chain1' at line 75 in file 'chain.lcad'
 
    Traceback (most recent call last):
-     File "/home/hbabcock/Code/openldraw/lcad_to_ldraw.py", line 46, in <module>
-       parts = interpreter.execute(ldraw_file_contents, filename = sys.argv[1], time_index = index).getSortedParts()
-     File "/home/hbabcock/Code/openldraw/lcad_language/interpreter.py", line 280, in execute
+     File "../scripts/lcad_to_ldraw.py", line 46, in <module>
+       model = interpreter.execute(ldraw_file_contents, filename = sys.argv[1], time_index = index)
+     File "/home/hbabcock/Code/openldraw/openldraw/lcad_language/interpreter.py", line 335, in execute
        interpret(model, ast)
-     File "/home/hbabcock/Code/openldraw/lcad_language/interpreter.py", line 366, in interpret
+     File "/home/hbabcock/Code/openldraw/openldraw/lcad_language/interpreter.py", line 422, in interpret
        ret = interpret(model, node)
-     File "/home/hbabcock/Code/openldraw/lcad_language/interpreter.py", line 349, in interpret
+     File "/home/hbabcock/Code/openldraw/openldraw/lcad_language/interpreter.py", line 407, in interpret
        val = dispatch(func, model, tree)
-     File "/home/hbabcock/Code/openldraw/lcad_language/interpreter.py", line 257, in dispatch
+     File "/home/hbabcock/Code/openldraw/openldraw/lcad_language/interpreter.py", line 311, in dispatch
        func.argCheck(tree)
-     File "/home/hbabcock/Code/openldraw/lcad_language/functions.py", line 122, in argCheck
+     File "/home/hbabcock/Code/openldraw/openldraw/lcad_language/functions.py", line 115, in argCheck
        raise lce.NumberArgumentsException(self.min_args, len(args))
-   lcad_language.lcadExceptions.NumberArgumentsException: !Error, wrong number of standard arguments, got 0 expected 1
+   openldraw.lcad_language.lcadExceptions.NumberArgumentsException: !Error, wrong number of standard arguments, got 0 expected 1
 
 This trace consists of 3 parts:
 
