@@ -87,7 +87,7 @@
 (defun compile ()
   (save-buffer)
   (interactive)
-  (shell-command (concat "python ~/Code/openldraw/lcad_to_ldraw.py " 
+  (shell-command (concat "python ~/Code/openldraw/openldraw/scripts/lcad_to_ldraw.py "
 			 (buffer-file-name) " "
 			 (file-name-sans-extension (buffer-file-name)) ".dat")))
 
@@ -113,7 +113,7 @@
 ;
 ; The MIT License
 ;
-; Copyright (c) 2014 Hazen Babcock
+; Copyright (c) 2015 Hazen Babcock
 ;
 ; Permission is hereby granted, free of charge, to any person obtaining a copy
 ; of this software and associated documentation files (the "Software"), to deal
