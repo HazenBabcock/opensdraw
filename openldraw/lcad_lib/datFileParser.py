@@ -12,7 +12,7 @@ import os
 import sys
 from xml.etree import ElementTree
 
-import lcad_lib.ldrawPath as ldrawPath
+import ldrawPath
 
 #
 # Find all the possible part directories & cache this.

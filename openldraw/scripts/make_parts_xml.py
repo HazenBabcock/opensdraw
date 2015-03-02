@@ -15,8 +15,6 @@ import sys
 from xml.dom import minidom
 from xml.etree import ElementTree
 
-import lcad_lib.ldrawPath
-
 if (len(sys.argv) != 2):
     print "usage: <path/to/parts/directory>"
     exit()

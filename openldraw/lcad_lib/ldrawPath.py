@@ -13,9 +13,9 @@ from xml.etree import ElementTree
 
 path = os.path.dirname(__file__)
 if (len(path) == 0):
-    path_xml_file = "./../ldraw_path.xml"
+    path_xml_file = "./../xml/ldraw_path.xml"
 else:
-    path_xml_file = path + "/../ldraw_path.xml"
+    path_xml_file = path + "/../xml/ldraw_path.xml"
 
 def getLDrawPath():
     xml = ElementTree.parse(path_xml_file).getroot()

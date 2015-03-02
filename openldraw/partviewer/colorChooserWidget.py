@@ -11,7 +11,7 @@ import sys
 
 from PyQt4 import QtCore, QtGui
 
-import lcad_lib.colorsParser
+import openldraw.lcad_lib.colorsParser as colorsParser
 
 
 ## ColorChooserWidget
@@ -32,7 +32,7 @@ class ColorChooserWidget(QtGui.QWidget):
 
         max_x = 400
         n_groups = 0
-        colors = lcad_lib.colorsParser.loadColors()
+        colors = colorsParser.loadColors()
         #x_pos = 2
         y_pos = 2
         for color_group in colors:

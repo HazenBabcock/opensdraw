@@ -23,7 +23,7 @@ import numpy
 
 from OpenGL import arrays, GL
 
-import lcad_lib.datFileParser as datFileParser
+import datFileParser
 
 
 # Variables 

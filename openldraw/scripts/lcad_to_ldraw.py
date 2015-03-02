@@ -9,7 +9,7 @@
 import os
 import sys
 
-import lcad_language.interpreter as interpreter
+import openldraw.lcad_language.interpreter as interpreter
 
 if (len(sys.argv) < 2):
     print "usage: <lcad file> <ldraw file (optional)> <time points (optional)>"

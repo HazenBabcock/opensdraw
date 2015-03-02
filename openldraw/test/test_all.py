@@ -10,8 +10,8 @@
 import math
 import numbers
 
-import lcad_language.interpreter as interpreter
-import lcad_language.lexerParser as lexerParser
+import openldraw.lcad_language.interpreter as interpreter
+import openldraw.lcad_language.lexerParser as lexerParser
 
 def exe(string):
     """

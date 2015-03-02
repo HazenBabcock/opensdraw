@@ -69,8 +69,8 @@ def loadColors(colors_file = None):
     """
 
     if colors_file is None:
-        # The colors.xml file is assumed to exist one directory above this module.
-        colors_file = os.path.split(os.path.split(os.path.abspath(__file__))[0])[0] + "/colors.xml"
+        # The colors.xml file is assumed to exist in the xml directory, one directory above this module.
+        colors_file = os.path.split(os.path.split(os.path.abspath(__file__))[0])[0] + "/xml/colors.xml"
 
     color_xml = ElementTree.parse(colors_file).getroot()
     all_colors = []

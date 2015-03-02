@@ -8,7 +8,7 @@
 
 import numpy
 
-import lcad_lib.colorsParser as colorsParser
+import openldraw.lcad_lib.colorsParser as colorsParser
 
 # Load colors and create dictionaries.
 all_colors = colorsParser.loadColors()
@@ -26,7 +26,7 @@ def toColor(color):
     if isinstance(color, int):
         return str(color)
     else:
-        return lcad_name_dict[self.part_color.lower()].code
+        return lcad_name_dict[color.lower()].code
 
 
 # LDraw primitives.

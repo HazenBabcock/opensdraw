@@ -26,7 +26,7 @@ import os
 import re
 import sys
 
-import lcad_lib.datFileParser as datFileParser
+import openldraw.lcad_lib.datFileParser as datFileParser
 
 if (len(sys.argv) < 3):
     print "usage: <ldraw file (input)> <lcad file (output)> <(0 - std|1 - technic)"

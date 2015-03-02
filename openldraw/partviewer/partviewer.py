@@ -13,7 +13,7 @@ from xml.etree import ElementTree
 
 from PyQt4 import QtCore, QtGui
 
-import lcad_lib.ldrawPath as ldrawPath
+import openldraw.lcad_lib.ldrawPath as ldrawPath
 import colorChooserWidget
 
 import partviewer_ui
@@ -197,9 +197,9 @@ if (__name__ == '__main__'):
     else:
         directory = os.path.dirname(__file__)
         if (len(directory) > 0):
-            window = PartViewer(directory + "/../parts.xml")
+            window = PartViewer(directory + "/../xml/parts.xml")
         else:
-            window = PartViewer("../parts.xml")
+            window = PartViewer("../xml/parts.xml")
     window.show()
     app.exec_()
 
