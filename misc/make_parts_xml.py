@@ -15,16 +15,14 @@ import sys
 from xml.dom import minidom
 from xml.etree import ElementTree
 
+import lcad_lib.ldrawPath
+
 if (len(sys.argv) != 2):
     print "usage: <path/to/parts/directory>"
     exit()
 
 # Generate XML.
 file_xml = ElementTree.Element("ldraw-parts")
-
-# Save path information.
-path_xml = ElementTree.SubElement(file_xml, "path")
-path_xml.set("path", sys.argv[1])
 
 # Save part information.
 categories = {}

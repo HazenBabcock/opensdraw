@@ -13,6 +13,7 @@ from xml.etree import ElementTree
 
 from PyQt4 import QtCore, QtGui
 
+import lcad_lib.ldrawPath as ldrawPath
 import colorChooserWidget
 
 import partviewer_ui
@@ -89,7 +90,7 @@ class PartViewer(QtGui.QMainWindow):
 
         # Parse part file.
         xml = ElementTree.parse(xml_part_file).getroot()
-        self.part_path = xml.find("path").attrib["path"]
+        self.part_path = ldrawPath.getLDrawPath() + "parts/"
         for part_entry in xml.find("parts"):
             if (part_entry.attrib["category"] != "Moved"):
                 part_name = part_entry.attrib["file"]
@@ -134,6 +135,7 @@ class PartViewer(QtGui.QMainWindow):
     # @param event A QEvent object.
     #
     def closeEvent(self, event):
+        self.ui.openGLWidget.freePartGL()
         self.settings.setValue("MainWindow/Size", self.size())
         self.settings.setValue("MainWindow/Position", self.pos())
         self.settings.setValue("splitterSizes", self.ui.splitter.saveState())

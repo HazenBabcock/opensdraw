@@ -12,6 +12,7 @@ import os
 import sys
 from xml.etree import ElementTree
 
+import lcad_lib.ldrawPath as ldrawPath
 
 #
 # Find all the possible part directories & cache this.
@@ -23,8 +24,7 @@ if (directory == ""):
 else:
     directory += "/"
 
-xml = ElementTree.parse(directory + "../parts.xml").getroot()
-ldraw_path = os.path.dirname(os.path.dirname(xml.find("path").attrib["path"])) + "/"
+ldraw_path = ldrawPath.getLDrawPath()
 
 all_part_dirs = [""]
 for a_dir in ["p", "parts"]:
@@ -201,12 +201,12 @@ class Parser(object):
 # Testing
 if (__name__ == "__main__"):
     
-    if 0:
+    if 1:
         dirs = list(getPartDirectories())
         for dir in dirs:
             print dir
 
-    if 1:
+    if 0:
         parsePartFile(Parser(True, True), "c:/Program Files (x86)/LDraw/parts/15.dat")
 
 #

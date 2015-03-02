@@ -17,6 +17,7 @@ import sys
 from OpenGL import GL, GLU
 from PyQt4 import QtCore, QtGui, QtOpenGL
 
+import lcad_lib.ldrawPath as ldrawPath
 import lcad_lib.datFileParser as datFileParser
 import lcad_lib.glParser as glParser
 
@@ -56,6 +57,14 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.setFormat(gl_format)
 
         self.setToolTip("Left click to rotate object.\nRight click to drag object.\nScroll wheel to zoom.")
+
+    ## freePartGL
+    #
+    # Free the GL associated with the part.
+    #
+    def freePartGL(self):
+        if self.part is not None:
+            self.part.freeGL()
 
     ## initializeGL
     #
@@ -99,8 +108,7 @@ class GLWidget(QtOpenGL.QGLWidget):
     # @param filename The filename of the part to load.
     #
     def loadPart(self, filename):
-        if self.part is not None:
-            self.part.freeGL()
+        self.freePartGL()
         self.part = glParser.GLParser()
         datFileParser.parsePartFile(self.part, filename)
         self.initializeMatrices()
@@ -275,10 +283,7 @@ class GLWidgetTest(QtGui.QMainWindow):
         QtCore.QTimer.singleShot(0, self.loadPart)
 
     def loadPart(self):
-        #self.gl_widget.loadPart("C:/Program Files (x86)/LDraw/parts/1.dat")
-        self.gl_widget.loadPart("C:/Program Files (x86)/LDraw/parts/32523.dat")
-        #self.gl_widget.loadPart("C:/Program Files (x86)/LDraw/parts/u8001a.dat")
-
+        self.gl_widget.loadPart(ldrawPath.getLDrawPath() + "parts/32523.dat")
 
 if (__name__ == '__main__'):
     app = QtGui.QApplication(sys.argv)
