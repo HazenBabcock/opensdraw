@@ -20,6 +20,7 @@ I use partviewer.py to find LDraw part information, emacs to edit the .lcad file
 * [Python](https://www.python.org/)
 * [PyQt4](http://www.riverbankcomputing.com/software/pyqt/intro)
 * [rply](https://github.com/alex/rply)
+* [scipy](http://www.scipy.org)
 
 ### Disclaimer ###
 LEGO(R) is a trademark of The LEGO Group of companies which does not sponsor, authorize or endorse this repository.
