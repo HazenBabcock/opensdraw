@@ -1,0 +1,49 @@
+;
+; Function to make adding ribbed hose to a MOC easier.
+;
+; Hazen 03/15
+;
+
+(import curve-utils :local)
+(import locate :local)
+
+;
+; Create a ribbed hose with specified number of segments that goes along a curve.
+; The curve starts after the initial straight end stud.
+;
+; segments - The number of ribs in the ribbed hose.
+; a-curve - The curve function that the ribbed hose should follow.
+; color - The color of the ribbed hose.
+; stretch - Amount to stretch sub-parts to minimize the appearance of breaks in a bent ribbed hose.
+;
+(def ribbed-hose (segments a-curve color :stretch 1.05)
+ (block
+
+  ;(def disp 2.4)
+  (def disp 0)
+  
+  ; rib-hose start element.
+  (ftr (a-curve disp)
+       (lambda ()
+  	(trf 0 0 0 -90 -90 0 
+	     (lambda () 
+	      (scale (1 stretch 1) (part "79" color))))))
+
+  ; middle parts
+  (set disp (+ disp 6.2))
+  (for (p (- segments 2))
+   (ftr (a-curve disp)
+	(lambda ()
+	 (trf 0 0 0 90 -90 0
+	      (lambda ()
+	       (scale (1 stretch 1) (part "80" color))))))
+   (set disp (+ disp 6.2)))
+
+  ; rib-hose end element.
+  (ftr (a-curve disp) 
+       (lambda ()
+  	(trf 0 0 0 90 -90 0 
+	     (lambda () 
+	      (scale (1 stretch 1) (part "79" color))))))
+  ))
+
