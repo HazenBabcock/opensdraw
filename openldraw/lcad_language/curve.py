@@ -442,10 +442,10 @@ class Segment(object):
             a_xyz = self.xyz(p) + distance * normVector(self.d_xyz(p))
 
         # Extrapolate from curve end.
-        elif (distance >= self.length):
+        elif (distance >= self.dist_lut[-1][1]):
             p = 1
-            start = len(self.dist_lut) - 2
-            a_xyz = self.xyz(p) + (distance - self.length) * normVector(self.d_xyz(p))
+            start = len(self.dist_lut) - 1
+            a_xyz = self.xyz(p) + (distance - self.dist_lut[-1][1]) * normVector(self.d_xyz(p))
 
         # Interpolate in the middle.
         else:
@@ -491,16 +491,16 @@ if (__name__ == "__main__"):
     cp2 = ControlPoint(5, 0, 0, 1.0, 0, 0)
     cp3 = ControlPoint(10, 0, 0, 1.0, 1.0, 0)
 
-    curve = Curve(True, 1.0, 0)
+    curve = Curve(True, True, 1.0, 0)
     curve.addSegment(cp1, cp2)
     curve.addSegment(cp2, cp3)
     
-    print curve.getCoords(1)
-    exit()
+    #print curve.getCoords(1)
+    #exit()
 
     print curve.length
 
-    x = numpy.arange(0.0, curve.length, 0.4)
+    x = numpy.arange(-2.0, curve.length + 2.0, 0.4)
     xf = numpy.zeros(x.size)
     yf = numpy.zeros(x.size)
     for i in range(x.size):
