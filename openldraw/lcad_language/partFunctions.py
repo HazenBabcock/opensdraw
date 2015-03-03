@@ -37,7 +37,7 @@ class PrimitiveFunction(PartFunction):
     def argCheck(self, tree):
         if (len(tree.value) != self.num_args)  and (len(tree.value) != (self.num_args + 1)):
             raise lce.NumberArgumentsException(str(self.num_args - 1) + "-" + str(self.num_args),
-                                               len(flist) - 1)
+                                               len(tree.value) - 1)
 
     def call(self, model, tree):
         coords = []
@@ -60,7 +60,39 @@ class PrimitiveFunction(PartFunction):
         group = model.curGroup()
         group.addPart(self.parts_fn(group.matrix(), coords, color), True)
 
-        return None
+
+class Comment(PartFunction):
+    """
+    **comment** - Adds comments into the model. This different 
+    from header() in that these will appear in the body of the
+    file along with parts, etc.. And if group has comments then
+    the step parameter of the part() function will be ignored,
+    so if steps are desired they'll need to be manually created
+    with this function.
+
+    This will add a line of text, prepended with "0 ", to the
+    current model. Multiple calls will add multiple lines, in
+    the same order as the calls.
+
+    Usage::
+    
+     (comment "BFC INVERTNEXT")
+     (comment "STEP")
+    """
+    def __init__(self):
+        PartFunction.__init__(self, "comment")
+
+    def argCheck(self, tree):
+        if (len(tree.value) != 2):
+            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        text = str(tree.value[1].value)
+        group = model.curGroup()
+        group.addComment(parts.Comment(text))
+        return text
+
+lcad_functions["comment"] = Comment()
 
 
 class Group(PartFunction):
@@ -119,9 +151,9 @@ class Header(PartFunction):
 
     Usage::
     
-    (header "FILE mymoc")
-    (header "Name: mymoc")
-    (header "Author: My Name")
+     (header "FILE mymoc")
+     (header "Name: mymoc")
+     (header "Author: My Name")
     """
     def __init__(self):
         PartFunction.__init__(self, "header")

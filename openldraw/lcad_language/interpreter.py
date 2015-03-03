@@ -27,11 +27,16 @@ class Group(object):
     def __init__(self, name):
         self.name = name
 
+        self.have_comments = False
         self.header = []
         self.m = numpy.identity(4)
         self.n_parts = 0
         self.n_primitives = 0
         self.parts_list = []
+
+    def addComment(self, comment):
+        self.have_comments = True
+        self.parts_list.append(comment)
 
     def addPart(self, part, is_primitive):
         if is_primitive:
@@ -46,20 +51,20 @@ class Group(object):
     def getNPrimitives(self):
         return self.n_primitives
 
+    def getParts(self):
+        """
+        Return the parts list sorted by step, but only if there are no comments.
+        """
+        if self.have_comments:
+            return self.parts_list
+        else:
+            return sorted(self.parts_list, key = lambda part: part.step)
+
     def matrix(self):
         return self.m
 
-    def parts(self):
-        return self.parts_list
-
     def setMatrix(self, m):
         self.m = m
-
-    def sortedParts(self):
-        """
-        Return the parts list sorted by step.
-        """
-        return sorted(self.parts_list, key = lambda part: part.step)
 
 
 class LEnv(object):

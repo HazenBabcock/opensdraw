@@ -115,14 +115,14 @@ while (index < time_points):
 
             fp_out.write("\n")
             # Add parts.
-            parts = group.sortedParts()
+            parts = group.getParts()
             for i in range(len(parts)):
 
                 # Write part.
                 fp_out.write(parts[i].toLDraw() + "\n")
 
                 # Check if we need to add a step.
-                if (i < (len(parts)-1)):
+                if (i < (len(parts)-1)) and not group.have_comments:
                     if (parts[i].step != parts[i+1].step):
                         fp_out.write("0 STEP\n")
 
