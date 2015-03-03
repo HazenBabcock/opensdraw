@@ -21,6 +21,73 @@ class GeometryFunction(functions.LCadFunction):
     pass
 
 
+class Matrix(GeometryFunction):
+    """
+    **matrix** - Sometimes it is just easier to enter the matrix in
+    LDraw form i.e. (x y z a b c d e f g h i) as defined here:
+
+    http://www.ldraw.org/article/218.html#lt1
+
+    :param x: translation in x in LDU.
+    :param y: translation in y in LDU.
+    :param z: translation in z in LDU.
+    :param a: m(0,0)
+    :param b: m(0,1)
+    :param c: m(0,2)
+    :param d: m(1,0)
+    :param e: m(1,1)
+    :param f: m(1,2)
+    :param g: m(2,0)
+    :param h: m(2,1)
+    :param i: m(2,2)
+
+    Usage::
+
+     (matrix (x y z a b c d e f g h i)
+      ..)
+    """
+    def __init__(self):
+        GeometryFunction.__init__(self, "matrix")
+
+    def argCheck(self, tree):
+        flist = tree.value
+        if (len(flist)<3):
+            raise lce.NumberArgumentsException("2+", len(flist)-1)
+        if not isinstance(flist[1].value, list):
+            raise lce.WrongTypeException("list", type(flist[1].value))
+        if (len(flist[1].value) != 12):
+            raise lce.NumberArgumentsException("12", len(flist[1].value))
+
+    def call(self, model, tree):
+        args = tree.value[1].value
+
+        if (len(tree.value) > 2):
+
+            mapping = [[0, (0,3)],
+                       [1, (1,3)],
+                       [2, (2,3)],
+                       [3, (0,0)], [ 4, (0,1)], [ 5, (0,2)],
+                       [6, (1,0)], [ 7, (1,1)], [ 8, (1,2)],
+                       [9, (2,0)], [10, (2,1)], [11, (2,2)]]
+
+            m = numpy.identity(4)
+            for x in mapping:
+                val = interp.getv(interp.interpret(model, args[x[0]]))
+                if not isinstance(val, numbers.Number):
+                    raise lce.WrongTypeException("number", type(val))
+                m[x[1]] = val
+
+            cur_matrix = model.curGroup().matrix().copy()
+            model.curGroup().setMatrix(numpy.dot(cur_matrix, m))
+            val = interp.interpret(model, tree.value[2:])
+            model.curGroup().setMatrix(cur_matrix)
+            return val
+        else:
+            return None
+
+lcad_functions["matrix"] = Matrix()
+
+
 class Mirror(GeometryFunction):
     """
     **mirror** - Mirror child elements on a plane through the origin.
