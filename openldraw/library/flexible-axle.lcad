@@ -4,14 +4,10 @@
 ; Hazen 02/15
 ;
 
+(import curve-utils :local)
 (import locate :local)
 
-; Position / orientation helper function.
-(def ftr (po fn)
-  (translate ((aref po 0) (aref po 1) (aref po 2)) ; Translate to position.
-   (rotate ((aref po 3) (aref po 4) (aref po 5))   ; Rotate to curve orientation.
-    (fn))))
-
+;
 ; Create an axle of the specified length that goes along the specified curve.
 ; The curve starts after the initial straight end stud.
 ;
@@ -25,25 +21,25 @@
 
   (def disp 2)
 
-  (def start-parts (list "s\faxle1.dat" 
-			 "s\faxle2.dat" 
-			 "s\faxle3.dat" 
-			 "s\faxle4.dat" 
-			 "s\faxle5.dat"))
+  (def start-parts (list "s\faxle1" 
+			 "s\faxle2" 
+			 "s\faxle3" 
+			 "s\faxle4" 
+			 "s\faxle5"))
 
   ; hmm, maybe a reverse function would be useful..
-  (def end-parts (list "s\faxle5.dat" 
-		       "s\faxle4.dat" 
-		       "s\faxle3.dat" 
-		       "s\faxle2.dat" 
-		       "s\faxle1.dat"))
+  (def end-parts (list "s\faxle5" 
+		       "s\faxle4" 
+		       "s\faxle3" 
+		       "s\faxle2" 
+		       "s\faxle1"))
 
   ; stud start element.
   (ftr (a-curve 0) 
        (lambda ()
   	(trf 0 0 0 90 0 0 
 	     (lambda () 
-	      (scale (1 5 1) (part "stud3a.dat" color))))))
+	      (scale (1 5 1) (part "stud3a" color))))))
 
   ; start parts
   (for (p start-parts)
@@ -62,7 +58,7 @@
 	(lambda ()
 	 (trf 0 0 (* 2 stretch) -90 0 0
 	      (lambda ()
-	       (scale (1 (* 4 stretch) 1) (part "axlehol8.dat" color))))))
+	       (scale (1 (* 4 stretch) 1) (part "axlehol8" color))))))
    (set disp (+ disp 4)))
 
   ; end parts
@@ -82,6 +78,5 @@
        (lambda ()
   	(trf 0 0 0 -90 0 0 
 	     (lambda () 
-	      (scale (1 5 1) (part "stud3a.dat" color))))))
+	      (scale (1 5 1) (part "stud3a" color))))))
   ))
-
