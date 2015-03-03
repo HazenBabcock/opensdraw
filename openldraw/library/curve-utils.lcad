@@ -1,0 +1,16 @@
+;
+; Utility functions for curves.
+;
+; Hazen 03/15
+;
+
+; Position / orientation helper function.
+;
+; p-r - The position / rotation returned by the curve function.
+; fn - The function to perform at po.
+;
+(def ftr (p-r fn)
+  (translate ((aref p-r 0) (aref p-r 1) (aref p-r 2)) ; Translate to curve position.
+   (rotate ((aref p-r 3) (aref p-r 4) (aref p-r 5))   ; Rotate to curve orientation.
+    (fn))))
+
