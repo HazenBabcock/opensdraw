@@ -27,12 +27,24 @@ class Group(object):
     def __init__(self, name):
         self.name = name
 
-        self.m = numpy.identity(4)
         self.header = []
+        self.m = numpy.identity(4)
+        self.n_parts = 0
+        self.n_primitives = 0
         self.parts_list = []
 
-    def addPart(self, part):
+    def addPart(self, part, is_primitive):
+        if is_primitive:
+            self.n_primitives += 1
+        else:
+            self.n_parts += 1
         self.parts_list.append(part)
+
+    def getNParts(self):
+        return self.n_parts
+
+    def getNPrimitives(self):
+        return self.n_primitives
 
     def matrix(self):
         return self.m

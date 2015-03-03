@@ -58,7 +58,7 @@ class PrimitiveFunction(PartFunction):
             coords.append(coord)
 
         group = model.curGroup()
-        group.addPart(self.parts_fn(group.matrix(), coords, color))
+        group.addPart(self.parts_fn(group.matrix(), coords, color), True)
 
         return None
 
@@ -239,7 +239,7 @@ class Part(PartFunction):
         else:
             part_step = step_offset
         group = model.curGroup()
-        group.addPart(parts.Part(group.matrix(), part_id, part_color, part_step))
+        group.addPart(parts.Part(group.matrix(), part_id, part_color, part_step), False)
         return None
 
 lcad_functions["part"] = Part()

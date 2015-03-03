@@ -51,15 +51,24 @@ while (index < time_points):
         mp_model = True
 
     # Some feedback.
+    n_parts = 0
     if (index == 0):
         if mp_model:
-            n_parts = 0
             for group in model.groups():
-                n_parts += len(group.parts())
-                print "Group:", group.name, "has", len(group.parts()), "parts."
+                if (group.getNParts() > 0):
+                    n_parts += group.getNParts()
+                    print "Group:", group.name, "has", group.getNParts(), "parts."
+                if (group.getNPrimitives() > 0):
+                    n_parts += group.getNPrimitives()
+                    print "Group:", group.name, "has", group.getNPrimitives(), "primitives."
         else:
-            n_parts = len(model.groups()[0].parts())
-            print "Model has", n_parts, "parts."
+            group = model.groups()[0]
+            if (group.getNParts() > 0):
+                n_parts += group.getNParts()
+                print "Model has", group.getNParts(), "parts."
+            if (group.getNPrimitives() > 0):
+                n_parts += group.getNPrimitives()
+                print "Model has", group.getNPrimitives(), "primitives."
     elif ((index % 10) == 0):
         print " time step", index
 
