@@ -10,6 +10,7 @@
 import math
 import numbers
 import numpy
+from scipy.optimize import minimize
 
 import functions
 import interpreter as interp
@@ -71,11 +72,15 @@ class LCadCurve(functions.LCadFunction):
 
     Additionally curve has several keyword arguments::
 
-      :auto-scale   t/nil        ; default is t, automatically scale the derivative.
+      :auto-scale   t/nil        ; default is t, automatically scale the derivative to
+                                 ; minimize the maximum curvature of the curve.
       :extrapolate  t/nil        ; default is t, distances outside of the curve will be
                                  ; linearly extrapolated from the end of the curve. If nil
                                  ; then the distance will be modulo the curve length.
-      :scale        float > 0.0  ; multiplier for auto-scale mode, defaults to 1.
+      :scale        float > 0.0  ; multiplier for auto-scale mode, defaults to 1. This 
+                                 ; sets the boundaries on the auto-scale optimal
+                                 ; derivative search range. If you change this you probably 
+                                 ; want a number greater than 1.0, which is the default value.
       :twist        angle        ; additional twist along the curve, defaults to 0.
 
 
@@ -262,10 +267,6 @@ class ControlPoint(object):
             self.x_vec = normVector(self.x_vec - projVector(self.z_vec, self.x_vec))
 
             # Compute cross-product of z_vec and x_vec to create y vector.
-            #cpx = self.z_vec[1]*self.x_vec[2] - self.z_vec[2]*self.x_vec[1]
-            #cpy = self.z_vec[2]*self.x_vec[0] - self.z_vec[0]*self.x_vec[2]
-            #cpz = self.z_vec[0]*self.x_vec[1] - self.z_vec[1]*self.x_vec[0]
-            #self.y_vec = numpy.array([cpx, cpy, cpz])
             self.y_vec = crossProduct(self.z_vec, self.x_vec)
 
         else:
@@ -283,10 +284,59 @@ class Curve(object):
         self.segments = []
         self.total_twist = total_twist
 
-    def addSegment(self, control_point_1, control_point_2):
-        segment = Segment(control_point_1, control_point_2, self.normalize, self.scale, self.length)
-        self.segments.append(segment)
+    def addSegment(self, cp1, cp2):
+
+        if self.normalize:
+
+            # Adjust derivatives at the control points to minimize the maximum curvature of the segment.
+            segment = Segment(cp1, cp2)
+
+            # Check if the segment is already basically straight.
+            if not (segment.maxCurvature() < 1.0e-2):
+
+                dist = cp1.location - cp2.location
+                d_scale = numpy.sqrt(numpy.sum(dist*dist))
+
+                # Minimize curvature using nelder-mead algorithm.
+                def errf(x):
+                    if (x[0] < 0.1 * d_scale):
+                        x[0] = 0.1 * d_scale
+                    if (x[0] > d_scale * self.scale):
+                        x[0] = d_scale * self.scale
+                    if (x[1] < 0.1 * d_scale):
+                        x[1] = 0.1 * d_scale
+                    if (x[1] > d_scale * self.scale):
+                        x[1] = d_scale * self.scale
+                    cp1.raw_z_vec = cp1.z_vec * x[0]
+                    cp2.raw_z_vec = cp2.z_vec * x[1]
+                    segment = Segment(cp1, cp2)
+                    return segment.maxCurvature()
+
+                x0 = numpy.array([0.5 * d_scale * self.scale, 
+                                  0.5 * d_scale * self.scale])
+                res = minimize(errf, 
+                               x0, 
+                               method='nelder-mead',
+                               options={'xtol': 1e-3, 'disp': False})
+
+                if not res.success:
+                    print "Curve auto-scaling failed!"
+                    print res
+
+                # Create segment with optimal values.
+                cp1.raw_z_vec = cp1.z_vec * res.x[0]
+                cp2.raw_z_vec = cp2.z_vec * res.x[1]
+                segment = Segment(cp1, cp2)
+
+        else:
+            segment = Segment(cp1, cp2)
+
+        # Finish segment setup.
+        segment.calcLUTs(self.length)
+
+        # Add segment length to current length & save segment.
         self.length += segment.length
+        self.segments.append(segment)
 
     def getCoords(self, dist):
 
@@ -316,7 +366,7 @@ class Curve(object):
 
 class Segment(object):
 
-    def __init__(self, control_point_1, control_point_2, normalize, scale, dist_offset):
+    def __init__(self, control_point_1, control_point_2):
 
         # Control point 1 is assumed to have a valid perpendicular (x_vec).
         # Control point 2 will be modified to have a valid (non-zero) x_vec.
@@ -331,38 +381,57 @@ class Segment(object):
                          [1, 1, 1, 1],
                          [3, 2, 1, 0]])
 
-        # If normalization is requested, then we scale the magnitude of the
-        # derivative by the distance between the control points. This is
-        # somewhat arbitrary, but hopefully looks reasonable to the eye.
-        dv = self.cp1.location - self.cp2.location
-        cp_dist = numpy.sqrt(numpy.sum(dv * dv))
-        if normalize:
-            scale = scale * cp_dist
-            deriv1 = self.cp1.z_vec
-            deriv2 = self.cp2.z_vec
-        else:
-            scale = 1.0
-            deriv1 = self.cp1.raw_z_vec
-            deriv2 = self.cp2.raw_z_vec
-
         vx = numpy.array([self.cp1.location[0],
-                          deriv1[0]*scale,
+                          self.cp1.raw_z_vec[0],
                           self.cp2.location[0],
-                          deriv2[0]*scale])
+                          self.cp2.raw_z_vec[0]])
 
         vy = numpy.array([self.cp1.location[1],
-                          deriv1[1]*scale,
+                          self.cp1.raw_z_vec[1],
                           self.cp2.location[1],
-                          deriv2[1]*scale])
+                          self.cp2.raw_z_vec[1]])
 
         vz = numpy.array([self.cp1.location[2],
-                          deriv1[2]*scale,
+                          self.cp1.raw_z_vec[2],
                           self.cp2.location[2],
-                          deriv2[2]*scale])
+                          self.cp2.raw_z_vec[2]])
 
         self.x_coeff = numpy.linalg.solve(A, vx)
         self.y_coeff = numpy.linalg.solve(A, vy)
         self.z_coeff = numpy.linalg.solve(A, vz)
+
+    #
+    # This is the same approach that is used in ldraw_to_lcad.py to 
+    # extract the rotation angles from the rotation matrix.
+    #
+    def angles(self, p, x_vec):
+
+        # Calculate z vector.
+        z_vec = normVector(self.d_xyz(p))
+    
+        # Calculate x vector.
+        proj = projVector(x_vec, z_vec)
+        x_vec = normVector(x_vec - proj)
+
+        # Calculate y vector
+        y_vec = crossProduct(z_vec, x_vec)
+
+        # Calculate rotation angles.
+        ry = math.atan2(-z_vec[0], math.sqrt(z_vec[1]*z_vec[1] + z_vec[2]*z_vec[2]))
+
+        # If the rotation around the y axis is +- 90 then we can't separate the x-axis rotation
+        # from the z-axis rotation. In this case we just assume that the x-axis rotation is
+        # zero and that there was only z-axis rotation.
+        if (abs(math.cos(ry)) < 1.0e-3):
+            rx = 0
+            rz = math.atan2(x_vec[1],y_vec[1])
+        else:
+            rx = math.atan2(-z_vec[1], z_vec[2])
+            rz = math.atan2(-y_vec[0], x_vec[0])
+
+        return map(lambda(x): x * 180.0/math.pi, [rx, ry, rz])
+
+    def calcLUTs(self, dist_offset):
 
         # Compute distance look-up table and segment length
         table_size = 100  # Hopefully 100 sections is enough to accurately capture most curves.
@@ -396,36 +465,27 @@ class Segment(object):
         # along the curve.
         self.cp2.x_vec = self.xvec_lut[-1,:]
 
-    #
-    # This is the same approach that is used in ldraw_to_lcad.py to 
-    # extract the rotation angles from the rotation matrix.
-    #
-    def angles(self, p, x_vec):
+    def curvature(self, p):
+        p_vec = numpy.array([3.0*p*p, 2.0*p, 1.0, 0.0])
+        pp_vec = numpy.array([6.0*p, 2.0, 0.0, 0.0])
 
-        # Calculate z vector.
-        z_vec = normVector(self.d_xyz(p))
-    
-        # Calculate x vector.
-        proj = projVector(x_vec, z_vec)
-        x_vec = normVector(x_vec - proj)
+        # Calculate derivatives.
+        xp = numpy.sum(self.x_coeff * p_vec)
+        xpp = numpy.sum(self.x_coeff * pp_vec)
+        yp = numpy.sum(self.y_coeff * p_vec)
+        ypp = numpy.sum(self.y_coeff * pp_vec)
+        zp = numpy.sum(self.z_coeff * p_vec)
+        zpp = numpy.sum(self.z_coeff * pp_vec)
 
-        # Calculate y vector
-        y_vec = crossProduct(z_vec, x_vec)
+        #
+        # Calculate curvature following:
+        #  http://en.wikipedia.org/wiki/Curvature#Local_expressions_2
+        #
+        t1 = zpp*yp - ypp*zp
+        t2 = xpp*zp - zpp*xp
+        t3 = ypp*xp - xpp*yp
 
-        # Calculate rotation angles.
-        ry = math.atan2(-z_vec[0], math.sqrt(z_vec[1]*z_vec[1] + z_vec[2]*z_vec[2]))
-
-        # If the rotation around the y axis is +- 90 then we can't separate the x-axis rotation
-        # from the z-axis rotation. In this case we just assume that the x-axis rotation is
-        # zero and that there was only z-axis rotation.
-        if (abs(math.cos(ry)) < 1.0e-3):
-            rx = 0
-            rz = math.atan2(x_vec[1],y_vec[1])
-        else:
-            rx = math.atan2(-z_vec[1], z_vec[2])
-            rz = math.atan2(-y_vec[0], x_vec[0])
-
-        return map(lambda(x): x * 180.0/math.pi, [rx, ry, rz])
+        return math.sqrt(t1*t1 + t2*t2 + t3*t3)/math.pow(xp*xp + yp*yp + zp*zp, 1.5)
 
     def d_xyz(self, p):
         p_vec = numpy.array([3.0*p*p, 2.0*p, 1.0, 0.0])
@@ -475,6 +535,18 @@ class Segment(object):
         [rx, ry, rz] = self.angles(p, self.xvec_lut[start,:])
         return [a_xyz[0], a_xyz[1], a_xyz[2], rx, ry, rz]
 
+    def maxCurvature(self):
+        p = numpy.arange(0, 1.0, 0.01)
+        max_p = 0
+        max_c = 0.0
+        for i in range(p.size):
+            c = self.curvature(p[i])
+            if (c > max_c):
+                max_p = p[i]
+                max_c = c
+        #print max_p
+        return max_c
+
     def xyz(self, p):
         p_vec = numpy.array([p*p*p, p*p, p, 1.0])
         return numpy.array([numpy.sum(self.x_coeff * p_vec),
@@ -487,25 +559,52 @@ class Segment(object):
 #
 if (__name__ == "__main__"):
 
-    cp1 = ControlPoint(0, 0, 0, 1.0, 1.0, 0, 0, 0, 1.0)
-    cp2 = ControlPoint(5, 0, 0, 1.0, 0, 0)
-    cp3 = ControlPoint(10, 0, 0, 1.0, 1.0, 0)
+    if 0:
+        min_c = 200
+        min_ij = [0,0]
+        for i in range(10):
+            for j in range(10):
+                cp1 = ControlPoint(0, 0, 0, 0, i+1, 0, 0, 0, 1.0)
+                cp2 = ControlPoint(2, 5, 0, j+1, 0, 0)
 
-    curve = Curve(True, True, 1.0, 0)
+                curve = Curve(False, True, 1.0, 0)
+                curve.addSegment(cp1, cp2)
+
+                c = curve.segments[0].maxCurvature()
+                if (c < min_c):
+                    min_c = c
+                    min_ij = [i,j]
+                    #print i, j, curve.segments[0].maxCurvature()
+        print min_c, min_ij
+        exit()
+
+    cp1 = ControlPoint(0, 0, 0, -1, 1, 0, 0, 0, 1.0)
+    cp2 = ControlPoint(2, 0, 0, -1, -1, 0)
+    #cp3 = ControlPoint(10, 0, 0, 1.0, 1.0, 0)
+
+    curve = Curve(True, True, 4.0, 0)
     curve.addSegment(cp1, cp2)
-    curve.addSegment(cp2, cp3)
-    
+
+    print curve.segments[0].maxCurvature()
+    #curve.addSegment(cp2, cp3)
+
+
+    #x = numpy.arange(0, 1.0, 0.1)
+    #for i in range(x.size):
+    #    print seg.curvature(x[i])
+    #print seg.x_coeff
+    #print seg.y_coeff
     #print curve.getCoords(1)
     #exit()
+    
+    #print curve.length
 
-    print curve.length
-
-    x = numpy.arange(-2.0, curve.length + 2.0, 0.4)
+    x = numpy.arange(-1, curve.length + 1, 0.1)
     xf = numpy.zeros(x.size)
     yf = numpy.zeros(x.size)
     for i in range(x.size):
         [cx, cy, cz, rx, ry, rz] = curve.getCoords(x[i])
-        print rx, ry, rz
+        #print rx, ry, rz
         xf[i] = cx
         yf[i] = cy
 
@@ -513,7 +612,9 @@ if (__name__ == "__main__"):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1, aspect = 1.0)
     #ax = fig.add_subplot(1,1,1)
-    ax.scatter(xf, yf)
+    ax.plot(xf, yf)
+    #plt.xlim([-1,3])
+    #plt.ylim([-1,6])
     plt.show()
 
 
