@@ -20,7 +20,15 @@ for color_group in all_colors:
 
 def formatNumber(a_number, precision):
     f_string = "{0:." + str(precision) + "f}"
-    return f_string.format(a_number)
+    s = f_string.format(a_number)
+
+    # Remove trailing zeros.
+    s = s.rstrip('0').rstrip('.') if '.' in s else s
+
+    # Remove leading minus (if zero).
+    if (s == "-0"):
+        s = "0"
+    return s
 
 def toColor(color):
     if isinstance(color, int):
