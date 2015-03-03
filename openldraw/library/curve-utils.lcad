@@ -7,7 +7,7 @@
 ; Position / orientation helper function.
 ;
 ; p-r - The position / rotation returned by the curve function.
-; fn - The function to perform at po.
+; fn - The function to call at p-r.
 ;
 (def ftr (p-r fn)
   (translate ((aref p-r 0) (aref p-r 1) (aref p-r 2)) ; Translate to curve position.
