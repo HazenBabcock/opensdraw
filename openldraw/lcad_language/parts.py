@@ -37,57 +37,14 @@ def toColor(color):
         return lcad_name_dict[color.lower()].code
 
 
-# LDraw primitives.
-class LDraw(object):
-
-    def __init__(self, matrix, coords, color):
-        self.coords = coords
-        self.color = toColor(color)
-        self.step = 0
-
-        # Transform coordinates using current transformation matrix.
-        for i in range(len(coords)/3):
-            vec = numpy.array([self.coords[3*i],
-                               self.coords[3*i+1],
-                               self.coords[3*i+2],
-                               1.0])
-            loc = numpy.dot(matrix, vec)
-            self.coords[3*i] = loc[0]
-            self.coords[3*i+1] = loc[1]
-            self.coords[3*i+2] = loc[2]
+# LDraw comments.
+class Comment(object):
+    
+    def __init__(self, text):
+        self.text = "0 " + text
 
     def toLDraw(self):
-        ld_str = self.prefix + self.color + " "
-        ld_str += " ".join(map(lambda(x): formatNumber(x, 2), self.coords))
-        return ld_str
-
-
-class Line(LDraw):
-
-    def __init__(self, matrix, coords, color):
-        LDraw.__init__(self, matrix, coords, color)
-        self.prefix = "2 "
-
-
-class OptionalLine(LDraw):
-
-    def __init__(self, matrix, coords, color):
-        LDraw.__init__(self, matrix, coords, color)
-        self.prefix = "5 "
-
-
-class Quadrilateral(LDraw):
-
-    def __init__(self, matrix, coords, color):
-        LDraw.__init__(self, matrix, coords, color)
-        self.prefix = "4 "
-
-
-class Triangle(LDraw):
-
-    def __init__(self, matrix, coords, color):
-        LDraw.__init__(self, matrix, coords, color)
-        self.prefix = "3 "
+        return self.text
 
 
 # LDraw parts.
@@ -131,6 +88,61 @@ class Part(object):
             ld_str += self.part_id
 
         return ld_str
+
+
+# LDraw primitives.
+class LDraw(object):
+
+    def __init__(self, matrix, coords, color):
+        self.coords = coords
+        self.color = toColor(color)
+        self.step = 0
+
+        # Transform coordinates using current transformation matrix.
+        for i in range(len(coords)/3):
+            vec = numpy.array([self.coords[3*i],
+                               self.coords[3*i+1],
+                               self.coords[3*i+2],
+                               1.0])
+            loc = numpy.dot(matrix, vec)
+            self.coords[3*i] = loc[0]
+            self.coords[3*i+1] = loc[1]
+            self.coords[3*i+2] = loc[2]
+
+    def toLDraw(self):
+        ld_str = self.prefix + self.color + " "
+        ld_str += " ".join(map(lambda(x): formatNumber(x, 2), self.coords))
+        return ld_str
+
+class Line(LDraw):
+
+    def __init__(self, matrix, coords, color):
+        LDraw.__init__(self, matrix, coords, color)
+        self.prefix = "2 "
+
+
+class OptionalLine(LDraw):
+
+    def __init__(self, matrix, coords, color):
+        LDraw.__init__(self, matrix, coords, color)
+        self.prefix = "5 "
+
+
+class Quadrilateral(LDraw):
+
+    def __init__(self, matrix, coords, color):
+        LDraw.__init__(self, matrix, coords, color)
+        self.prefix = "4 "
+
+
+class Triangle(LDraw):
+
+    def __init__(self, matrix, coords, color):
+        LDraw.__init__(self, matrix, coords, color)
+        self.prefix = "3 "
+
+
+
 
 #
 # The MIT License
