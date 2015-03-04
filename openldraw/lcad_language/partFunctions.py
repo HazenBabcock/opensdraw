@@ -10,6 +10,7 @@
 import numbers
 
 import functions
+import geometryFunctions
 import interpreter as interp
 import lcadExceptions as lce
 import parts
@@ -35,27 +36,25 @@ class PrimitiveFunction(PartFunction):
         PartFunction.__init__(self, name)
 
     def argCheck(self, tree):
-        if (len(tree.value) != self.num_args)  and (len(tree.value) != (self.num_args + 1)):
-            raise lce.NumberArgumentsException(str(self.num_args - 1) + "-" + str(self.num_args),
-                                               len(tree.value) - 1)
+        args = tree.value[1:]
+        if (len(args) != self.num_vertices)  and (len(args) != (self.num_vertices + 1)):
+            raise lce.NumberArgumentsException(str(self.num_vertices) + "-" + str(self.num_vertices + 1),
+                                               len(args))
 
     def call(self, model, tree):
+        args = tree.value[1:]
         coords = []
 
         # Get color.
-        if (len(tree.value) == (self.num_args + 1)):
-            color = interp.getv(interp.interpret(model, tree.value[-1]))
-            args = tree.value[1:-1]
+        if (len(args) == (self.num_vertices + 1)):
+            color = interp.getv(interp.interpret(model, args[-1]))
+            args = args[:-1]
         else:
             color = 16
-            args = tree.value[1:]
 
         # Get coordinates.
-        for arg in args:
-            coord = interp.getv(interp.interpret(model, arg))
-            if not isinstance(coord, numbers.Number):
-                raise lce.WrongTypeException("number", type(coord))
-            coords.append(coord)
+        for vertex in args:
+            coords.extend(geometryFunctions.parseArgs(model, vertex))
 
         group = model.curGroup()
         group.addPart(self.parts_fn(group.matrix(), coords, color), True)
@@ -174,6 +173,8 @@ class Line(PrimitiveFunction):
     """
     **line** - Add a line primitive to the model.
 
+    The arguments are (list x1 yz 1) (list x2 y2 z2)
+
     :param x1: x position of vertex 1.
     :param y1: y position of vertex 1.
     :param z1: z position of vertex 1.
@@ -184,13 +185,13 @@ class Line(PrimitiveFunction):
 
     Usage::
 
-     (line x1 y1 z1 x2 y2 z2 color)  ; A line from (x1, y1, z1) to (x2, y2, z2) with color color.
-     (line x1 y1 z1 x2 y2 z2)        ; Same as above, but now color will be the "main color", i.e. 16.
+     (line (list x1 y1 z1) (list x2 y2 z2) color)    ; A line from (x1, y1, z1) to (x2, y2, z2) with color color.
+     (line (list x1 y1 z1) (list x2 y2 z2))          ; Same as above, but now color will be the "main color", i.e. 16.
 
     """
     def __init__(self):
         PrimitiveFunction.__init__(self, "line")
-        self.num_args = 7
+        self.num_vertices = 2
         self.parts_fn = parts.Line
 
 lcad_functions["line"] = Line()
@@ -199,6 +200,8 @@ lcad_functions["line"] = Line()
 class OptionalLine(PrimitiveFunction):
     """
     **optional-line** - Add a optional line primitive to the model.
+
+    The arguments are (list x1 yz 1) (list x2 y2 z2) (list x3 y3  z3) (list x4 y4 z4)
 
     :param x1: x position of line vertex 1.
     :param y1: y position of line vertex 1.
@@ -216,13 +219,14 @@ class OptionalLine(PrimitiveFunction):
 
     Usage::
 
-     (optional-line x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 color) ; A optional line with vertices (x1, y1, z1), (x2, y2, z2) 
-                                                               ; and control point vertices (x3, y3, z3), (x4, y4, z4).
-     (optional-line x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4)       ; Same as above, but now color will be the "main color", i.e. 16.
+     (optional-line (list x1 y1 z1) (list x2 y2 z2) (list x3 y3 z3) (list x4 y4 z4) color) ; A optional line with vertices (x1, y1, z1), (x2, y2, z2) 
+                                                                                           ; and control point vertices (x3, y3, z3), (x4, y4, z4).
+     (optional-line (list x1 y1 z1) (list x2 y2 z2) (list x3 y3 z3) (list x4 y4 z4))       ; Same as above, but now color will be the "main color", i.e. 16.
+
     """
     def __init__(self):
         PrimitiveFunction.__init__(self, "optional-line")
-        self.num_args = 13
+        self.num_vertices = 4
         self.parts_fn = parts.OptionalLine
 
 lcad_functions["optional-line"] = OptionalLine()
@@ -281,6 +285,8 @@ class Quadrilateral(PrimitiveFunction):
     """
     **quadrilateral** - Add a quadrilateral primitive to the model.
 
+    The arguments are (list x1 yz 1) (list x2 y2 z2) (list x3 y3  z3) (list x4 y4 z4)
+
     :param x1: x position of vertex 1.
     :param y1: y position of vertex 1.
     :param z1: z position of vertex 1.
@@ -303,12 +309,13 @@ class Quadrilateral(PrimitiveFunction):
 
     Usage::
 
-     (quadrilateral x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 color) ; A quadrilateral with vertices (x1, y1, z1), (x2, y2, z2), (x3, y3, z3), (x4, y4, z4).
-     (quadrilateral x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4)       ; Same as above, but now color will be the "main color", i.e. 16.
+     (quadrilateral (list x1 y1 z1) (list x2 y2 z2) (list x3 y3 z3) (list x4 y4 z4) color) ; A quadrilateral with vertices (x1, y1, z1), (x2, y2, z2), (x3, y3, z3), (x4, y4, z4).
+     (quadrilateral (list x1 y1 z1) (list x2 y2 z2) (list x3 y3 z3) (list x4 y4 z4))       ; Same as above, but now color will be the "main color", i.e. 16.
+
     """
     def __init__(self):
         PrimitiveFunction.__init__(self, "quadrilateral")
-        self.num_args = 13
+        self.num_vertices = 4
         self.parts_fn = parts.Quadrilateral
 
 lcad_functions["quadrilateral"] = Quadrilateral()
@@ -317,6 +324,8 @@ lcad_functions["quadrilateral"] = Quadrilateral()
 class Triangle(PrimitiveFunction):
     """
     **triangle** - Add a triangle primitive to the model.
+
+    The arguments are (list x1 yz 1) (list x2 y2 z2) (list x3 y3  z3)
 
     :param x1: x position of vertex 1.
     :param y1: y position of vertex 1.
@@ -337,12 +346,13 @@ class Triangle(PrimitiveFunction):
 
     Usage::
 
-     (triangle x1 y1 z1 x2 y2 z2 x3 y3 z3 color) ; A triangle with vertices (x1, y1, z1), (x2, y2, z2), (x3, y3, z3).
-     (triangle x1 y1 z1 x2 y2 z2 x3 y3 z3)       ; Same as above, but now color will be the "main color", i.e. 16.
+     (triangle (list x1 y1 z1) (list x2 y2 z2) (list x3 y3 z3) color)  ; A triangle with vertices (x1, y1, z1), (x2, y2, z2), (x3, y3, z3).
+     (triangle (list x1 y1 z1) (list x2 y2 z2) (list x3 y3 z3)         ; Same as above, but now color will be the "main color", i.e. 16.
+
     """
     def __init__(self):
         PrimitiveFunction.__init__(self, "triangle")
-        self.num_args = 10
+        self.num_vertices = 3
         self.parts_fn = parts.Triangle
 
 lcad_functions["triangle"] = Triangle()
