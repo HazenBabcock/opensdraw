@@ -11,7 +11,7 @@
       `((,(concat "(\\("
 		  (regexp-opt '("aref" "block" "chain" "comment" "cond" "curve" "def" "for" "group" "header" "if" "import" 
 				"lambda" "len" "line" "list" "matrix" "mirror" "optional-line" "part" "print" 
-				"quadrilateral" "rotate" "scale" "set" "translate" "triangle" "while"))
+				"quadrilateral" "rotate" "scale" "set" "transform" "translate" "triangle" "vector" "while"))
 		  "\\)\\>"
 		  "[ \r\n\t]+")
 	 (1 font-lock-function-name-face))
@@ -48,7 +48,7 @@
 (put 'group 'lcad-indent-function 1)
 (put 'if 'lcad-indent-function 2)
 (put 'lambda 'lcad-indent-function 'defun)
-(put 'matrix 'lcad-indent-function 1)
+(put 'transform 'lcad-indent-function 1)
 (put 'mirror 'lcad-indent-function 1)
 (put 'rotate 'lcad-indent-function 1)
 (put 'translate 'lcad-indent-function 1)
