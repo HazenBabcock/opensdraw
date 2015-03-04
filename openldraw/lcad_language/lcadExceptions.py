@@ -38,10 +38,6 @@ class IllegalArgumentTypeException(LCadException):
     def __init__(self):
         LCadException.__init__(self, "arguments in function definition must be symbols.")
 
-class IncorrectTypeException(LCadException):
-    def __init__(self, expected, got):
-        LCadException.__init__(self, "wrong argument type, got '" + got + "' expected '" + expected + "'")
-
 class KeywordException(LCadException):
     def __init__(self, item):
         LCadException.__init__(self, str(item) + " is not a keyword.")
