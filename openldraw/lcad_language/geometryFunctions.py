@@ -110,6 +110,8 @@ class Matrix(GeometryFunction):
 
     The arguments are (list x y z a b c d e f g h i) as defined here:
 
+    http://www.ldraw.org/article/218.html#lt1
+
     :param x: translation in x in LDU.
     :param y: translation in y in LDU.
     :param z: translation in z in LDU.
