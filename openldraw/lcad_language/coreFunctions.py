@@ -53,10 +53,10 @@ class Aref(CoreFunction):
         if not isinstance(tlist, interp.List):
             raise lce.WrongTypeException("List", type(tlist))
 
-        if ((index >= 0) and (index < tlist.size())):
+        if ((index >= 0) and (index < tlist.size)):
             return tlist.getv(index)
         else:
-            raise lce.OutOfRangeException(tlist.size() - 1, index)
+            raise lce.OutOfRangeException(tlist.size - 1, index)
 
 lcad_functions["aref"] = Aref()
 
@@ -455,7 +455,7 @@ class Len(CoreFunction):
         if not isinstance(tlist, interp.List):
             raise lce.WrongTypeException("List", type(tlist))
 
-        return tlist.size()
+        return tlist.size
 
 lcad_functions["len"] = Len()
 

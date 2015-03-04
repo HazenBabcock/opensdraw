@@ -121,9 +121,10 @@ class List(object):
                 tmp = Symbol("list_object", "list")
                 tmp.setv(elt)
                 self.py_list.append(tmp)
+        self.size = len(self.py_list)
 
     def __str__(self):
-        if (self.size() < 10):
+        if (self.size < 10):
             return "(" + " ".join(map(lambda(x): str(x), self.py_list)) + ")"
         else:
             tmp = "(" + " ".join(map(lambda(x): str(x), self.py_list[:3]))
@@ -135,9 +136,6 @@ class List(object):
 
     def getv(self, index):
         return self.py_list[index]
-
-    def size(self):
-        return len(self.py_list)
 
 
 class Model(object):
