@@ -295,7 +295,7 @@ class Curve(object):
             if not (segment.maxCurvature() < 1.0e-2):
 
                 dist = cp1.location - cp2.location
-                d_scale = numpy.sqrt(numpy.sum(dist*dist))
+                d_scale = 2.0 * numpy.sqrt(numpy.sum(dist*dist))
 
                 # Minimize curvature using nelder-mead algorithm.
                 def errf(x):
