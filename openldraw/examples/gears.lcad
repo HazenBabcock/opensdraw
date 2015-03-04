@@ -46,14 +46,14 @@
 (def angle2 (+ 7.5 (/ angle1 3)))
 (def angle3 (+ 7.5 (/ angle2 3)))
 
-(translate (0 0 (bw -1))
- (rotate (0 0 angle1)
+(translate (list 0 0 (bw -1))
+ (rotate (list 0 0 angle1)
   (axle1)))
 
-(translate (0 (bw 2) 0)
- (rotate (0 0 (- angle2))
+(translate (list 0 (bw 2) 0)
+ (rotate (list 0 0 (- angle2))
   (axle2)))
 
-(translate ((bw 2) (bw 2) 0)
- (rotate (0 0 angle3)
+(translate (list (bw 2) (bw 2) 0)
+ (rotate (list 0 0 angle3)
   (axle3)))

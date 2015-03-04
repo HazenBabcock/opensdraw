@@ -37,21 +37,21 @@
  (block
   (gripper-main open angle)
 
-  (rotate (0 0 angle)
-   (translate ((bw -1) (bw 0.25) (bw -4))
-    (rotate (0 (- 180 (calc-arm-angle (+ open 3))) 0)
+  (rotate (list 0 0 angle)
+   (translate (list (bw -1) (bw 0.25) (bw -4))
+    (rotate (list 0 (- 180 (calc-arm-angle (+ open 3))) 0)
      (gripper-arm 1)))
    
-   (translate ((bw 1) (bw 0.25) (bw -4))
-    (rotate (0 (+ 180 (calc-arm-angle (+ open 3))) 0)
+   (translate (list (bw 1) (bw 0.25) (bw -4))
+    (rotate (list 0 (+ 180 (calc-arm-angle (+ open 3))) 0)
      (gripper-arm 0)))
 
-   (translate ((bw 0.5) 0 (+ (bw (- open)) (bw -7)))
-    (rotate (180 (+ 53.13 (calc-tooth-angle (+ open 3))) 0)
+   (translate (list (bw 0.5) 0 (+ (bw (- open)) (bw -7)))
+    (rotate (list 180 (+ 53.13 (calc-tooth-angle (+ open 3))) 0)
      (gripper-tooth-1)))
 
-   (translate ((bw -0.5) 0 (+ (bw (- open)) (bw -7)))
-    (rotate (0 (+ 53.13 180 (calc-tooth-angle (+ open 3))) 0)
+   (translate (list (bw -0.5) 0 (+ (bw (- open)) (bw -7)))
+    (rotate (list 0 (+ 53.13 180 (calc-tooth-angle (+ open 3))) 0)
      ;(rotate (0 (- 53.13 (calc-tooth-angle (+ open 3))) 0)
      (gripper-tooth-2)))
 
@@ -189,7 +189,7 @@
   ))
 
 (def gripper-tooth-1 ()
- (translate ((bw -2.4) 0 (bw -4.8))
+ (translate (list (bw -2.4) 0 (bw -4.8))
   ; Beam 4 x 4 Liftarm Bent 53.13
   (tb 0 -2 0 0 0 0 "32348" 0)
   (tb 0 2 0 0 0 0 "32348" 0)
@@ -211,7 +211,7 @@
   ))
   
 (def gripper-tooth-2 ()
- (translate ((bw -2.4) 0 (bw -4.8))
+ (translate (list (bw -2.4) 0 (bw -4.8))
   ; Beam 4 x 4 Liftarm Bent 53.13
   (tb 0 -1 0 0 0 0 "32348" 0)
   (tb 0 1 0 0 0 0 "32348" 0)

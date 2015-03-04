@@ -1,5 +1,6 @@
 ;
-; Curve function demo.
+; Curve function demo. This will take a few seconds to run as calculating
+; the optimal curve shape is currently somewhat time intensive.
 ;
 ; Hazen 02/15
 ;
@@ -35,6 +36,7 @@
 ; Add flexible axles.
 ;
 (for (i 14)
+ (print "Creating curve " i)
 
  ; Some math to calculate the curve end point & tangent.
  ; Basically we want the end points to be on a circle around 
@@ -48,11 +50,9 @@
  (def d-z (cos ang-2))
 
  ; Create curve that defines the axle.
- ; Adjust scale multiplier based on the amount of curvature so that the
- ; curves look smoother.
  (def a-curve (curve ((0 0 0) (0 1 0) (1 0 0))
-		     ((0 y z) (0 d-y d-z))
-		     :scale (+ 1.0 (/ i 25.0))))
+ 		     ((0 y z) (0 d-y d-z))
+ 		     :scale (+ 1.0 (/ i 25.0))))
 
  ; Technic Axle Flexible 11
  ; Increase the stretch slightly to remove gaps.

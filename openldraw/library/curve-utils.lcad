@@ -10,7 +10,8 @@
 ; fn - The function to call at p-r.
 ;
 (def ftr (p-r fn)
-  (translate ((aref p-r 0) (aref p-r 1) (aref p-r 2)) ; Translate to curve position.
-   (rotate ((aref p-r 3) (aref p-r 4) (aref p-r 5))   ; Rotate to curve orientation.
-    (fn))))
+ (transform (matrix p-r)
+;  (translate ((aref p-r 0) (aref p-r 1) (aref p-r 2)) ; Translate to curve position.
+;   (rotate ((aref p-r 3) (aref p-r 4) (aref p-r 5))   ; Rotate to curve orientation.
+  (fn)))
 

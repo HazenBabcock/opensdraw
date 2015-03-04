@@ -32,18 +32,18 @@
 (def angle1 (* time-index 5) angle2 (/ angle1 (/ 24 16)))
 
 ; sprocket 1 at 0,0
-(translate (0 0 0)
- (rotate (0 0 (+ angle1 7))
+(translate (list 0 0 0)
+ (rotate (list 0 0 (+ angle1 7))
   (sprocket1)))
 
 ; sprocket 2 at 0,5
-(translate (0 (bw 5) 0)
- (rotate (0 0 (+ angle2 12))
+(translate (list 0 (bw 5) 0)
+ (rotate (list 0 0 (+ angle2 12))
   (sprocket1)))
 
 ; sprocket 3 at 4,4
-(translate ((bw 4) (bw 4) 0)
- (rotate (0 0 (+ angle2 5))
+(translate (list (bw 4) (bw 4) 0)
+ (rotate (list 0 0 (+ angle2 5))
   (sprocket2)))
 
 
@@ -59,7 +59,7 @@
 ; This is necessary so that the links will appear to be hooked to each
 ; other in the final chain.
 (def chain-link ()
- (translate (0 0 -9)
+ (translate (list 0 0 -9)
 
   ; Chain Link
   (part "3711" "Black")))
@@ -67,9 +67,9 @@
 (def chain1 (offset)
  (for (i 29)
   (def lp (a-chain (* 15.5 (+ i offset))))
-  (translate ((aref lp 0) (aref lp 1) 0)
-   (rotate (0 0 (aref lp 2))
-    (rotate (0 90 180)
+  (translate (list (aref lp 0) (aref lp 1) 0)
+   (rotate (list 0 0 (aref lp 5))
+    (rotate (list 0 90 180)
      (chain-link))))))
 
 (chain1 (/ (* pi -1.05 angle1) 180.0))
