@@ -29,7 +29,7 @@ Create the wheel assembly. ::
      (sb 0 1.5 -0.2 90 0 0 "3641" "Black")
 
      ; D. Mirror above along the y-axis to add the other wheel and tyre.
-     (mirror (0 1 0)
+     (mirror (list 0 1 0)
       (sb 0 1.5 -0.2 90 0 0 "4624" "Light_Gray")
       (sb 0 1.5 -0.2 90 0 0 "3641" "Black"))
 
@@ -56,10 +56,10 @@ Create the truck body. ::
    (block
   
     ; A. Wheel assembly
-    (translate ((bw -1) 0 0)
+    (translate (list (bw -1) 0 0)
      (wheel-assembly))
 
-    (translate ((bw 1) 0 0)
+    (translate (list (bw 1) 0 0)
      (wheel-assembly))
 
     ; B. Plate 1 x 2.
@@ -101,7 +101,7 @@ Create the dumper assembly. ::
   (def dumper-assembly ()
 
    ; Make (0,0,0) the pivot point.
-   (translate ((bw -1.5) 0 (bh 0.15))
+   (translate (list (bw -1.5) 0 (bh 0.15))
   
     ; A. Hinge Plate 1 x 2 with 3 Fingers and Solid Studs.
     (sb 0 0.5 0.0 -90 0 0 "4275b" "Yellow")
@@ -139,8 +139,8 @@ Put everything together with a tilt option. ::
     (truck-body)
 
     ; B. Dumper assembly.
-    (translate ((bw 1.5) 0 (bh 0.5))
-     (rotate (0 (- tilt) 0)
+    (translate (list (bw 1.5) 0 (bh 0.5))
+     (rotate (list 0 (- tilt) 0)
       (dumper-assembly)))
   
     ))
@@ -155,8 +155,8 @@ Step 6
 Draw a ring of 18 trucks with different tilts. ::
 
   (for (i 18)
-   (rotate (0 0 (* i 20))
-    (translate (0 (bw 20) 0)
+   (rotate (list 0 0 (* i 20))
+    (translate (list 0 (bw 20) 0)
      (truck (* 30.0 (+ 1 (cos (/ (* i 40 pi) 180))))))))
 
 .. figure:: dumper-truck5.png

@@ -32,7 +32,7 @@ Geometry Functions
 ------------------
 
 .. automodule:: openldraw.lcad_language.geometryFunctions
-   :members: Mirror, Rotate, Scale, Translate
+   :members: Matrix, Mirror, Rotate, Scale, Transform, Translate, Vector
 
 Logical Operators
 -----------------

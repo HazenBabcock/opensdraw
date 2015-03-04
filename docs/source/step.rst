@@ -16,13 +16,13 @@ Step 2
 Create the .lcad file. ::
 
   (for (i 20)
-   (rotate (0 (* i (/ 360.0 20)) 0)
-    (translate ((bw 6.3) (if (= (% i 2) 0) 0 (bw 1)) 0)
+   (rotate (list 0 (* i (/ 360.0 20)) 0)
+    (translate (list (bw 6.3) (if (= (% i 2) 0) 0 (bw 1)) 0)
      (part "32523" 14 i)))
 
-   (rotate (0 (+ (* i (/ 360.0 20)) (* 0.5 (/ 360.0 20))) 0)
-    (translate ((bw 6.4) (bw 0.5) 0)
-     (rotate (0 0 90)
+   (rotate (list 0 (+ (* i (/ 360.0 20)) (* 0.5 (/ 360.0 20))) 0)
+    (translate (list (bw 6.4) (bw 0.5) 0)
+     (rotate (list 0 0 90)
       (part "3673" "black" i)))))
 
 .. note::
