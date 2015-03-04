@@ -9,6 +9,7 @@
 
 import math
 import numbers
+import numpy
 
 import openldraw.lcad_language.interpreter as interpreter
 import openldraw.lcad_language.lexerParser as lexerParser
@@ -160,11 +161,17 @@ def test_header_1():
 
 # line
 def test_line_1():
-    assert exe("(line 1 2 3 4 5 6) 1") == 1
+    assert exe("(line (list 1 2 3) (list 4 5 6)) 1") == 1
+
+def test_line_2():
+    assert exe("(line (vector 1 2 3) (vector 4 5 6)) 1") == 1
 
 # optional line
 def test_optional_line_1():
-    assert exe("(optional-line 1 2 3 4 5 6 1 2 3 4 5 6) 1") == 1
+    assert exe("(optional-line (list 1 2 3) (list 4 5 6) (list 1 2 3) (list 4 5 6)) 1") == 1
+
+def test_optional_line_1():
+    assert exe("(optional-line (vector 1 2 3) (vector 4 5 6) (vector 1 2 3) (vector 4 5 6)) 1") == 1
 
 # part
 def test_part_1():
@@ -172,11 +179,17 @@ def test_part_1():
 
 # quadrilateral
 def test_quadrilateral_1():
-    assert exe("(quadrilateral 1 2 3 4 5 6 1 2 3 4 5 6) 1") == 1
+    assert exe("(quadrilateral (list 1 2 3) (list 4 5 6) (list 1 2 3) (list 4 5 6)) 1") == 1
+
+def test_quadrilateral_2():
+    assert exe("(quadrilateral (vector 1 2 3) (vector 4 5 6) (vector 1 2 3) (vector 4 5 6)) 1") == 1
 
 # triangle
 def test_triangle_1():
-    assert exe("(triangle 1 2 3 4 5 6 7 8 9) 1") == 1
+    assert exe("(triangle (list 1 2 3) (list 4 5 6) (list 7 8 9)) 1") == 1
+
+def test_triangle_1():
+    assert exe("(triangle (vector 1 2 3) (vector 4 5 6) (vector 7 8 9)) 1") == 1
 
 
 ## Comparison Operators.
@@ -226,21 +239,51 @@ def test_ne_2():
 
 ## Geometry Functions.
 
+# matrix
+def test_matrix_1():
+    assert isinstance(exe("(matrix (list 1 2 3 1 2 3 1 2 3 1 2 3))"), numpy.ndarray)
+
+def test_matrix_2():
+    assert isinstance(exe("(matrix (list 0 0 0 0 0 0))"), numpy.ndarray)
+
 # mirror
 def test_mirror_1():
-    assert exe("(mirror (1 (if t 0 1) (if nil 0 1)) 1)") == 1
+    assert exe("(mirror (list 1 (if t 0 1) (if nil 0 1)) 1)") == 1
+
+def test_mirror_2():
+    assert exe("(mirror (vector 1 0 0) 1)") == 1
 
 # rotate
 def test_rotate_1():
-    assert exe("(rotate (1 2 3) 1)") == 1
+    assert exe("(rotate (list 1 2 3) 1)") == 1
+
+def test_rotate_2():
+    assert exe("(rotate (vector 1 2 3) 1)") == 1
 
 # scale
 def test_scale_1():
-    assert exe("(scale (1 2 3) 1)") == 1
+    assert exe("(scale (list 1 2 3) 1)") == 1
+
+def test_scale_2():
+    assert exe("(scale (vector 1 2 3) 1)") == 1
+
+# transform
+def test_transform_1():
+    assert exe("(transform (list 1 2 3 1 2 3 1 2 3 1 2 3) 1)") == 1
+
+def test_transform_2():
+    assert exe("(transform (matrix (list 1 2 3 1 2 3 1 2 3 1 2 3)) 1)") == 1
 
 # translate
 def test_translate_1():
-    assert exe("(translate (1 2 3) 1)") == 1
+    assert exe("(translate (list 1 2 3) 1)") == 1
+
+def test_translate_1():
+    assert exe("(translate (vector 1 2 3) 1)") == 1
+
+# vector
+def test_vector_1():
+    assert isinstance(exe("(vector 1 2 3)"), numpy.ndarray)
 
 
 ## Logical Operators.
