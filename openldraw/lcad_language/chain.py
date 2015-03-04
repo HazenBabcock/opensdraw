@@ -59,9 +59,10 @@ class LCadChain(functions.LCadFunction):
     in the order in which they are specified, and returns from the last sprocket
     to the first sprocket to close the loop.
 
-    When you call the created chain function you will get a 3 element list 
-    *(x y theta)*. The distance argument that is provided to created chain function
-    will be adjusted to be modulo the length of the chain.
+    When you call the created chain function you will get a 6 element list 
+    *(x y z rx ry rz)*. Since (currently) the chain is in the x-y plane, z will 
+    always be zero as well rx and ry. The distance argument that is provided to 
+    created chain function will be adjusted to be modulo the length of the chain.
 
     If you call the created chain function with the argument **t** it will return the 
     length of the chain.
@@ -212,6 +213,7 @@ class Chain(object):
 
         return [self.chain[start].x + dx,
                 self.chain[start].y + dy,
+                0, 0, 0,
                 ftheta * 180.0/math.pi]
 
 
