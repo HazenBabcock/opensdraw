@@ -321,7 +321,7 @@ def dispatch(func, model, tree):
     This handles function calls to both user-defined and built-in functions.
     """
     if not isinstance(func, functions.LCadFunction):
-        raise lce.NotAFunctionException()
+        raise lce.NotAFunctionException(func)
     if not tree.initialized:
         func.argCheck(tree)
     return func.call(model, tree)
@@ -416,12 +416,15 @@ def interpret(model, tree):
         if isinstance(flist[0], lexerParser.LCadExpression) or isinstance(flist[0], lexerParser.LCadSymbol):
             func = getv(interpret(model, flist[0]))
         else:
-            raise lce.ExpressionException()
+            raise lce.NotAFunctionException(flist[0].value)
 
         try:
             val = dispatch(func, model, tree)
         except Exception as e:
-            err_string = "!Error in function '" + func.name + "' at line " + str(tree.start_line) + " in file '" + str(tree.filename) + "'\n"
+            if hasattr(func, "name"):
+                err_string = "!Error in function '" + func.name + "' at line " + str(tree.start_line) + " in file '" + str(tree.filename) + "'\n"
+            else:
+                err_string = "!Error at line "  + str(tree.start_line) + " in file '" + str(tree.filename) + "'\n"
             if hasattr(e, "lcad_err"):
                 e.lcad_err = err_string + e.lcad_err
             else:

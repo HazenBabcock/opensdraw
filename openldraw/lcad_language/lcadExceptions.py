@@ -22,10 +22,6 @@ class CannotSetException(LCadException):
     def __init__(self, item_type):
         LCadException.__init__(self, "type '" + item_type + "' is not settable.")
 
-class ExpressionException(LCadException):
-    def __init__(self):
-        LCadException.__init__(self, "the first element of the list must be a function.")
-
 class FileNotFoundException(LCadException):
     def __init__(self, filename):
         LCadException.__init__(self, filename + " not found.")
@@ -47,8 +43,8 @@ class KeywordValueException(LCadException):
         LCadException.__init__(self, "Keyword with no corresponding value")
 
 class NotAFunctionException(LCadException):
-    def __init__(self):
-        LCadException.__init__(self, "not a function.")
+    def __init__(self, name):
+        LCadException.__init__(self, "'" + str(name) + "' is not a function. The first element of a form must be a function.")
 
 class NumberArgumentsException(LCadException):
     def __init__(self, expected, got):
