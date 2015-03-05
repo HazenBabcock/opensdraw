@@ -4,46 +4,184 @@
 ; Hazen 03/15
 ;
 
-(import curve-utils :local)
 (import locate :local)
 
 ;
-; Create a ribbed hose with specified number of segments that goes along a curve.
-; The curve starts after the initial straight end stud.
+; Create a ribbed hose with specified number of segments that goes along a curve. The hose
+; is created using primitives, it should be in a group so that you can specify the color
+; and back face culling.
+;
+; Example:
+;
+;  (group "my-hose"
+;   (header "BFC CERTIFY CCW")
+;   (ribbed-hose my-curve 0))
+;
+;  (part "my-hose" 10)
 ;
 ; segments - The number of ribs in the ribbed hose.
 ; a-curve - The curve function that the ribbed hose should follow.
-; color - The color of the ribbed hose.
-; stretch - Amount to stretch sub-parts to minimize the appearance of breaks in a bent ribbed hose.
 ;
-(def ribbed-hose (segments a-curve color :stretch 1.05)
+(def ribbed-hose (segments a-curve)
  (block
 
-  ;(def disp 2.4)
-  (def disp 0)
-  
-  ; rib-hose start element.
-  (ftr (a-curve disp)
-       (lambda ()
-  	(trf 0 0 0 -90 -90 0 
-	     (lambda () 
-	      (scale (1 stretch 1) (part "79" color))))))
+  (def data (list (list -3.1 (vector 6 0 1.55))
+		  (list 0 (vector 8.5 0 -1.55))
+		  (list 0 (vector 9 0 -1.05))
+		  (list 0 (vector 9 0 1.05))
+		  (list 0 (vector 8.5 0 1.55))
+		  (list 3.1 (vector 6 0 -1.55))))
 
-  ; middle parts
-  (set disp (+ disp 6.2))
-  (for (p (- segments 2))
-   (ftr (a-curve disp)
-	(lambda ()
-	 (trf 0 0 0 90 -90 0
-	      (lambda ()
-	       (scale (1 stretch 1) (part "80" color))))))
-   (set disp (+ disp 6.2)))
+  (def dist 0)
 
-  ; rib-hose end element.
-  (ftr (a-curve disp) 
-       (lambda ()
-  	(trf 0 0 0 90 -90 0 
-	     (lambda () 
-	      (scale (1 stretch 1) (part "79" color))))))
+  ; middle segments.
+  (for (i segments)
+
+   ; ring
+   (for (j (- (len data) 1))
+    (def d1 (aref data j))
+    (def d2 (aref data (+ j 1)))
+    (def pr1 (a-curve (+ dist (aref d1 0))))
+    (def pr2 (a-curve (+ dist (aref d2 0))))
+    (shell pr1 (aref d1 1) pr2 (aref d2 1) t))
+
+   ; joining segment
+   (def d1 (aref data (- (len data) 1)))
+   (def pr1 (a-curve (+ dist (aref d1 0))))
+   (set dist (+ dist 6.2))
+   (def d2 (aref data 0))
+   (def pr2 (a-curve (+ dist (aref d2 0))))
+   (shell pr1 (aref d1 1) pr2 (aref d2 1) t))
+
   ))
 
+(def shell (pr1 offset1 pr2 offset2 ccw)
+ (block
+  (def d-ang 22.5)
+  (for (ang 0 d-ang 340)
+   (def p1 (xyz pr1 offset1 ang))
+   (def p2 (xyz pr1 offset1 (+ ang d-ang)))
+   (def p3 (xyz pr2 offset2 ang))
+   (def p4 (xyz pr2 offset2 (+ ang d-ang)))
+
+   (if ccw
+     (block
+      (triangle p1 p2 p3)
+      (triangle p2 p4 p3)
+     (block
+      (triangle p2 p1 p3)
+      (triangle p4 p2 p3)))))))
+
+(def xyz (pr offset angle)
+ (* (matrix pr)
+    (matrix (list 0 0 0 0 0 angle))
+    offset))
+
+
+;; Sub-parts that the hose is assembled from.
+
+(def rib-cylinder ()
+ (block
+  (comment "~OpenLDraw Technic Rib Cylinder")
+  (comment "Based on 80.dat by William Howard [WilliamH]")
+  (comment "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt")
+
+  (comment "BFC CERTIFY CCW")
+
+  ; The rib is 3 long, so this part needs to be 3.2 long.
+  (transform (list 0 2.1 0 0.5 0 0 0 -1 0 0 0 -0.5)
+   (part "4-4Rin13" 16))
+
+  (transform (list 0 -2.1 0 0.5 0 0 0 1 0 0 0 -0.5)
+   (part "4-4Rin13" 16))
+
+  (transform (list 0 1.6 0 6.5 0 0 0 6.5 0 0 0 -6.5)
+   (part "t01i0769" 16))
+
+  (transform (list 0 -1.6 0 6.5 0 0 0 -6.5 0 0 0 -6.5)
+   (part "t01i0769" 16))
+
+  (comment "BFC INVERTNEXT")
+  (transform (list 0 -1.6 0 6 0 0 0 3.2 0 0 0 6)
+   (part "4-4cyli" 16))
+
+  (transform (list 0 -1.6 0 6.5 0 0 0 3.2 0 0 0 6.5)
+   (part "4-4cyli" 16))
+
+  ))
+
+(def rib-inner ()
+ (block
+  (comment "~OpenLDraw Technic Rib Inner")
+  (comment "Based on s\78s01.dat by William Howard [WilliamH]")
+  (comment "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt")
+
+  (comment "BFC CERTIFY CCW")
+
+  (comment "BFC INVERTNEXT")
+  (transform (list 0 0 0 8.5 0 0 0 -0.5 0 0 0 8.5)
+   (part "4-4cyli" 16))
+
+  (comment "BFC INVERTNEXT")  
+  (transform (list 0 -0.5 0 0 0 8 0 -8 0 -8 0 0)
+   (part "t01o0625" 16))
+  ))
+
+(def rib-outer ()
+ (block
+  (comment "~OpenLDraw Technic Ribber Outer")
+  (comment "Based on s\78s01.dat by William Howard [WilliamH]")
+  (comment "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt")
+
+  (comment "BFC CERTIFY CCW")
+
+  (transform (list 0 0 0 9 0 0 0 -1 0 0 0 9)
+   (part "4-4cyli" 16))
+
+  (transform (list 0 0 0 9 0 0 0 1 0 0 0 9)
+   (part "4-4cyli" 16))
+
+  (transform (list 0 -1 0 8 0 0 0 -4 0 0 0 8)
+   (part "t04o1250" 16))
+
+  (transform (list 0 1 0 8 0 0 0 4 0 0 0 8)
+   (part "t04o1250" 16))
+
+  (transform (list 0 -1 0 0 0 -8 0 -4 0 8 0 0)
+   (part "t04o1250" 16))
+
+  (transform (list 0 1 0 0 0 -8 0 4 0 8 0 0)
+   (part "t04o1250" 16))
+
+  (transform (list 0 -1 0 -8 0 0 0 -4 0 0 0 -8)
+   (part "t04o1250" 16))
+
+  (transform (list 0 1 0 -8 0 0 0 4 0 0 0 -8)
+   (part "t04o1250" 16))
+
+  (transform (list 0 -1 0 0 0 8 0 -4 0 -8 0 0)
+   (part "t04o1250" 16))
+
+  (transform (list 0 1 0 0 0 8 0 4 0 -8 0 0)
+   (part "t04o1250" 16))
+  ))
+
+; Create groups, only once.
+(def initialized nil)
+(if (not initialized)
+  (block
+   (set initialized t)
+   (group "rib-inner.dat"
+    (rib-inner))
+   (group "rib-outer.dat"
+    (rib-outer))
+   (group "rib-cylinder.dat"
+    (rib-cylinder))))
+
+
+; testing.
+(def a-curve (curve ((0 0 0) (1 1 0) (0 0 1))
+		    (((bw 5) 0 0) (1 0 0))))
+
+;(part "rib-outer" 2)
+(part "rib-cylinder" 2)
