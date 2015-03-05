@@ -1,0 +1,19 @@
+;
+; Ribbed hose example.
+;
+; Hazen 3/15
+;
+
+;(import locate :local)
+(import ribbed-hose :local)
+
+(def my-curve (curve ((0 0 0) (0 1 0) (0 0 1))
+		     ((100 0 0) (1 0 0))))
+
+(header "BFC CERTIFY CCW")
+
+(group "my-hose.dat"
+ (header "BFC CERTIFY CCW")
+ (ribbed-hose 21 my-curve))
+(part "my-hose" 2)
+
