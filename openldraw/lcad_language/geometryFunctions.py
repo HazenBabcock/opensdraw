@@ -105,8 +105,8 @@ class GeometryFunction(functions.LCadFunction):
 
 class Matrix(GeometryFunction):
     """
-    **matrix** - Return a 4 x 4 transform matrix. Currently this
-    matrix is immutable, but the plan is to fix this.
+    **matrix** - Return a 4 x 4 transform matrix. The matrix is a numpy 
+    array. Currently this matrix is immutable, but the plan is to fix this.
 
     The arguments are (list x y z a b c d e f g h i) as defined here:
 
@@ -397,8 +397,9 @@ lcad_functions["translate"] = Translate()
 
 class Vector(GeometryFunction):
     """
-    **vector** - Return a 4 element position vector. Currently this vector
-    is immutable, but the plan is to fix this.
+    **vector** - Return a 4 element position vector. The vector is a 
+    numpy array. Currently this vector is immutable, but the plan is 
+    to fix this.
 
     :param x: x in LDU.
     :param y: y in LDU.
