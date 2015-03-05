@@ -405,7 +405,6 @@ class Import(CoreFunction):
                         full_name = arg.value + ":" + sym_name
                         interp.checkOverride(lenv, full_name)
                         lenv.symbols[full_name] = module_lenv.symbols[sym_name]
-                        #sym.name = full_name
 
 lcad_functions["import"] = Import()
 
