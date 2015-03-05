@@ -102,7 +102,7 @@ class Group(PartFunction):
     output file. Normally you probably want to group parts
     into a function, but sometimes you might want to 
     generate output that is better formatted for tools that
-    work on mpd files. 
+    work on mpd files.
 
     Note that:
 
