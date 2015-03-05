@@ -83,6 +83,7 @@ class LCadCurve(functions.LCadFunction):
                                  ; want a number greater than 1.0, which is the default value.
       :twist        angle        ; additional twist along the curve, defaults to 0.
 
+    Unfortunately auto scaling is a bit slow and sometimes fails, so more work is needed..
 
     Usage::
 
@@ -310,13 +311,15 @@ class Curve(object):
                     cp1.raw_z_vec = cp1.z_vec * x[0]
                     cp2.raw_z_vec = cp2.z_vec * x[1]
                     segment = Segment(cp1, cp2)
-                    return segment.maxCurvature()
+                    max_c = segment.maxCurvature()
+                    return max_c
 
                 x0 = numpy.array([0.5 * d_scale * self.scale, 
                                   0.5 * d_scale * self.scale])
                 res = minimize(errf, 
                                x0, 
                                method='nelder-mead',
+                               #method = 'powell',
                                options={'xtol': 1e-3, 'disp': False})
 
                 if not res.success:
@@ -559,62 +562,28 @@ class Segment(object):
 #
 if (__name__ == "__main__"):
 
-    if 0:
-        min_c = 200
-        min_ij = [0,0]
-        for i in range(10):
-            for j in range(10):
-                cp1 = ControlPoint(0, 0, 0, 0, i+1, 0, 0, 0, 1.0)
-                cp2 = ControlPoint(2, 5, 0, j+1, 0, 0)
+    cp1 = ControlPoint(0, 0, 0, 1, 1, 0, 0, 0, 1.0)
+    cp2 = ControlPoint(2, 0, 0, 1, 0, 0)
+    cp3 = ControlPoint(4, 0, 0, 1, 1, 0)
 
-                curve = Curve(False, True, 1.0, 0)
-                curve.addSegment(cp1, cp2)
-
-                c = curve.segments[0].maxCurvature()
-                if (c < min_c):
-                    min_c = c
-                    min_ij = [i,j]
-                    #print i, j, curve.segments[0].maxCurvature()
-        print min_c, min_ij
-        exit()
-
-    cp1 = ControlPoint(0, 0, 0, -1, 1, 0, 0, 0, 1.0)
-    cp2 = ControlPoint(2, 0, 0, -1, -1, 0)
-    #cp3 = ControlPoint(10, 0, 0, 1.0, 1.0, 0)
-
-    curve = Curve(True, True, 4.0, 0)
+    curve = Curve(False, True, 1.0, 0)
     curve.addSegment(cp1, cp2)
+    curve.addSegment(cp2, cp3)
 
     print curve.segments[0].maxCurvature()
-    #curve.addSegment(cp2, cp3)
-
-
-    #x = numpy.arange(0, 1.0, 0.1)
-    #for i in range(x.size):
-    #    print seg.curvature(x[i])
-    #print seg.x_coeff
-    #print seg.y_coeff
-    #print curve.getCoords(1)
-    #exit()
-    
-    #print curve.length
 
     x = numpy.arange(-1, curve.length + 1, 0.1)
     xf = numpy.zeros(x.size)
     yf = numpy.zeros(x.size)
     for i in range(x.size):
         [cx, cy, cz, rx, ry, rz] = curve.getCoords(x[i])
-        #print rx, ry, rz
         xf[i] = cx
         yf[i] = cy
 
     import matplotlib.pyplot as plt
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1, aspect = 1.0)
-    #ax = fig.add_subplot(1,1,1)
     ax.plot(xf, yf)
-    #plt.xlim([-1,3])
-    #plt.ylim([-1,6])
     plt.show()
 
 
