@@ -274,6 +274,9 @@ def test_transform_1():
 def test_transform_2():
     assert exe("(transform (matrix (list 1 2 3 1 2 3 1 2 3 1 2 3)) 1)") == 1
 
+def test_transform_3():
+    assert exe("(transform (matrix (list 0 0 0 0 0 0)) 1)") == 1
+
 # translate
 def test_translate_1():
     assert exe("(translate (list 1 2 3) 1)") == 1
