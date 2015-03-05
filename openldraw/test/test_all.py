@@ -331,6 +331,21 @@ def test_math_4():
 def test_math_5():
     assert exe("(% 11 2)") == 1
 
+def test_math_6():
+    assert exe("(* (matrix (list 1 1 1 3 0 0 0 3 0 0 0 3)) (vector 1 2 3))")[1] == 7
+
+def test_math_7():
+    assert exe("(* (vector 1 2 3) (vector 1 2 3))")[1] == 4
+
+def test_math_8():
+    assert exe("(/ (vector 1 2 3) (vector 1 2 3))")[1] == 1
+
+def test_math_9():
+    assert exe("(+ (vector 1 2 3) (vector 1 2 3))")[1] == 4
+
+def test_math_10():
+    assert exe("(- (vector 1 2 3) (vector 1 2 3))")[1] == 0
+
 # python math module
 def test_py_math_1():
     assert int(round(exe("(cos 0)"))) == 1
