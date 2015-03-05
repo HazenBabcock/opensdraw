@@ -29,6 +29,12 @@ class MathFunction(functions.LCadFunction):
             raise lce.WrongTypeException("number", type(num))
         return num
 
+    def isScalarOrVector(self, value):
+        num = interp.getv(value)
+        if not isinstance(num, numbers.Number) and not isinstance(num, numpy.ndarray):
+            raise lce.WrongTypeException("number, numpy.ndarray", type(num))
+        return num
+
 
 # "Basic" math functions.
 
@@ -42,7 +48,8 @@ class BasicMathFunction(MathFunction):
 
 class Divide(BasicMathFunction):
     """
-    **/** - Divide the first number by one or more additional numbers.
+    **/** - Divide the first number, vector or matrix by one or more additional 
+    numbers, vectors or matrices. Vectors and matrices are divided pointwise.
 
     Usage::
 
@@ -50,9 +57,9 @@ class Divide(BasicMathFunction):
 
     """
     def call(self, model, tree):
-        total = self.isNumber(interp.interpret(model, tree.value[1]))
+        total = self.isScalarOrVector(interp.interpret(model, tree.value[1]))
         for node in tree.value[2:]:
-            total = total/self.isNumber(interp.interpret(model, node))
+            total = total/self.isScalarOrVector(interp.interpret(model, node))
         return total
 
 lcad_functions["/"] = Divide("/")
@@ -60,7 +67,8 @@ lcad_functions["/"] = Divide("/")
 
 class Minus(BasicMathFunction):
     """
-    **-** - Subtract one or more numbers from the first number.
+    **-** - Subtract one or more numbers, vectors or matrices from the first 
+    number, vector or matrix.
 
     Usage::
 
@@ -74,11 +82,16 @@ class Minus(BasicMathFunction):
 
     def call(self, model, tree):
         if (len(tree.value) == 2):
-            return -self.isNumber(interp.interpret(model, tree.value[1]))
+            return -self.isScalarOrVector(interp.interpret(model, tree.value[1]))
         else:
-            total = self.isNumber(interp.interpret(model, tree.value[1]))
+            total = self.isScalarOrVector(interp.interpret(model, tree.value[1]))
+
+            # If this a numpy array, make a copy to avoid destroying the original.
+            if isinstance(total, numpy.ndarray):
+                total = total.copy()
+
             for node in tree.value[2:]:
-                total -= self.isNumber(interp.interpret(model, node))
+                total -= self.isScalarOrVector(interp.interpret(model, node))
             return total
 
 lcad_functions["-"] = Minus("-")
@@ -107,7 +120,9 @@ lcad_functions["%"] = Modulo("%")
 
 class Multiply(BasicMathFunction):
     """
-    ***** - Multiply two or more numbers.
+    ***** - Multiply two or more numbers, vectors or matrices. If the first 
+    number is a matrix, then multiplication will be done using matrix 
+    multiplication, i.e. (* mat vec) will return a vector.
 
     Usage::
 
@@ -115,9 +130,12 @@ class Multiply(BasicMathFunction):
 
     """
     def call(self, model, tree):
-        total = 1
+        total = 1.0
         for node in tree.value[1:]:
-            total = total * self.isNumber(interp.interpret(model, node))
+            if isinstance(total, numpy.ndarray) and (len(total.shape) == 2):
+                total = numpy.dot(total, self.isScalarOrVector(interp.interpret(model, node)))
+            else:
+                total = total * self.isScalarOrVector(interp.interpret(model, node))
         return total
 
 lcad_functions["*"] = Multiply("*")
@@ -125,7 +143,7 @@ lcad_functions["*"] = Multiply("*")
 
 class Plus(BasicMathFunction):
     """
-    **+** - Add together two or more numbers.
+    **+** - Add together two or more numbers, vectors or matrices.
 
     Usage::
 
@@ -135,7 +153,7 @@ class Plus(BasicMathFunction):
     def call(self, model, tree):
         total = 0
         for node in tree.value[1:]:
-            total += self.isNumber(interp.interpret(model, node))
+            total += self.isScalarOrVector(interp.interpret(model, node))
         return total
 
 lcad_functions["+"] = Plus("+")
