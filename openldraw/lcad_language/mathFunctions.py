@@ -99,7 +99,7 @@ lcad_functions["-"] = Minus("-")
 
 class Modulo(BasicMathFunction):
     """
-    **%** Return remainder of the first number divided by the second number.
+    **%** - Return remainder of the first number divided by the second number.
 
     Usage::
 
