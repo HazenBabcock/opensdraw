@@ -111,7 +111,7 @@ class LDraw(object):
 
     def toLDraw(self):
         ld_str = self.prefix + self.color + " "
-        ld_str += " ".join(map(lambda(x): formatNumber(x, 2), self.coords))
+        ld_str += " ".join(map(lambda(x): formatNumber(x, 3), self.coords))
         return ld_str
 
 class Line(LDraw):
