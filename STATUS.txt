@@ -1,6 +1,8 @@
 
 Current:
 
+2015-03-06: Changed the name of the project to OpenSDraw.
+
 2015-03-05: Continuing with the disruptive changes.. The chain() and curve() functions
 	    now require their arguments to be explicit lists.
 

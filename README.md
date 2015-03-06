@@ -1,8 +1,8 @@
-### openldraw ###
+### opensdraw ###
 A programming language (and some related utilities) for creating [LDraw](http://www.ldraw.org) format files.
 
 ### Documentation ###
-The documentation is [here](http://HazenBabcock.github.io/openldraw).
+The documentation is [here](http://HazenBabcock.github.io/opensdraw).
 
 ### Getting Started ###
 You will need to add this directory to your Python path. One way to do this is to copy the openldraw.pth file into your Python dist-packages directory, then edit it to have the correct path.
@@ -12,7 +12,7 @@ I use partviewer.py to find LDraw part information, emacs to edit the .lcad file
 ### Directory Layout ###
 * docs - Sphinx documentation.
 * emacs - Minor mode for editing .lcad files with emacs.
-* openldraw - The openldraw package.
+* opensdraw - The opensdraw package.
 
 ### Dependencies ###
 * [LDraw](http://www.ldraw.org)
