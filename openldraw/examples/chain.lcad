@@ -51,9 +51,9 @@
 
 ; Create the chain function. The fudge factor in the radius is so that the
 ; length of the chain is (approximately) a multiple of a chain link length.
-(def a-chain (chain ((bw 0) (bw 0) (bw 1.05) -1)
-		    ((bw 0) (bw 5) (bw 1.05) -1)
-		    ((bw 4) (bw 4) (bw 1.55) -1)))
+(def a-chain (chain (list (list (bw 0) (bw 0) (bw 1.05) -1)
+			  (list (bw 0) (bw 5) (bw 1.05) -1)
+			  (list (bw 4) (bw 4) (bw 1.55) -1))))
 
 ; A chain link adjusted so that it's origin is the center of the link.
 ; This is necessary so that the links will appear to be hooked to each

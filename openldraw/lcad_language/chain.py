@@ -69,12 +69,12 @@ class LCadChain(functions.LCadFunction):
 
     Usage::
 
-     (def a-chain (chain (-4 0 1 1) (4 0 1 1)))  ; Create a chain with two sprockets, the 1st at (-4,0) and
-                                                 ; the second at (4,0). Both sprockets have radius 1 and a
-                                                 ; counter-clockwise winding direction.
-     (def c1 (a-chain 1))                        ; c1 is the list (x y theta), where x,y are position and 
-                                                 ; theta is the orientation (in degrees).
-     (a-chain t)                                 ; Returns the length of the chain.
+     (def a-chain (chain (list (list -4 0 1 1)    ; Create a chain with two sprockets, the 1st at (-4,0) and
+                               (list 4 0 1 1))))  ; the second at (4,0). Both sprockets have radius 1 and a
+                                                  ; counter-clockwise winding direction.
+     (def c1 (a-chain 1))                         ; c1 is the list (x y theta), where x,y are position and 
+                                                  ; theta is the orientation (in degrees).
+     (a-chain t)                                  ; Returns the length of the chain.
 
     """
     def __init__(self):
@@ -82,27 +82,33 @@ class LCadChain(functions.LCadFunction):
 
     def argCheck(self, tree):
 
-        # Check for at least two sprockets.
-        if (len(tree.value) < 3):
-            raise NumberSprocketsException(len(tree.value)-1)
-
-        # Check that there are four arguments per sprocket.
-        args = tree.value[1:]
-        for arg in args:
-            if not isinstance(arg.value, list):
-                raise SprocketException(1)
-            if (len(arg.value) != 4):
-                raise SprocketException(len(arg.value))
+        if (len(tree.value) != 2):
+            raise lcadExceptions.NumberArgumentsException(len(tree.value)-1)
 
     def call(self, model, tree):
-        args = tree.value[1:]
+        sprocket_list = interp.getv(interp.interpret(model, tree.value[1:]))
+
+        if not isinstance(sprocket_list, interp.List):
+            raise lcadExceptions.WrongTypeException("LCadList", type(sprocket_list))
+
+        if (sprocket_list.size < 2):
+            raise NumberSprocketsException(sprocket_list.size)
 
         # Create sprockets.
         sprockets = []
-        for arg in args:
+        for i in range(sprocket_list.size):
+        
+            sprocket = interp.getv(sprocket_list.getv(i))
+
+            if not isinstance(sprocket, interp.List):
+                raise lcadExceptions.WrongTypeException("LCadList", type(sprocket))
+
+            if (sprocket.size != 4):
+                raise SprocketException(sprocket.size)
+
             vals = []
-            for i in range(4):
-                val = interp.getv(interp.interpret(model, arg.value[i]))
+            for j in range(4):
+                val = interp.getv(sprocket.getv(j))
                 if not isinstance(val, numbers.Number):
                     raise lcadExceptions.WrongTypeException("number", type(val))
                 vals.append(val)
@@ -127,7 +133,6 @@ lcad_functions["chain"] = LCadChain()
 class NumberSprocketsException(lcadExceptions.LCadException):
     def __init__(self, got):
         lcadExceptions.LCadException.__init__(self, "A chain must have 2 sprockets, got " + str(got))
-
 
 class SprocketException(lcadExceptions.LCadException):
     def __init__(self, got):
