@@ -7,8 +7,8 @@
 ;(import locate :local)
 (import ribbed-hose :local)
 
-(def my-curve (curve ((0 0 0) (0 1 0) (0 0 1))
-		     ((100 0 0) (1 0 0))))
+(def my-curve (curve (list (list (list 0 0 0) (list 0 1 0) (list 0 0 1))
+			   (list (list 100 0 0) (list 1 0 0)))))
 
 (header "BFC CERTIFY CCW")
 
