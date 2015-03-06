@@ -88,7 +88,7 @@ class LCadChain(functions.LCadFunction):
         sprocket_list = interp.getv(interp.interpret(model, tree.value[1:]))
 
         if not isinstance(sprocket_list, interp.List):
-            raise lcadExceptions.WrongTypeException("LCadList", type(sprocket_list))
+            raise lcadExceptions.WrongTypeException("list", type(sprocket_list))
 
         if (sprocket_list.size < 2):
             raise NumberSprocketsException(sprocket_list.size)
@@ -100,7 +100,7 @@ class LCadChain(functions.LCadFunction):
             sprocket = interp.getv(sprocket_list.getv(i))
 
             if not isinstance(sprocket, interp.List):
-                raise lcadExceptions.WrongTypeException("LCadList", type(sprocket))
+                raise lcadExceptions.WrongTypeException("list", type(sprocket))
 
             if (sprocket.size != 4):
                 raise SprocketException(sprocket.size)
