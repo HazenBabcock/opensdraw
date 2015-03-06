@@ -12,7 +12,7 @@ This project was inspired by `OpenSCAD <http://www.openscad.org/>`_.
 Download
 --------
 
-The OpenSDraw project can be obtained `here <https://github.com/HazenBabcock/openldraw>`_.
+The OpenSDraw project can be obtained `here <https://github.com/HazenBabcock/opensdraw>`_.
 
 User's Guide
 ------------
