@@ -87,108 +87,118 @@ class LCadCurve(functions.LCadFunction):
 
     Usage::
 
-     (def my-curve (curve ((0 0 0) (1 1 0) (0 0 1)) ; Create a curve going through (0,0,0), (5,0,0)
-                          ((5 0 0) (1 0 0))))       ; With derivative (1,1,0) and (1,0,0). Since we did
-                                                    ; not specify :auto-scale nil, the derivative will
-                                                    ; be scaled to create a hopefully pleasing curve.
+     (def my-curve (curve (list (list (list 0 0 0) (list 1 1 0) (list 0 0 1)) ; Create a curve going through (0,0,0), (5,0,0)
+                                (list (list 5 0 0) (list 1 0 0))))            ; With derivative (1,1,0) and (1,0,0). Since we did
+                                                                              ; not specify :auto-scale nil, the derivative will
+                                                                              ; be scaled to create a hopefully pleasing curve.
 
-     (def p1 (my-curve 1))                          ; p1 is the list (x y z rx ry rz) which defines the
-                                                    ; curve at distance one along the curve.
-     (my-curve t)                                   ; Returns the length of the curve.
+     (def p1 (my-curve 1))                                                    ; p1 is the list (x y z rx ry rz) which defines the
+                                                                              ; curve at distance one along the curve.
+     (my-curve t)                                                             ; Returns the length of the curve.
 
     """
     def __init__(self):
         functions.LCadFunction.__init__(self, "curve")
 
     def argCheck(self, tree):
+        if (len(tree.value) < 2):
+            raise lcadExceptions.NumberArgumentsException(len(tree.value)-1)
         
-        # Check for at least two control points.
-        if (len(tree.value) < 3):
-            raise NumberControlPointsException(len(tree.value)-1)
-
-        # Check for 3 x 2 or (3 x 3) arguments per control point.
-        # Keyword arguments come after control points.
-        args = tree.value[1:]
-        index = 0
-        n_control_points = 0
-        while (index < len(args)):
-            arg = args[index]
+        # Check keyword arguments.
+        if (len(tree.value) > 2):
+            args = tree.value[2:]
+            index = 0
+            while (index < len(args)):
+                arg = args[index]
             
-            # Check if argument is a keyword.
-            if not isinstance(arg.value, list):
                 if (arg.value[0] == ":"):
-                    if (n_control_points < 2):
-                        raise NumberControlPointsException(n_control_points)
                     if not (arg.value in [":auto-scale", ":extrapolate", ":scale", ":twist"]):
                         raise lcadExceptions.UnknownKeywordException(arg.value)
                     index += 2
                     if (index > len(args)):
                         raise lcadExceptions.KeywordValueException()
-                    continue
                 else:
                     raise ControlPointException(arg.value + " is not a list or a keyword")
 
-            # If it is a list, check that it is properly composed.
-            if not isinstance(arg.value, list):
-                raise ControlPointException("Argument must be a list of lists")
-            if (index == 0):
-                if (len(arg.value) != 3):
-                    raise ControlPointException("First control point must include a perpendicular vector.")
-            else:
-                if (len(arg.value) != 2):
-                    raise ControlPointException("Control point must include only a location and a derivative (tangent) vector.")
-
-            # Check that the sub-lists have the right number of arguments.
-            for vec in arg.value:
-                if not isinstance(vec.value, list):
-                    raise ControlPointException("Argument must be a list")
-                if (len(vec.value) != 3):
-                    raise ControlPointException("List must have 3 elements")
-            
-            n_control_points += 1
-            index += 1
-
     def call(self, model, tree):
-        args = tree.value[1:]
 
+        # Keyword defaults.
         auto_scale = True
         extrapolate = True
         scale = 1.0
-        twist = 0.0
+        twist = 0
 
-        # Create control points.
+        # Get list of control points.
+        controlp_list = interp.getv(interp.interpret(model, tree.value[1]))
+        if not isinstance(controlp_list, interp.List):
+            raise lcadExceptions.WrongTypeException("LCadList", type(controlp_list))
+
+        if (controlp_list.size < 2):
+            raise NumberControlPointsException(controlp_list.size)
+
+        # Process keywords.
         index = 0
-        control_points = []
+        args = tree.value[2:]
         while (index < len(args)):
             arg = args[index]
 
             # Process keyword.
-            if not isinstance(arg.value, list):
-                if (arg.value == ":auto-scale"):
-                    auto_scale = functions.isTrue(model, args[index+1])
-                if (arg.value == ":extrapolate"):
-                    extrapolate = functions.isTrue(model, args[index+1])
-                if (arg.value == ":scale"):
-                    scale = interp.getv(interp.interpret(model, args[index+1]))
-                    if not isinstance(scale, numbers.Number):
-                        raise lcadExceptions.WrongTypeException("number", type(scale))
-                if (arg.value == ":twist"):
-                    twist = interp.getv(interp.interpret(model, args[index+1]))
-                    if not isinstance(twist, numbers.Number):
-                        raise lcadExceptions.WrongTypeException("number", type(twist))
-                index += 2
-                continue
+            if (arg.value == ":auto-scale"):
+                auto_scale = functions.isTrue(model, args[index+1])
+            if (arg.value == ":extrapolate"):
+                extrapolate = functions.isTrue(model, args[index+1])
+            if (arg.value == ":scale"):
+                scale = interp.getv(interp.interpret(model, args[index+1]))
+                if not isinstance(scale, numbers.Number):
+                    raise lcadExceptions.WrongTypeException("number", type(scale))
+            if (arg.value == ":twist"):
+                twist = interp.getv(interp.interpret(model, args[index+1]))
+                if not isinstance(twist, numbers.Number):
+                    raise lcadExceptions.WrongTypeException("number", type(twist))
+            index += 2
 
-            # Create control point.
+        # Process control points.
+        control_points = []
+        for i in range(controlp_list.size):
+
+            # Get list of control point vectors.
+            control_point = interp.getv(controlp_list.getv(i))
+
+            if not isinstance(control_point, interp.List):
+                raise lcadExceptions.WrongTypeException("LCadList", type(control_point))
+
+            if (i == 0):
+                if (control_point.size != 3):
+                    raise ControlPointException("First control point must include a perpendicular vector.")
+            else:
+                if (control_point.size != 2):
+                    raise ControlPointException("Control point must have a location and a derivative (tangent) vector.")
+
+            # Process control point vectors.
             vals = []
-            for vec in arg.value:
-                for i in range(3):
-                    val = interp.getv(interp.interpret(model, vec.value[i]))
+            for j in range(control_point.size):                
+                vec = interp.getv(control_point.getv(j))
+            
+                if not isinstance(vec, interp.List):
+                    raise lcadExceptions.WrongTypeException("LCadList", type(vec))
+                if (vec.size != 3):
+                    raise ControlPointException("Control point vector must have 3 elements")
+
+                for k in range(3):
+                    val = interp.getv(vec.getv(k))
                     if not isinstance(val, numbers.Number):
                         raise lcadExceptions.WrongTypeException("number", type(val))
                     vals.append(val)
+
+            # Check that tangent is not zero.
+            tx = vals[3]
+            ty = vals[4]
+            tz = vals[5]
+            if ((tx*tx + ty*ty + tz*tz) < 1.0e-3):
+                raise TangentException()
+
+            # Create control point.
             control_points.append(ControlPoint(*vals))
-            index += 1
 
         # Create curve.
         curve = Curve(auto_scale, extrapolate, scale, twist)

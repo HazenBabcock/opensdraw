@@ -50,9 +50,9 @@
  (def d-z (cos ang-2))
 
  ; Create curve that defines the axle.
- (def a-curve (curve ((0 0 0) (0 1 0) (1 0 0))
- 		     ((0 y z) (0 d-y d-z))
- 		     :scale (+ 1.0 (/ i 25.0))))
+ (def a-curve (curve (list (list (list 0 0 0) (list 0 1 0) (list 1 0 0))
+			   (list (list 0 y z) (list 0 d-y d-z)))
+		     :scale (+ 1.0 (/ i 25.0))))
 
  ; Technic Axle Flexible 11
  ; Increase the stretch slightly to remove gaps.
