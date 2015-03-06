@@ -88,10 +88,8 @@
 (defun compile ()
   (save-buffer)
   (interactive)
-  (shell-command (concat "python ~/Code/openldraw/openldraw/scripts/lcad_to_ldraw.py "
+  (shell-command (concat "python ~/Code/opensdraw/opensdraw/scripts/lcad_to_ldraw.py "
 			 (buffer-file-name))))
-
-;			 (file-name-sans-extension (buffer-file-name)) ".dat")))
 
 (define-derived-mode lcad-mode lisp-mode "lcad"
   "lcad-mode is a major mode for editing the lcad language."
