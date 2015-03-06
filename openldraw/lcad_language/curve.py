@@ -131,7 +131,7 @@ class LCadCurve(functions.LCadFunction):
         # Get list of control points.
         controlp_list = interp.getv(interp.interpret(model, tree.value[1]))
         if not isinstance(controlp_list, interp.List):
-            raise lcadExceptions.WrongTypeException("LCadList", type(controlp_list))
+            raise lcadExceptions.WrongTypeException("list", type(controlp_list))
 
         if (controlp_list.size < 2):
             raise NumberControlPointsException(controlp_list.size)
@@ -165,7 +165,7 @@ class LCadCurve(functions.LCadFunction):
             control_point = interp.getv(controlp_list.getv(i))
 
             if not isinstance(control_point, interp.List):
-                raise lcadExceptions.WrongTypeException("LCadList", type(control_point))
+                raise lcadExceptions.WrongTypeException("list", type(control_point))
 
             if (i == 0):
                 if (control_point.size != 3):
@@ -179,16 +179,22 @@ class LCadCurve(functions.LCadFunction):
             for j in range(control_point.size):                
                 vec = interp.getv(control_point.getv(j))
             
-                if not isinstance(vec, interp.List):
-                    raise lcadExceptions.WrongTypeException("LCadList", type(vec))
-                if (vec.size != 3):
-                    raise ControlPointException("Control point vector must have 3 elements")
+                if isinstance(vec, interp.List):
+                    if (vec.size != 3):
+                        raise ControlPointException("Control point vector must have 3 elements")
 
-                for k in range(3):
-                    val = interp.getv(vec.getv(k))
-                    if not isinstance(val, numbers.Number):
-                        raise lcadExceptions.WrongTypeException("number", type(val))
-                    vals.append(val)
+                    for k in range(3):
+                        val = interp.getv(vec.getv(k))
+                        if not isinstance(val, numbers.Number):
+                            raise lcadExceptions.WrongTypeException("number", type(val))
+                        vals.append(val)
+
+                elif isinstance(vec, numpy.ndarray):
+                    for k in range(3):
+                        vals.append(vec[k])
+
+                else:
+                    raise lcadExceptions.WrongTypeException("list, numpy.ndarray", type(vec))
 
             # Check that tangent is not zero.
             tx = vals[3]
