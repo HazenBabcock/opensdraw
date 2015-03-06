@@ -1,6 +1,9 @@
 
 Current:
 
+2015-03-05: Continuing with the disruptive changes.. The chain() and curve() functions
+	    now require their arguments to be explicit lists.
+
 2015-03-04: Changed the arguments to many of the geometry and part functions. Previously
             a function like translate would be called like this (translate (x y z) ..)
 	    but this is not a standard form i.e. (function x y z). So while this could
