@@ -78,7 +78,7 @@ Create a directory to save the .dat files in, change to this directory and gener
   cd opensdraw/examples
   mkdir animate
   cd animate
-  python ../../lcad_to_ldraw.py ../gears.lcad gears.dat 100
+  python ../../scripts/lcad_to_ldraw.py ../gears.lcad gears.dat 100
 
 .. note::
 
@@ -89,7 +89,7 @@ Step 3
 
 Generate the png files in the same directory. ::
 
-  python ../../misc/ldview_render.py ./
+  python ../../scripts/ldview_render.py ./
 
 .. note::
 

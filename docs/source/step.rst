@@ -35,7 +35,7 @@ Create the .lcad file. ::
 
 .. note::
 
-   We don't use the *locate* library functions **sbs()** or **tbs()** because we want to rotate first, then translate.
+   We don't use the *locate* library functions **sbs()** or **tbs()** because we want to translate first, then rotate.
 
 Step 3
 ------
