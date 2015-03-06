@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# OpenLDraw documentation build configuration file, created by
+# OpenSDraw documentation build configuration file, created by
 # sphinx-quickstart on Sat Dec 20 07:48:04 2014.
 #
 # This file is execfile()d with the current directory set to its
@@ -46,7 +46,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'OpenLDraw'
+project = u'OpenSDraw'
 copyright = u'2015, Hazen Babcock'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -196,7 +196,7 @@ html_static_path = ['_static']
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'OpenLDrawdoc'
+htmlhelp_basename = 'OpenSDrawdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -218,7 +218,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'OpenLDraw.tex', u'OpenLDraw Documentation',
+  ('index', 'OpenSDraw.tex', u'OpenSDraw Documentation',
    u'Hazen Babcock', 'manual'),
 ]
 
@@ -248,7 +248,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'openldraw', u'OpenLDraw Documentation',
+    ('index', 'opensdraw', u'OpenSDraw Documentation',
      [u'Hazen Babcock'], 1)
 ]
 
@@ -262,8 +262,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'OpenLDraw', u'OpenLDraw Documentation',
-   u'Hazen Babcock', 'OpenLDraw', 'One line description of project.',
+  ('index', 'OpenSDraw', u'OpenSDraw Documentation',
+   u'Hazen Babcock', 'OpenSDraw', 'One line description of project.',
    'Miscellaneous'),
 ]
 

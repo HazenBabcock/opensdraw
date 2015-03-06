@@ -20,7 +20,7 @@ lcad_functions = {}
 
 
 #
-# These classes create a curve function that can be used in openldraw.
+# These classes create a curve function that can be used in opensdraw.
 #
 class CurveFunction(functions.LCadFunction):
 

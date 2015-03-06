@@ -13,7 +13,7 @@ from xml.etree import ElementTree
 
 from PyQt4 import QtCore, QtGui
 
-import openldraw.lcad_lib.ldrawPath as ldrawPath
+import opensdraw.lcad_lib.ldrawPath as ldrawPath
 import colorChooserWidget
 
 import partviewer_ui

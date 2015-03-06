@@ -5,7 +5,7 @@
 # In particular matrices that include a scale term are going to play
 # havoc with angle extraction.
 #
-# Since openldraw does not handle primitives, subfiles that contain
+# Since opensdraw does not handle primitives, subfiles that contain
 # primitives are broken out into separate files.
 #
 # In "standard" mode it will use the sbs() function for brick placement,
@@ -26,7 +26,7 @@ import os
 import re
 import sys
 
-import openldraw.lcad_lib.datFileParser as datFileParser
+import opensdraw.lcad_lib.datFileParser as datFileParser
 
 if (len(sys.argv) < 3):
     print "usage: <ldraw file (input)> <lcad file (output)> <(0 - std|1 - technic)"

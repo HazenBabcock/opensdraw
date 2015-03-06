@@ -11,7 +11,7 @@ import sys
 
 from PyQt4 import QtCore, QtGui
 
-import openldraw.lcad_lib.colorsParser as colorsParser
+import opensdraw.lcad_lib.colorsParser as colorsParser
 
 
 ## ColorChooserWidget

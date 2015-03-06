@@ -8,7 +8,7 @@
 
 import numpy
 
-import openldraw.lcad_lib.colorsParser as colorsParser
+import opensdraw.lcad_lib.colorsParser as colorsParser
 
 # Load colors and create dictionaries.
 all_colors = colorsParser.loadColors()

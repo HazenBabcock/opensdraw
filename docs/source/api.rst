@@ -13,37 +13,37 @@ Symbols
 Functions
 ---------
 
-.. automodule:: openldraw.lcad_language.coreFunctions
+.. automodule:: opensdraw.lcad_language.coreFunctions
    :members: Aref, Block, Cond, Def, For, If, Import, Lambda, Len, List, Print, Set, While
 
 Part Functions
 --------------
 
-.. automodule:: openldraw.lcad_language.partFunctions
+.. automodule:: opensdraw.lcad_language.partFunctions
    :members: Group, Header, Line, OptionalLine, Part, Quadrilateral, Triangle
 
 Comparison Operators
 --------------------
 
-.. automodule:: openldraw.lcad_language.comparisonFunctions
+.. automodule:: opensdraw.lcad_language.comparisonFunctions
    :members: Equal, Ne, Gt, Ge, Lt, Le
 
 Geometry Functions
 ------------------
 
-.. automodule:: openldraw.lcad_language.geometryFunctions
+.. automodule:: opensdraw.lcad_language.geometryFunctions
    :members: Matrix, Mirror, Rotate, Scale, Transform, Translate, Vector
 
 Logical Operators
 -----------------
 
-.. automodule:: openldraw.lcad_language.logicFunctions
+.. automodule:: opensdraw.lcad_language.logicFunctions
    :members: And, Or, Not
 
 Math Functions
 --------------
 
-.. automodule:: openldraw.lcad_language.mathFunctions
+.. automodule:: opensdraw.lcad_language.mathFunctions
    :members: Plus, Minus, Multiply, Divide, Modulo
 
 All the functions in the python math library are also available:
@@ -58,14 +58,14 @@ Usage::
 Miscellaneous Functions
 -----------------------
 
-.. automodule:: openldraw.lcad_language.chain
+.. automodule:: opensdraw.lcad_language.chain
    :members: LCadChain
 
-.. automodule:: openldraw.lcad_language.curve
+.. automodule:: opensdraw.lcad_language.curve
    :members: LCadCurve
 
 Random Number Functions
 -----------------------
 
-.. automodule:: openldraw.lcad_language.randomNumberFunctions
+.. automodule:: opensdraw.lcad_language.randomNumberFunctions
    :members: RandSeed, RandChoice, RandGauss, RandInteger, RandUniform

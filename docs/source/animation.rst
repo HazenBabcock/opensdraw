@@ -1,7 +1,7 @@
 Animation Example
 =================
 
-How to create animations using OpenLDraw. Useful ideas about how to configure LDView for this purpose can be found `here <http://www.holly-wood.it/ldview-en.html>`_.
+How to create animations using OpenSDraw. Useful ideas about how to configure LDView for this purpose can be found `here <http://www.holly-wood.it/ldview-en.html>`_.
 
 Step 1
 ------
@@ -75,7 +75,7 @@ Step 2
 
 Create a directory to save the .dat files in, change to this directory and generate the dat files. ::
 
-  cd openldraw/examples
+  cd opensdraw/examples
   mkdir animate
   cd animate
   python ../../lcad_to_ldraw.py ../gears.lcad gears.dat 100
