@@ -14,7 +14,7 @@ All of the example can be found in the *examples* directory.
 .. figure:: curve.png
    :scale: 50%
 
-4. *dumper-truck.lcad* - The Dumper Truck example from `here <http://www.holly-wood.it/mlcad/basic1-en.html>`_ using OpenLDraw.
+4. *dumper-truck.lcad* - The Dumper Truck example from `here <http://www.holly-wood.it/mlcad/basic1-en.html>`_.
 5. *gears.lcad* - An animation example.
 
 .. figure:: gears_00001.png

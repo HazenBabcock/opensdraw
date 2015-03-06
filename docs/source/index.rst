@@ -1,16 +1,18 @@
-OpenLDraw
+OpenSDraw
 =========
 
-A CAD program for designing LEGO(R) MOCs. OpenLDraw is a domain specific
+A CAD program for designing LEGO(R) MOCs. OpenSDraw is a domain specific
 language for creating LEGO(R) models. It is a prefix notation language 
 similar to Scheme or LISP that is used to specify the location of the 
 bricks in the MOC. The output of a program is a LDraw format file that 
 can be read by any LDraw compatible viewer such as LDView.
 
+This project was inspired by `OpenSCAD <http://www.openscad.org/>`_.
+
 Download
 --------
 
-The OpenLDraw project can be obtained `here <https://github.com/HazenBabcock/openldraw>`_.
+The OpenSDraw project can be obtained `here <https://github.com/HazenBabcock/openldraw>`_.
 
 User's Guide
 ------------

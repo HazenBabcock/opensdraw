@@ -1,7 +1,7 @@
 Build Steps Example
 ===================
 
-How to add build step information to your model using OpenLDraw.
+How to add build step information to your model using OpenSDraw.
 
 Step 1
 ------

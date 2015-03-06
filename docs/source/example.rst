@@ -2,7 +2,7 @@ Dumper Truck Example
 ====================
 
 This recreates the Dumper Truck example from `here <http://www.holly-wood.it/mlcad/basic1-en.html>`_
-using OpenLDraw.
+using OpenSDraw.
 
 Step 1
 ------
