@@ -81,7 +81,6 @@ class LCadChain(functions.LCadFunction):
         functions.LCadFunction.__init__(self, "chain")
 
     def argCheck(self, tree):
-
         if (len(tree.value) != 2):
             raise lcadExceptions.NumberArgumentsException(len(tree.value)-1)
 
