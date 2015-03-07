@@ -33,17 +33,17 @@
 
 ; sprocket 1 at 0,0
 (translate (list 0 0 0)
- (rotate (list 0 0 (+ angle1 7))
+ (rotate (list 0 0 (+ angle1 13))
   (sprocket1)))
 
 ; sprocket 2 at 0,5
 (translate (list 0 (bw 5) 0)
- (rotate (list 0 0 (+ angle2 12))
+ (rotate (list 0 0 (+ angle1 17))
   (sprocket1)))
 
 ; sprocket 3 at 4,4
 (translate (list (bw 4) (bw 4) 0)
- (rotate (list 0 0 (+ angle2 5))
+ (rotate (list 0 0 (+ angle2 9))
   (sprocket2)))
 
 
@@ -60,16 +60,12 @@
 ; other in the final chain.
 (def chain-link ()
  (translate (list 0 0 -9)
-
   ; Chain Link
   (part "3711" "Black")))
 
 (def chain1 (offset)
  (for (i 29)
-  (def lp (a-chain (* 15.5 (+ i offset))))
-  (translate (list (aref lp 0) (aref lp 1) 0)
-   (rotate (list 0 0 (aref lp 5))
-    (rotate (list 0 90 180)
-     (chain-link))))))
+  (transform (matrix (a-chain (* 15.5 (+ i offset))))
+   (chain-link))))
 
-(chain1 (/ (* pi -1.05 angle1) 180.0))
+(chain1 (/ (* pi (bw 1.05) angle1) 180.0))

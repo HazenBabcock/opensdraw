@@ -11,6 +11,7 @@ import math
 import numbers
 import numpy
 
+import angles
 import functions
 import interpreter as interp
 import lcadExceptions
@@ -56,24 +57,31 @@ class LCadChain(functions.LCadFunction):
     a 4 member list consisting of *(x y radius winding-direction)*, where 
     winding-direction specifies which way the chain goes around the sprocket 
     (1 = counter-clockwise, -1 = clockwise). The chain goes around the sprockets
-    in the order in which they are specified, and returns from the last sprocket
-    to the first sprocket to close the loop.
+    in the order in which they are specified, and when *:continuous* is t
+    returns from the last sprocket to the first sprocket to close the loop.
 
     When you call the created chain function you will get a 6 element list 
     *(x y z rx ry rz)*. Since (currently) the chain is in the x-y plane, z will 
-    always be zero as well rx and ry. The distance argument that is provided to 
-    created chain function will be adjusted to be modulo the length of the chain.
+    always be zero. The angles rx, ry and rz will rotate the coordinate system
+    such that the z-axis is pointing along the chain the y-axis is in the plane
+    of the chain and the x-axis is perpendicular to the plane of the chain.
 
     If you call the created chain function with the argument **t** it will return the 
     length of the chain.
+
+    Additionally chain has the keyword argument::
+
+      :continuous t/nil  ; The default is t, distances will be interpreted modulo the chain length, and
+                         ; the chain will go from that last sprocket back to the first sprocket. If nil
+                         ; then negative distances will wrap around the first sprocket and positive
+                         ; distances will wrap around the last sprocket.
 
     Usage::
 
      (def a-chain (chain (list (list -4 0 1 1)    ; Create a chain with two sprockets, the 1st at (-4,0) and
                                (list 4 0 1 1))))  ; the second at (4,0). Both sprockets have radius 1 and a
                                                   ; counter-clockwise winding direction.
-     (def c1 (a-chain 1))                         ; c1 is the list (x y theta), where x,y are position and 
-                                                  ; theta is the orientation (in degrees).
+     (def c1 (a-chain 1))                         ; c1 is the list (x y z rx ry rz).
      (a-chain t)                                  ; Returns the length of the chain.
 
     """
@@ -81,10 +89,32 @@ class LCadChain(functions.LCadFunction):
         functions.LCadFunction.__init__(self, "chain")
 
     def argCheck(self, tree):
-        if (len(tree.value) != 2):
+        if (len(tree.value) < 2):
             raise lcadExceptions.NumberArgumentsException(len(tree.value)-1)
 
+        # Check keyword arguments.
+        if (len(tree.value) > 2):
+            args = tree.value[2:]
+            index = 0
+            while (index < len(args)):
+                arg = args[index]
+            
+                if (arg.value[0] == ":"):
+                    if not (arg.value in [":continuous"]):
+                        raise lcadExceptions.UnknownKeywordException(arg.value)
+                    index += 2
+                    if (index > len(args)):
+                        raise lcadExceptions.KeywordValueException()
+                else:
+                    raise lcadExceptions.KeywordException(arg.value)
+
+
     def call(self, model, tree):
+
+        # Keyword defaults.
+        continuous = True
+
+        # Get list of sprockets.
         sprocket_list = interp.getv(interp.interpret(model, tree.value[1:]))
 
         if not isinstance(sprocket_list, interp.List):
@@ -92,6 +122,17 @@ class LCadChain(functions.LCadFunction):
 
         if (sprocket_list.size < 2):
             raise NumberSprocketsException(sprocket_list.size)
+
+        # Process keywords.
+        index = 0
+        args = tree.value[2:]
+        while (index < len(args)):
+            arg = args[index]
+
+            # Process keyword.
+            if (arg.value == ":continuous"):
+                continuous = functions.isTrue(model, args[index+1])
+            index += 2
 
         # Create sprockets.
         sprockets = []
@@ -118,7 +159,7 @@ class LCadChain(functions.LCadFunction):
             sprockets[i].addNextSprocket(sprockets[i+1])
         sprockets[-1].addNextSprocket(sprockets[0])
 
-        chain = Chain()
+        chain = Chain(continuous)
         for sprocket in sprockets:
             sprocket.addToChain(chain)
         chain.finishChain()
@@ -143,9 +184,12 @@ class SprocketException(lcadExceptions.LCadException):
 #
 class Chain(object):
 
-    def __init__(self):
+    def __init__(self, continuous):
         self.chain_length = 0
         self.chain = []
+        self.continuous = continuous
+        self.first_sprocket = None
+        self.last_sprocket = None
 
     def addSegment(self, d, x, y, theta):
         self.chain_length += d
@@ -155,13 +199,27 @@ class Chain(object):
         """
         Add segment to connect the end of the chain back to the beginning.
         """
-        dx = self.chain[-1].x - self.chain[0].x
-        dy = self.chain[-1].y - self.chain[0].y
-        self.addSegment(math.sqrt(dx*dx + dy*dy),
-                        self.chain[0].x,
-                        self.chain[0].y,
-                        self.chain[0].theta)
-        #print self.chain_length
+        if self.continuous:
+            dx = self.chain[-1].x - self.chain[0].x
+            dy = self.chain[-1].y - self.chain[0].y
+            self.addSegment(math.sqrt(dx*dx + dy*dy),
+                            self.chain[0].x,
+                            self.chain[0].y,
+                            self.chain[0].theta)
+
+    def getAngles(self, theta):
+
+        # Solve for angles to rotate into a frame with z along the 
+        # chain, y in the plane of the chain and x pointing up.
+
+        x_vec = numpy.array([0,0,1])
+        y_vec = numpy.array([math.cos(theta - 0.5 * math.pi), 
+                             math.sin(theta - 0.5 * math.pi),
+                             0])
+        z_vec = numpy.array([math.cos(theta), 
+                             math.sin(theta),
+                             0])
+        return angles.vectorsToAngles(x_vec, y_vec, z_vec)
 
     def getLen(self):
         return len(self.chain)
@@ -173,10 +231,47 @@ class Chain(object):
         """
 
         # Modulo d.
-        while (distance < 0):
-            distance += self.chain_length
-        while (distance > self.chain_length):
-            distance -= self.chain_length
+        if self.continuous:
+            while (distance < 0):
+                distance += self.chain_length
+            while (distance > self.chain_length):
+                distance -= self.chain_length
+        else:
+            if (distance < 0):
+                # Go backwards around the first sprocket.
+                sprocket = self.first_sprocket
+                d_angle = abs(distance)/sprocket.r
+                if (sprocket.winding == 1):
+                    angle = sprocket.start_angle - d_angle
+                    [rx, ry, rz] = self.getAngles(angle + 0.5 * math.pi)
+                    return [sprocket.x + sprocket.r * math.cos(angle),
+                            sprocket.y + sprocket.r * math.sin(angle), 0,
+                            rx, ry, rz]
+                else:
+                    angle = sprocket.start_angle + d_angle
+                    [rx, ry, rz] = self.getAngles(angle - 0.5 * math.pi)
+                    return [sprocket.x + sprocket.r * math.cos(angle),
+                            sprocket.y + sprocket.r * math.sin(angle), 0,
+                            rx, ry, rz]
+
+            elif (distance > self.chain_length):
+                print "off", distance
+
+                # Go forwards around the last sprocket.
+                sprocket = self.last_sprocket
+                d_angle = abs(distance - self.chain_length)/sprocket.r
+                if (sprocket.winding == 1):
+                    angle = sprocket.end_angle + d_angle
+                    [rx, ry, rz] = self.getAngles(angle + 0.5 * math.pi)
+                    return [sprocket.x + sprocket.r * math.cos(angle),
+                            sprocket.y + sprocket.r * math.sin(angle), 0,
+                            rx, ry, rz]
+                else:
+                    angle = sprocket.end_angle - d_angle
+                    [rx, ry, rz] = self.getAngles(angle - 0.5 * math.pi)
+                    return [sprocket.x + sprocket.r * math.cos(angle),
+                            sprocket.y + sprocket.r * math.sin(angle), 0,
+                            rz, ry, rz]
 
         # Mid-point bisection to find the bracketing chain segments.
         start = 0
@@ -188,8 +283,6 @@ class Chain(object):
             elif (distance == self.chain[mid].d):
                 start = mid
                 end = start + 1
-                #if (end == len(self.chain)):
-                #    end = 0
             else:
                 end = mid
             mid = (end - start)/2 + start
@@ -215,10 +308,11 @@ class Chain(object):
         while (ftheta < 0.0):
             ftheta += 2.0 * math.pi
 
+        [rx, ry, rz] = self.getAngles(ftheta)
+
         return [self.chain[start].x + dx,
                 self.chain[start].y + dy,
-                0, 0, 0,
-                ftheta * 180.0/math.pi]
+                0, rx, ry, rz]
 
 
 class ChainSegment(object):
@@ -289,7 +383,6 @@ class Sprocket(object):
 
         # Rotate results into the actual coordinate system.
         ori = math.atan2(dy, dx)
-        #print ori
 
         self.end_angle += ori
         a_sprocket.start_angle += ori
@@ -304,6 +397,12 @@ class Sprocket(object):
         Add segments for this sprocket to the chain.
         """
 
+        # Keep track of first and last sprockets for continuous = False.
+        if a_chain.first_sprocket is None:
+            a_chain.first_sprocket = self
+        else:
+            a_chain.last_sprocket = self
+
         # Adjust end angle based on winding. Basically we want the end angle 
         # to be 0 - 2pi ahead of the start angle in the winding direction.
         if (self.winding == 1):
@@ -316,8 +415,6 @@ class Sprocket(object):
                 self.end_angle -= 2.0 * math.pi
             while (self.end_angle < (self.start_angle - 2.0 * math.pi)):
                 self.end_angle += 2.0 * math.pi
-
-        #print self.start_angle, self.end_angle
 
         # Add first segment.
         x = self.x + self.r * math.cos(self.start_angle)
@@ -333,6 +430,9 @@ class Sprocket(object):
             a_chain.addSegment(distance, x, y, self.start_angle + 0.5 * math.pi)
         else:
             a_chain.addSegment(distance, x, y, self.start_angle - 0.5 * math.pi)
+
+        #if (a_chain.continuous is False) and (a_chain.getLen() == 1):
+        #    return
 
         # Add additional segments.
         d_angle = math.pi/180.0
@@ -378,12 +478,12 @@ if (__name__ == "__main__"):
 
     s1 = Sprocket(-4,0,1.5,-1)
     s2 = Sprocket(4,0,1.5,-1)
-    s3 = Sprocket(0,-1.5,1,1)
+    s3 = Sprocket(0,-1.5,1,-1)
     s1.addNextSprocket(s2)
     s2.addNextSprocket(s3)
     s3.addNextSprocket(s1)
 
-    chain = Chain()
+    chain = Chain(True)
     s1.addToChain(chain)
     s2.addToChain(chain)
     s3.addToChain(chain)
@@ -396,11 +496,11 @@ if (__name__ == "__main__"):
     # Sprockets.
     circle1=plt.Circle((s1.x,s1.y),s1.r, fc='none', ec='b')
     circle2=plt.Circle((s2.x,s2.y),s2.r, fc='none', ec='b')
-    circle3=plt.Circle((s3.x,s3.y),s3.r, fc='none', ec='b')
+    #circle3=plt.Circle((s3.x,s3.y),s3.r, fc='none', ec='b')
     fig = plt.gcf()
     fig.gca().add_artist(circle1)
     fig.gca().add_artist(circle2)
-    fig.gca().add_artist(circle3)
+    #fig.gca().add_artist(circle3)
 
     if 0:
         # Chain.
@@ -423,12 +523,10 @@ if (__name__ == "__main__"):
                  head_width=0.05, head_length=0.1, fc='k', ec='k')
 
     if 1:
-        for i in range(50):
-            [x, y, theta] = chain.getPositionOrientation(0.5*i)
-            #dx = math.cos(theta)
-            #dy = math.sin(theta)
-            dx = math.cos(theta * math.pi/180.0)
-            dy = math.sin(theta * math.pi/180.0)
+        for i in range(23):
+            [x, y, z, rx, ry, rz] = chain.getPositionOrientation(i - 3)
+            dx = math.cos(rz * math.pi/180.0)
+            dy = math.sin(rz * math.pi/180.0)
             ax.arrow(x, y, dx, dy, head_width=0.05, head_length=0.1, fc='k', ec='k')
     
     ax.set_xlim([-10,10])
