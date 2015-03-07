@@ -25,8 +25,13 @@ All of the example can be found in the *examples* directory.
 .. figure:: gripper.png
    :scale: 50%
 
-7. *steps.lcad* - A build steps example.
-8. *wall.lcad* - A random number generator example.
+7. *rib-hose.lcad* - Curves and ribbed-hose example.
+
+.. figure:: rib-hose.png
+   :scale: 50%
+
+8. *steps.lcad* - A build steps example.
+9. *wall.lcad* - A random number generator example.
 
 .. figure:: wall.png
    :scale: 50%
