@@ -118,7 +118,7 @@ class LCadCurve(functions.LCadFunction):
                     if (index > len(args)):
                         raise lcadExceptions.KeywordValueException()
                 else:
-                    raise ControlPointException(arg.value + " is not a list or a keyword")
+                    raise lcadExceptions.KeywordException(arg.value)
 
     def call(self, model, tree):
 
@@ -145,13 +145,13 @@ class LCadCurve(functions.LCadFunction):
             # Process keyword.
             if (arg.value == ":auto-scale"):
                 auto_scale = functions.isTrue(model, args[index+1])
-            if (arg.value == ":extrapolate"):
+            elif (arg.value == ":extrapolate"):
                 extrapolate = functions.isTrue(model, args[index+1])
-            if (arg.value == ":scale"):
+            elif (arg.value == ":scale"):
                 scale = interp.getv(interp.interpret(model, args[index+1]))
                 if not isinstance(scale, numbers.Number):
                     raise lcadExceptions.WrongTypeException("number", type(scale))
-            if (arg.value == ":twist"):
+            elif (arg.value == ":twist"):
                 twist = interp.getv(interp.interpret(model, args[index+1]))
                 if not isinstance(twist, numbers.Number):
                     raise lcadExceptions.WrongTypeException("number", type(twist))
