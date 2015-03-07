@@ -115,7 +115,7 @@ class LCadChain(functions.LCadFunction):
         continuous = True
 
         # Get list of sprockets.
-        sprocket_list = interp.getv(interp.interpret(model, tree.value[1:]))
+        sprocket_list = interp.getv(interp.interpret(model, tree.value[1]))
 
         if not isinstance(sprocket_list, interp.List):
             raise lcadExceptions.WrongTypeException("list", type(sprocket_list))
