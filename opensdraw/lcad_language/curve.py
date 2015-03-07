@@ -12,6 +12,7 @@ import numbers
 import numpy
 from scipy.optimize import minimize
 
+import angles
 import functions
 import interpreter as interp
 import lcadExceptions
@@ -72,16 +73,16 @@ class LCadCurve(functions.LCadFunction):
 
     Additionally curve has several keyword arguments::
 
-      :auto-scale   t/nil        ; default is t, automatically scale the derivative to
+      :auto-scale   t/nil        ; The default is t, automatically scale the derivative to
                                  ; minimize the maximum curvature of the curve.
-      :extrapolate  t/nil        ; default is t, distances outside of the curve will be
+      :extrapolate  t/nil        ; The default is t, distances outside of the curve will be
                                  ; linearly extrapolated from the end of the curve. If nil
                                  ; then the distance will be modulo the curve length.
-      :scale        float > 0.0  ; multiplier for auto-scale mode, defaults to 1. This 
+      :scale        float > 0.0  ; The multiplier for auto-scale mode, defaults to 1. This 
                                  ; sets the boundaries on the auto-scale optimal
                                  ; derivative search range. If you change this you probably 
                                  ; want a number greater than 1.0, which is the default value.
-      :twist        angle        ; additional twist along the curve, defaults to 0.
+      :twist        angle        ; Additional twist along the curve, defaults to 0.
 
     Unfortunately auto scaling is a bit slow and sometimes fails, so more work is needed..
 
@@ -256,9 +257,6 @@ def normVector(vector):
 def projVector(v1, v2):
     return numpy.dot(v1, v2) * v2
 
-def toDegrees(angle):
-    return 180.0 * angle/math.pi
-
 
 class ControlPoint(object):
 
@@ -431,7 +429,7 @@ class Segment(object):
     # This is the same approach that is used in ldraw_to_lcad.py to 
     # extract the rotation angles from the rotation matrix.
     #
-    def angles(self, p, x_vec):
+    def getAngles(self, p, x_vec):
 
         # Calculate z vector.
         z_vec = normVector(self.d_xyz(p))
@@ -443,20 +441,7 @@ class Segment(object):
         # Calculate y vector
         y_vec = crossProduct(z_vec, x_vec)
 
-        # Calculate rotation angles.
-        ry = math.atan2(-z_vec[0], math.sqrt(z_vec[1]*z_vec[1] + z_vec[2]*z_vec[2]))
-
-        # If the rotation around the y axis is +- 90 then we can't separate the x-axis rotation
-        # from the z-axis rotation. In this case we just assume that the x-axis rotation is
-        # zero and that there was only z-axis rotation.
-        if (abs(math.cos(ry)) < 1.0e-3):
-            rx = 0
-            rz = math.atan2(x_vec[1], y_vec[1])
-        else:
-            rx = math.atan2(-z_vec[1], z_vec[2])
-            rz = math.atan2(-y_vec[0], x_vec[0])
-
-        return map(lambda(x): x * 180.0/math.pi, [rx, ry, rz])
+        return angles.vectorsToAngles(x_vec, y_vec, z_vec)        
 
     def calcLUTs(self, dist_offset):
 
@@ -559,7 +544,7 @@ class Segment(object):
             a_xyz = self.xyz(p)
 
         # Get angles
-        [rx, ry, rz] = self.angles(p, self.xvec_lut[start,:])
+        [rx, ry, rz] = self.getAngles(p, self.xvec_lut[start,:])
         return [a_xyz[0], a_xyz[1], a_xyz[2], rx, ry, rz]
 
     def maxCurvature(self):
