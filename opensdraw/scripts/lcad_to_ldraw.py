@@ -36,6 +36,7 @@ with open(sys.argv[1]) as fp:
 # Generate output files.
 cur_dir = os.getcwd()    
 index = 0
+n_parts = 0
 while (index < time_points):
 
     # Change current working directory to the location of the lcad file (so that imported files will be found correctly).
@@ -51,7 +52,6 @@ while (index < time_points):
         mp_model = True
 
     # Some feedback.
-    n_parts = 0
     if (index == 0):
         if mp_model:
             for group in model.groups():
