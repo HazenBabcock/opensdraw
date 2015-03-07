@@ -11,6 +11,7 @@ import math
 import numbers
 import numpy
 
+import angles
 import functions
 import interpreter as interp
 import lcadExceptions as lce
@@ -58,33 +59,6 @@ def parseArgs(model, args):
 
     else:
         raise lce.WrongTypeException("list, numpy.ndarray", type(val))
-
-
-def rotationMatrix(ax, ay, az):
-    ax = ax * math.pi/180.0
-    ay = ay * math.pi/180.0
-    az = az * math.pi/180.0
-
-    rx = numpy.identity(4)
-    rx[1,1] = math.cos(ax)
-    rx[1,2] = -math.sin(ax)
-    rx[2,1] = -rx[1,2]
-    rx[2,2] = rx[1,1]
-
-    ry = numpy.identity(4)
-    ry[0,0] = math.cos(ay)
-    ry[0,2] = -math.sin(ay)
-    ry[2,0] = -ry[0,2]
-    ry[2,2] = ry[0,0]
-
-    rz = numpy.identity(4)
-    rz[0,0] = math.cos(az)
-    rz[0,1] = -math.sin(az)
-    rz[1,0] = -rz[0,1]
-    rz[1,1] = rz[0,0]
-
-    return numpy.dot(rx, numpy.dot(ry, rz))
-
 
 def translationMatrix(tx, ty, tz):
     m = numpy.identity(4)
@@ -160,7 +134,7 @@ class Matrix(GeometryFunction):
 
         # 6 elements.
         elif (len(vals) == 6):
-            return numpy.dot(translationMatrix(*vals[0:3]), rotationMatrix(*vals[3:6]))
+            return numpy.dot(translationMatrix(*vals[0:3]), angles.rotationMatrix(*vals[3:6]))
 
         else:
             raise lce.LCadException("Expected a list with 6 or 12 members, got " + str(len(vals)))
@@ -235,7 +209,7 @@ class Rotate(GeometryFunction):
 
     def call(self, model, tree):
         if (len(tree.value) > 2):
-            m = rotationMatrix(*parseArgs(model, tree.value[1]))
+            m = angles.rotationMatrix(*parseArgs(model, tree.value[1]))
             cur_matrix = model.curGroup().matrix().copy()
             model.curGroup().setMatrix(numpy.dot(cur_matrix, m))
             val = interp.interpret(model, tree.value[2:])
