@@ -33,6 +33,8 @@
 
 
 ;; Hoses
+
+; Using curve().
 (group "hose1.dat"
  (header "BFC CERTIFY CCW")
  
@@ -41,21 +43,22 @@
 			      (list (list (bw -1) 0 (bw 5.5)) (list 1 0 0))
 			      (list (list 0 0 (bw 5.5)) (list 1 0 0))))))
 
+; Using chain().
+(group "hose2.dat"
+ (header "BFC CERTIFY CCW")
+
+ (def a-chain (chain (list (list (bw 1) (bw -2) (bw 1) -1)
+			   (list (bw 1.5) (bw 1) (bw 1.5) -1)
+			   (list (bw 0.5) (bw 4) (bw 1.5) 1)
+			   (list (bw -5) (bw 4) (bw 1.5) 1))))
+
+ ; Because chain starts wound around the first axle, provide a 
+ ; modified version that doesn't start at zero.
+ (ribbed-hose 26 (lambda (x) (a-chain (+ x 124.5)))))
+
 (tb -1 1 1.5 0 0 0 "hose1" 1)
-(tb -1 -1 1.5 0 0 0 "hose1" 1)
-(tb 1 1 1.5 0 0 180 "hose1" 1)
+(tb -1 -1 1.5 -90 0 180 "hose2" 1)
+
+(tb 1 1 1.5 90 0 0 "hose2" 1)
 (tb 1 -1 1.5 0 0 180 "hose1" 1)
-
-
-;(def my-curve (curve (list (list (list 0 0 0) (list 0 1 0) (list 0 0 1))
-;			   (list (list 100 0 0) (list 1 0 0)))))
-;
-;(header "BFC CERTIFY CCW")
-;
-;(group "my-hose.dat"
-; (header "BFC CERTIFY CCW")
-; (ribbed-hose 21 my-curve))
-;(part "my-hose" 2)
-
-; Add hose to structure.
 
