@@ -304,6 +304,14 @@ class Curve(object):
     def addSegment(self, cp1, cp2):
 
         if self.normalize:
+            
+            #
+            # Reset raw z vectors to 1.0 as (1) These could have been adjusted in a curve with
+            # multiple segments and (2) If they both point along the axis between the two
+            # control points it is best if they are equal.
+            #
+            cp1.raw_z_vec = cp1.z_vec
+            cp2.raw_z_vec = cp2.z_vec
 
             # Adjust derivatives at the control points to minimize the maximum curvature of the segment.
             segment = Segment(cp1, cp2)
@@ -443,7 +451,7 @@ class Segment(object):
         # zero and that there was only z-axis rotation.
         if (abs(math.cos(ry)) < 1.0e-3):
             rx = 0
-            rz = math.atan2(x_vec[1],y_vec[1])
+            rz = math.atan2(x_vec[1], y_vec[1])
         else:
             rx = math.atan2(-z_vec[1], z_vec[2])
             rz = math.atan2(-y_vec[0], x_vec[0])
@@ -578,20 +586,26 @@ class Segment(object):
 #
 if (__name__ == "__main__"):
 
-    cp1 = ControlPoint(0, 0, 0, 1, 1, 0, 0, 0, 1.0)
-    cp2 = ControlPoint(2, 0, 0, 1, 0, 0)
-    cp3 = ControlPoint(4, 0, 0, 1, 1, 0)
+    cp1 = ControlPoint(0, 0, 0, 1, 0, 0, 0, 1.0, 0)
+    cp2 = ControlPoint(20, 0, 0, 1, 0, 0)
+    cp3 = ControlPoint(120, 20, 0, 0, -1, 0)
+    cp4 = ControlPoint(120, 0, 0, 0, -1, 0)
 
-    curve = Curve(False, True, 1.0, 0)
+    curve = Curve(True, True, 1.0, 0)
     curve.addSegment(cp1, cp2)
     curve.addSegment(cp2, cp3)
+    curve.addSegment(cp3, cp4)
 
-    print curve.segments[0].maxCurvature()
+    #print curve.segments[2].dist_lut
+    #exit()
 
-    x = numpy.arange(-1, curve.length + 1, 0.1)
+    #print curve.segments[0].maxCurvature()
+
+    x = numpy.arange(-10, curve.length + 5, 5)
     xf = numpy.zeros(x.size)
     yf = numpy.zeros(x.size)
     for i in range(x.size):
+        #print curve.getCoords(x[i])
         [cx, cy, cz, rx, ry, rz] = curve.getCoords(x[i])
         xf[i] = cx
         yf[i] = cy
@@ -599,7 +613,8 @@ if (__name__ == "__main__"):
     import matplotlib.pyplot as plt
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1, aspect = 1.0)
-    ax.plot(xf, yf)
+    #ax.plot(xf, yf)
+    ax.scatter(xf, yf)
     plt.show()
 
 
