@@ -1,6 +1,9 @@
 
 Current:
 
+2015-03-07: Changed chain so that a chain function will return the same list
+            (x y z rx ry rz) as curve so that they can be used interchangeably.
+
 2015-03-06: Changed the name of the project to OpenSDraw.
 
 2015-03-05: Continuing with the disruptive changes.. The chain() and curve() functions
