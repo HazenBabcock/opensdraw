@@ -9,8 +9,8 @@
 
 (defconst lcad-keywords
       `((,(concat "(\\("
-		  (regexp-opt '("aref" "block" "chain" "comment" "cond" "curve" "def" "for" "group" "header" "if" "import" 
-				"lambda" "len" "line" "list" "matrix" "mirror" "optional-line" "part" "print" 
+		  (regexp-opt '("append" "aref" "block" "chain" "comment" "concatenate" "cond" "curve" "def" "for" "group" "header"
+				"if" "import" "lambda" "len" "line" "list" "matrix" "mirror" "optional-line" "part" "print" 
 				"quadrilateral" "rotate" "scale" "set" "transform" "translate" "triangle" "vector" "while"))
 		  "\\)\\>"
 		  "[ \r\n\t]+")

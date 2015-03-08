@@ -65,6 +65,10 @@ def test_aref_2():
 def test_block_1():
     assert exe("(def fn (block (def x 5) (def inc-x () (+ x 1)) inc-x)) (fn)") == 6
 
+# concatenate
+def test_concatenate_1():
+    assert exe("(concatenate \"as\" 1)") == "as1"
+
 # cond
 def test_cond_1():
     assert exe("(def x 2) (cond ((= x 1) 2) ((= x 2) 3) ((= x 3) 4) (t 5))") == 3

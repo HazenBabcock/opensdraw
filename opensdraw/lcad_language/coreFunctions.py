@@ -35,6 +35,7 @@ class Append(CoreFunction):
     **append** - Add an element to a list.
 
     Usage::
+
      (def l (list 1))  ; Create the list (1).
      (append l 2)      ; The list is now (1, 2).
     """
@@ -117,6 +118,32 @@ class Block(CoreFunction):
         return val
 
 lcad_functions["block"] = Block()
+
+
+class Concatenate(CoreFunction):
+    """
+    **concatenate** - Concatenate 1 or more strings.
+
+    Usage::
+
+     (concatenate "as" "df")  ; Returns "asdf".
+     (concatenate "as" 1)     ; Returns "as1".
+    """
+    def __init__(self):
+        CoreFunction.__init__(self, "cond")
+
+    def argCheck(self, tree):
+        if (len(tree.value)<3):
+            raise lce.NumberArgumentsException("2+", len(tree.value)-1)
+
+    def call(self, model, tree):
+        a_string = ""
+        for arg in tree.value[1:]:
+            val = interp.getv(interp.interpret(model, arg))
+            a_string += str(val)
+        return a_string
+                            
+lcad_functions["concatenate"] = Concatenate()
 
 
 class Cond(CoreFunction):
