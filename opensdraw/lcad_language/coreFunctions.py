@@ -30,6 +30,36 @@ class CoreFunction(functions.LCadFunction):
     pass
 
 
+class Append(CoreFunction):
+    """
+    **append** - Add an element to a list.
+
+    Usage::
+     (def l (list 1))  ; Create the list (1).
+     (append l 2)      ; The list is now (1, 2).
+    """
+    def __init__(self):
+        CoreFunction.__init__(self, "append")
+
+    def argCheck(self, tree):
+        if (len(tree.value) < 3):
+            raise lce.NumberArgumentsException("2+", len(tree.value) - 1)
+
+    def call(self, model, tree):
+        tlist = interp.getv(interp.interpret(model, tree.value[1]))
+
+        if not isinstance(tlist, interp.List):
+            raise lce.WrongTypeException("List", type(tlist))
+
+        for arg in tree.value[2:]:
+            val = interp.getv(interp.interpret(model, arg))
+            tlist.addElt(val)
+
+        return tlist
+
+lcad_functions["append"] = Append()
+
+
 class Aref(CoreFunction):
     """
     **aref** - Return an element of a list.
@@ -52,6 +82,9 @@ class Aref(CoreFunction):
 
         if not isinstance(tlist, interp.List):
             raise lce.WrongTypeException("List", type(tlist))
+
+        if not isinstance(index, int):
+            raise lce.WrongTypeException("int", type(index))
 
         if ((index >= 0) and (index < tlist.size)):
             return tlist.getv(index)

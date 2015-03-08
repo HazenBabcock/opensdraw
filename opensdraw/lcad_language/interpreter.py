@@ -114,14 +114,10 @@ class List(object):
     """
     def __init__(self, py_list):
         self.py_list = []
+        self.size = 0
+
         for elt in py_list:
-            if isinstance(elt, Symbol):
-                self.py_list.append(elt)
-            else:
-                tmp = Symbol("list_object", "list")
-                tmp.setv(elt)
-                self.py_list.append(tmp)
-        self.size = len(self.py_list)
+            self.addElt(elt)
 
     def __str__(self):
         if (self.size < 10):
@@ -130,6 +126,15 @@ class List(object):
             tmp = "(" + " ".join(map(lambda(x): str(x), self.py_list[:3]))
             tmp += " .. " + " ".join(map(lambda(x): str(x), self.py_list[-3:])) + ")"
             return tmp
+
+    def addElt(self, elt):
+        if isinstance(elt, Symbol):
+            self.py_list.append(elt)
+        else:
+            tmp = Symbol("list_object", "list")
+            tmp.setv(elt)
+            self.py_list.append(tmp)
+        self.size += 1
 
     def getl(self):
         return self.py_list
