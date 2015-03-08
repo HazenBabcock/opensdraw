@@ -128,7 +128,17 @@ class Def(CoreFunction):
      (def x 15 y 20) - Create x with value 15, y with value 20.
      (def incf (x) (+ x 1)) - Create the function incf.
 
-    Note that you cannot create multiple functions at the same time.
+    Note: You cannot create multiple functions at the same time::
+
+     (def fn (x y)  ; Wrong. def() will think you are trying to create
+      (+ x 1)       ; two symbols, the first called 'fn' and the second
+      (+ y 2))      ; called '(+ x 1)' and throw a likely confusing error
+                    ; message.
+
+     (def fn (x y)  ; Correct.
+      (block
+       (+ x 1)
+       (+ y 2)))
 
     """
     def __init__(self):
