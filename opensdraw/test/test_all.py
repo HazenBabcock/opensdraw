@@ -11,8 +11,8 @@ import math
 import numbers
 import numpy
 
-import openldraw.lcad_language.interpreter as interpreter
-import openldraw.lcad_language.lexerParser as lexerParser
+import opensdraw.lcad_language.interpreter as interpreter
+import opensdraw.lcad_language.lexerParser as lexerParser
 
 def exe(string):
     """
@@ -49,6 +49,10 @@ def text_time_index():
 
 
 ## coreFunctions
+
+# append
+def test_append_1():
+    assert exe("(def m (list 1)) (append m 2) (aref m 1)") == 2
 
 # aref
 def test_aref_1():
@@ -367,11 +371,11 @@ def test_py_math_4():
 
 # chain
 def test_chain_1():
-    assert exe("(chain (-4 0 1 1) (4 0 1 1)) 1") == 1
+    assert exe("(chain (list (list -4 0 1 1) (list 4 0 1 1))) 1") == 1
 
 # curve
 def test_curve_1():
-    assert exe("(curve ((0 0 0) (1 1 0) (0 0 1)) ((5 0 0) (1 0 0))) 1") == 1
+    assert exe("(curve (list (list (list 0 0 0) (list 1 1 0) (list 0 0 1)) (list (list 5 0 0) (list 1 0 0)))) 1") == 1
 
 
 # Random Number Functions.
