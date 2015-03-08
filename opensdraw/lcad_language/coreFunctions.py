@@ -355,7 +355,7 @@ class Import(CoreFunction):
     **import** - Import a module.
 
     Module are searched for in the current working directory first,
-    then in the library folder of the openlcad project. The modules
+    then in the library folder of the opensdraw project. The modules
     are assumed to be in files that end with the ".lcad" extension.
 
     Usage::
