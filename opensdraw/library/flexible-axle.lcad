@@ -4,79 +4,196 @@
 ; Hazen 02/15
 ;
 
-(import curve-utils :local)
 (import locate :local)
 
 ;
 ; Create an axle of the specified length that goes along the specified curve.
-; The curve starts after the initial straight end stud.
+; The curve starts after the initial straight end stud. This is (I think)
+; pretty correct, less some optional lines.
 ;
 ; length - The total length of the axle in bricks / studs.
 ; a-curve - The curve function that the axle should follow.
-; color - The color of the axle.
-; stretch - Amount to stretch sub-parts to minimize the appearance of breaks in a bent axle.
 ;
-(def flexible-axle (length a-curve color :stretch 1.05)
+(def flexible-axle (length a-curve)
  (block
 
-  (def disp 2)
+  (def dist 0)
 
-  (def start-parts (list "s\faxle1" 
-			 "s\faxle2" 
-			 "s\faxle3" 
-			 "s\faxle4" 
-			 "s\faxle5"))
+  ; The elements at the junction between axle & hose.
+  (def disc (list "axlehol3"
+		  "axleho10"
+		  "axlehol9"))
 
-  ; hmm, maybe a reverse function would be useful..
-  (def end-parts (list "s\faxle5" 
-		       "s\faxle4" 
-		       "s\faxle3" 
-		       "s\faxle2" 
-		       "s\faxle1"))
+  ; The positions of the vertices around an axle.
+  (def vert (list (vector 6 0 0)
+		  (vector 5.602 2 0)
+		  (vector 2 2 0)
+		  (vector 2 5.602 0)
+		  (vector 0 6 0)
+		  (vector -2 5.602 0)
+		  (vector -2 2 0)
+		  (vector -5.602 2 0)
+		  (vector -6 0 0)
+		  (vector -5.602 -2 0)
+		  (vector -2 -2 0)
+		  (vector -2 -5.602 0)
+		  (vector 0 -6 0)
+		  (vector 2 -5.602 0)
+		  (vector 2 -2 0)
+		  (vector 5.602 -2 0)))
 
-  ; stud start element.
-  (ftr (a-curve 0) 
-       (lambda ()
-  	(trf 0 0 0 90 0 0 
-	     (lambda () 
-	      (scale (vector 1 5 1) (part "stud3a" color))))))
+  (def last-v 0)
+  (def cur-v 0)
 
-  ; start parts
-  (for (p start-parts)
-   (ftr (a-curve disp)
-	(lambda ()
-	 ; translate so that the part is rotated around it's center
-	 ; instead of around it's end.
-	 (trf 0 0 (* 2 stretch) 0 -90 0
-	      (lambda ()
-	       (scale (vector stretch 1 1) (part p color))))))
-   (set disp (+ disp 4)))
+  ; Drawing axles.
+  (def axle-start (pos)
+   (block
+    (set last-v (list))
+    (def m (matrix (a-curve pos)))
+    (for (elt vert)
+     (append last-v (* m elt)))))
 
-  ; middle parts
-  (for (p (* 5 (- length 4)))
-   (ftr (a-curve disp)
-	(lambda ()
-	 (trf 0 0 (* 2 stretch) -90 0 0
-	      (lambda ()
-	       (scale (vector 1 (* 4 stretch) 1) (part "axlehol8" color))))))
-   (set disp (+ disp 4)))
+  (def axle-end (pos)
+   (block
+    (set cur-v (list))
+    (def m (matrix (a-curve pos)))
+    (for (elt vert)
+     (append cur-v (* m elt)))
+    (for (i (- (len vert) 1))
+     (line (aref last-v i) (aref cur-v i))
+     (triangle (aref last-v i) (aref last-v (+ i 1)) (aref cur-v i))
+     (triangle (aref last-v (+ i 1)) (aref cur-v (+ i 1)) (aref cur-v i)))
+    (def li (- (len vert) 1))
+    (line (aref last-v li) (aref cur-v li))
+    (triangle (aref last-v li) (aref last-v 0) (aref cur-v li))
+    (triangle (aref last-v 0) (aref cur-v 0) (aref cur-v li))
+    (set last-v cur-v)))
 
-  ; end parts
-  (for (p end-parts)
-   (ftr (a-curve disp)
-	(lambda ()
-	 ; translate so that the part is rotated around it's center
-	 ; instead of around it's end.
-	 (trf 0 0 (* -2 stretch) 0 90 0
-	      (lambda ()
-	       (scale (vector stretch 1 1) (part p color))))))
-   (set disp (+ disp 4)))
+  ; Drawing cylinders.
+  (def cylinder (pos)
+   (block
+    (def m1 (matrix (a-curve pos)))
+    (def m2 (matrix (a-curve (+ pos 3.6))))
 
-  ; stud end element.
-  (set disp (- disp 2))
-  (ftr (a-curve disp) 
-       (lambda ()
-  	(trf 0 0 0 -90 0 0 
-	     (lambda () 
-	      (scale (vector 1 5 1) (part "stud3a" color))))))
+    (def sv (vector 6 0 0))
+
+    (def v1 (* m1 sv))
+    (def v2 (* m2 sv))
+    (def d-angle 22.5)
+    (for (angle d-angle d-angle 365)
+     (def mr (matrix (list 0 0 0 0 0 angle)))
+     (def v3 (* m1 mr sv))
+     (def v4 (* m2 mr sv))
+     (triangle v1 v3 v2)
+     (triangle v2 v3 v4)
+     (set v1 v3)
+     (set v2 v4))
+    ))
+
+  ; Stud start element.
+  (transform (matrix (a-curve dist))
+   (rotate (vector 90 0 0)
+    (scale (vector 1 5 1)
+     (part "stud3a" 16))
+    (scale (vector 6 1 6)
+     (part "4-4disc.dat" 16))))
+
+
+  ; Initial segment.
+  (cylinder dist)
+  (set dist (+ dist 3.6))
+  (transform (matrix (a-curve dist))
+   (rotate (vector -90 0 0)
+    (for (elt disc)
+     (part elt 16))))
+
+  (axle-start dist)
+  (set dist (+ dist 4.8))
+  (axle-end dist)
+  (transform (matrix (a-curve dist))
+   (rotate (vector 90 0 0)
+    (for (elt disc)
+     (part elt 16))))
+
+  (cylinder dist)
+  (set dist (+ dist 3.6))
+  (transform (matrix (a-curve dist))
+   (rotate (vector -90 0 0)
+    (for (elt disc)
+     (part elt 16))))
+
+  (axle-start dist)
+  (set dist (+ dist 4.8))
+  (axle-end dist)
+  (transform (matrix (a-curve dist))
+   (rotate (vector 90 0 0)
+    (for (elt disc)
+     (part elt 16))))
+
+  (cylinder dist)
+  (set dist (+ dist 3.6))
+  (transform (matrix (a-curve dist))
+   (rotate (vector -90 0 0)
+    (for (elt disc)
+     (part elt 16))))
+
+
+  ; Middle segments.
+  (axle-start dist)
+  (while (< dist (- length (bw 3)))
+   (set dist (+ dist 4))
+   (axle-end dist))
+
+  (if (!= dist (- length (bw 3)))
+    (block
+     (set dist (- length (bw 3)))
+     (axle-end dist)))
+
+  ; Final segment.
+  (transform (matrix (a-curve dist))
+   (rotate (vector 90 0 0)
+    (for (elt disc)
+     (part elt 16))))
+
+  (cylinder dist)
+  (set dist (+ dist 3.6))
+  (transform (matrix (a-curve dist))
+   (rotate (vector -90 0 0)
+    (for (elt disc)
+     (part elt 16))))
+
+  (axle-start dist)
+  (set dist (+ dist 4.8))
+  (axle-end dist)
+  (transform (matrix (a-curve dist))
+   (rotate (vector 90 0 0)
+    (for (elt disc)
+     (part elt 16))))
+
+  (cylinder dist)
+  (set dist (+ dist 3.6))
+  (transform (matrix (a-curve dist))
+   (rotate (vector -90 0 0)
+    (for (elt disc)
+     (part elt 16))))
+
+  (axle-start dist)
+  (set dist (+ dist 4.8))
+  (axle-end dist)
+  (transform (matrix (a-curve dist))
+   (rotate (vector 90 0 0)
+    (for (elt disc)
+     (part elt 16))))
+
+  (cylinder dist)
+  (set dist (+ dist 3.6))
+
+  ; Stud end element.
+  (transform (matrix (a-curve dist))
+   (rotate (vector -90 0 0)
+    (scale (vector 1 5 1)
+     (part "stud3a" 16))
+    (scale (vector 6 1 6)
+     (part "4-4disc.dat" 16))))
   ))
+
