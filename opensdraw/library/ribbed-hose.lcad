@@ -4,8 +4,6 @@
 ; Hazen 03/15
 ;
 
-;(import locate :local)
-
 ;
 ; Create a ribbed hose with specified number of segments that goes along a curve. The hose
 ; is created using primitives, it should be in a group so that you can specify the color
