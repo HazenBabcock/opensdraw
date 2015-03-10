@@ -39,13 +39,57 @@ class LCadFunction(object):
     The base class for all functions.
     """
     def __init__(self, name):
+        self.has_extra_args = False
+        self.minimum_args = 0
         self.name = name
-
+        self.signature = None
+        
     def argCheck(self, tree):
-        pass
+        args = tree.value[1:]
+        if self.has_extra_args:
+            if (len(args) < self.minimum_args):
+                raise lce.NumberArgumentsException(str(self.minimum_args) + "+", len(args))
+        else:
+            if (len(args) != self.minimum_args):
+                raise lce.NumberArgumentsException(str(self.minimum_args), len(args))
+
+    def getArg(self, model, tree, index):
+        """
+        This should only be used for standard arguments. It is primarily
+        designed for core functions like def(), if(), etc.
+        """
+        arg = interp.getv(interp.interpret(model, tree.value[index+1]))
+        if not type(arg) in self.signature[index]:
+            raise lce.WrongTypeException(", ".join(map(str, self.signature[index])), type(arg))
+
+    def getArgs(self, model, tree):
+        """
+        This is what you want to use most of the time. It will return a list of
+        containing the standard arguments, followed by the optional arguments and
+        a dictionary of the keyword arguments in this form:
+
+        [[standard / optional arguments], keyword dictionary]
+
+        The defaults for the keywords are filled in with the defaults if they are 
+        not found.
+        """
+        
+        args = tree.value[1:]
+        index = 0
+
+        # Standard arguments.
+        
 
     def call(self, model, tree):
         pass
+
+    def setSignature(self, signature):
+        self.signature = signature
+        for arg in self.signature:
+            if not isinstance (arg[0], basestring):
+                self.minimum_args += 1
+            else:
+                self.has_extra_args = True
 
 
 class UserFunction(LCadFunction):

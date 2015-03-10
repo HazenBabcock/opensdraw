@@ -8,6 +8,7 @@
 """
 
 import numbers
+import numpy
 
 import functions
 import geometryFunctions
@@ -80,6 +81,7 @@ class Comment(PartFunction):
     """
     def __init__(self):
         PartFunction.__init__(self, "comment")
+        self.signature = [[basestring, numbers.Number]]
 
     def argCheck(self, tree):
         if (len(tree.value) != 2):
@@ -110,7 +112,7 @@ class Group(PartFunction):
     matrix, not the current transformation matrix.
 
     2. Group names must be unique (and also not overlap with the
-    names of any LDraw part files.
+    names of any LDraw part files).
 
     Usage::
 
@@ -120,6 +122,8 @@ class Group(PartFunction):
     """
     def __init__(self):
         PartFunction.__init__(self, "group")
+        self.signature = [[basestring], 
+                          "body"]
 
     def argCheck(self, tree):
         if (len(tree.value)<3):
@@ -156,6 +160,7 @@ class Header(PartFunction):
     """
     def __init__(self):
         PartFunction.__init__(self, "header")
+        self.signature = [[basestring]]
 
     def argCheck(self, tree):
         if (len(tree.value) != 2):
@@ -193,6 +198,9 @@ class Line(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "line")
         self.num_vertices = 2
         self.parts_fn = parts.Line
+        self.signature = [[interp.List, numpy.ndarray], 
+                          [interp.List, numpy.ndarray], 
+                          ["optional", [basestring, int]]]
 
 lcad_functions["line"] = Line()
 
@@ -228,6 +236,11 @@ class OptionalLine(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "optional-line")
         self.num_vertices = 4
         self.parts_fn = parts.OptionalLine
+        self.signature = [[interp.List, numpy.ndarray], 
+                          [interp.List, numpy.ndarray],
+                          [interp.List, numpy.ndarray],
+                          [interp.List, numpy.ndarray],
+                          ["optional", [basestring, int]]]
 
 lcad_functions["optional-line"] = OptionalLine()
 
@@ -317,6 +330,11 @@ class Quadrilateral(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "quadrilateral")
         self.num_vertices = 4
         self.parts_fn = parts.Quadrilateral
+        self.signature = [[interp.List, numpy.ndarray], 
+                          [interp.List, numpy.ndarray],
+                          [interp.List, numpy.ndarray],
+                          [interp.List, numpy.ndarray],
+                          ["optional", [basestring, int]]]
 
 lcad_functions["quadrilateral"] = Quadrilateral()
 
@@ -354,6 +372,10 @@ class Triangle(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "triangle")
         self.num_vertices = 3
         self.parts_fn = parts.Triangle
+        self.signature = [[interp.List, numpy.ndarray], 
+                          [interp.List, numpy.ndarray],
+                          [interp.List, numpy.ndarray],
+                          ["optional", [basestring, int]]]
 
 lcad_functions["triangle"] = Triangle()
 
