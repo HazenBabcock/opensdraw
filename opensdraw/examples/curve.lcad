@@ -13,6 +13,7 @@
 ; Specify that this file is back face culling certified.
 (header "BFC CERTIFY CCW")
 
+
 ; Technic Beam 15
 (tb 6 0 0 0 90 90 "32278" 14)
 
@@ -40,6 +41,7 @@
 ;
 (for (i 14)
  (group (concatenate "faxles" i ".dat")
+  (header "!LDRAW_ORG Unofficial_part")  ; So that edges will be smoothed.
   (header "BFC CERTIFY CCW")
 
   (print "Creating curve " i)

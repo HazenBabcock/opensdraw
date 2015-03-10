@@ -36,6 +36,7 @@
 
 ; Using curve().
 (group "hose1.dat"
+ (header "!LDRAW_ORG Unofficial_part")
  (header "BFC CERTIFY CCW")
  
  (ribbed-hose 27 (curve (list (list (list 0 0 0) (list 0 0 1) (list 0 1 0))
@@ -45,6 +46,7 @@
 
 ; Using chain().
 (group "hose2.dat"
+ (header "!LDRAW_ORG Unofficial_part")
  (header "BFC CERTIFY CCW")
 
  (def a-chain (chain (list (list (bw 1) (bw -2) (bw 1) -1)

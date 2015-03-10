@@ -81,13 +81,10 @@ while (index < time_points):
     os.chdir(cur_dir)
 
     # If the user provided a filename, then we just use it. If not then
-    # use .dat for single part models and .mpd for multi-part models.
+    # use the .mpd extension.
     dat_fname = output_fname
     if (len(sys.argv) == 2):
-        if mp_model:
-            dat_fname += "mpd"
-        else:
-            dat_fname += "dat"
+        dat_fname += "mpd"
 
     # And file number for animations.
     if (time_points > 1):
@@ -100,9 +97,8 @@ while (index < time_points):
         added_opensdraw = False
         for group in model.groups():
 
-            # Add file identifier for MPD document.
-            if mp_model:
-                fp_out.write("0 FILE " + group.name + "\n")
+            # Add File name.
+            fp_out.write("0 FILE " + group.name + "\n")
 
             # Add header.
             for text in group.header:

@@ -107,9 +107,10 @@
 
 (def ribbed-hose-cylinder ()
  (rotate (list 90 0 0)
-  (comment "~OpenLDraw Technic Ribbed Hose Cylinder")
-  (comment "Based on 80.dat by William Howard [WilliamH]")
-  (comment "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt")
+  (header "~OpenLDraw Technic Ribbed Hose Cylinder")
+  (header "Based on 80.dat by William Howard [WilliamH]")
+  (header "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt")
+  (header "!LDRAW_ORG Unofficial_part")
 
   (comment "BFC CERTIFY CCW")
 
@@ -143,9 +144,10 @@
 
 (def ribbed-hose-end ()
  (rotate (list 90 0 0)
-  (comment "~OpenLDraw Technic Ribbed Hose End")
-  (comment "Based on 80.dat by William Howard [WilliamH]")
-  (comment "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt")
+  (header "~OpenLDraw Technic Ribbed Hose End")
+  (header "Based on 80.dat by William Howard [WilliamH]")
+  (header "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt")
+  (header "!LDRAW_ORG Unofficial_part")
 
   (comment "BFC CERTIFY CCW")
 
@@ -172,9 +174,10 @@
 
 (def ribbed-hose-inner ()
  (rotate (list 90 0 0)
-  (comment "~OpenLDraw Technic Ribbed Hose Inner")
-  (comment "Based on s\78s01.dat by William Howard [WilliamH]")
-  (comment "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt")
+  (header "~OpenLDraw Technic Ribbed Hose Inner")
+  (header "Based on s\78s01.dat by William Howard [WilliamH]")
+  (header "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt")
+  (header "!LDRAW_ORG Unofficial_part")
 
   (comment "BFC CERTIFY CCW")
 
@@ -193,9 +196,10 @@
 
 (def ribbed-hose-outer ()
  (rotate (list 90 0 0)
-  (comment "~OpenLDraw Technic Ribbed Hose Outer")
-  (comment "Based on s\78s01.dat by William Howard [WilliamH]")
-  (comment "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt")
+  (header "~OpenLDraw Technic Ribbed Hose Outer")
+  (header "Based on s\78s01.dat by William Howard [WilliamH]")
+  (header "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt")
+  (header "!LDRAW_ORG Unofficial_part")
 
   (comment "BFC CERTIFY CCW")
 
