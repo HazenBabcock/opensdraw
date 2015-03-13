@@ -7,15 +7,16 @@
 
 """
 
+import numbers
 import random
 
+import functions
 import interpreter as interp
 import lcadExceptions as lce
-import mathFunctions as mathFunctions
 
 lcad_functions = {}
 
-class RandomNumberFunction(mathFunctions.MathFunction):
+class RandomNumberFunction(functions.LCadFunction):
     pass
 
 
@@ -27,12 +28,12 @@ class RandSeed(RandomNumberFunction):
 
      (rand-seed 10)
     """
-    def argCheck(self, tree):
-        if (len(tree.value) != 2):
-            raise lce.NumberArgumentsException("1", len(tree.value) - 1)
+    def __init__(self, name):
+        RandomNumberFunction.__init__(self, name)
+        self.setSignature([[numbers.Number]])
 
     def call(self, model, tree):
-        seed = self.isNumber(interp.interpret(model, tree.value[1]))
+        seed = self.getArg(model, tree, 0)
         random.seed(seed)
         return seed
 
@@ -48,17 +49,12 @@ class RandChoice(RandomNumberFunction):
      (rand-choice (list 1 2 3)) ; return 1,2 or 3.
      (rand-choice (list a b)) ; return a or b
     """
-    def argCheck(self, tree):
-        if (len(tree.value) != 2):
-            raise lce.NumberArgumentsException("1", len(tree.value) - 1)
+    def __init__(self, name):
+        RandomNumberFunction.__init__(self, name)
+        self.setSignature([[interp.List]])
 
     def call(self, model, tree):
-        tlist = interp.getv(interp.interpret(model, tree.value[1]))
-
-        if not isinstance(tlist, interp.List):
-            raise lce.WrongTypeException("List", type(tlist))
-
-        return random.choice(tlist.getl())
+        return random.choice(self.getArg(model, tree, 0).getl())
 
 lcad_functions["rand-choice"] = RandChoice("rand-choice")
 
@@ -66,21 +62,21 @@ lcad_functions["rand-choice"] = RandChoice("rand-choice")
 class RandGauss(RandomNumberFunction):
     """
     **rand-gauss** - Return a gaussian distributed random number.
+    This can be called with either 0 or 2 arguments.
 
     Usage::
 
      (rand-gauss)      ; mean = 0, standard deviation = 1.0
      (rand-gauss 1 10) ; mean = 1, standard deviation = 10.0
     """
-    def argCheck(self, tree):
-        if (len(tree.value) != 1) and (len(tree.value) != 3):
-            raise lce.NumberArgumentsException("0 or 2", len(tree.value) - 1)
+    def __init__(self, name):
+        RandomNumberFunction.__init__(self, name)
+        self.setSignature([["optional", [numbers.Number]]])
 
     def call(self, model, tree):
-        if (len(tree.value) == 3):
-            mu = self.isNumber(interp.interpret(model, tree.value[1]))
-            sigma = self.isNumber(interp.interpret(model, tree.value[2]))
-            return random.gauss(mu, sigma)
+        args = self.getArgs(model, tree)[0]
+        if (len(args) == 2):
+            return random.gauss(*args)
         else:
             return random.gauss(0, 1)
 
@@ -96,14 +92,12 @@ class RandInteger(RandomNumberFunction):
      (rand-integer 0 100) ; random integer between 0 and 100.
      (rand-integer 2 30)  ; random integer between 2 and 30.
     """
-    def argCheck(self, tree):
-        if (len(tree.value) != 3):
-            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
+    def __init__(self, name):
+        RandomNumberFunction.__init__(self, name)
+        self.setSignature([[numbers.Number], [numbers.Number]])
 
     def call(self, model, tree):
-        start = self.isNumber(interp.interpret(model, tree.value[1]))
-        end = self.isNumber(interp.interpret(model, tree.value[2]))
-        return random.randint(start, end)
+        return random.randint(*self.getArgs(model, tree)[0])
 
 lcad_functions["rand-integer"] = RandInteger("rand-integer")
 
@@ -111,21 +105,21 @@ lcad_functions["rand-integer"] = RandInteger("rand-integer")
 class RandUniform(RandomNumberFunction):
     """
     **rand-uniform** - Return a uniformly distributed random number.
+    This can be called with either 0 or 2 arguments.
 
     Usage::
 
      (rand-uniform)      ; distributed on 0 - 1.
      (rand-uniform 1 10) ; distributed on 1 - 10.
     """
-    def argCheck(self, tree):
-        if (len(tree.value) != 1) and (len(tree.value) != 3):
-            raise lce.NumberArgumentsException("0 or 2", len(tree.value) - 1)
+    def __init__(self, name):
+        RandomNumberFunction.__init__(self, name)
+        self.setSignature([["optional", [numbers.Number]]])
 
     def call(self, model, tree):
-        if (len(tree.value) == 3):
-            start = self.isNumber(interp.interpret(model, tree.value[1]))
-            end = self.isNumber(interp.interpret(model, tree.value[2]))
-            return random.uniform(start, end)
+        args = self.getArgs(model, tree)[0]
+        if (len(args) == 2):
+            return random.uniform(*args)
         else:
             return random.random()
 

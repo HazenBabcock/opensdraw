@@ -183,9 +183,9 @@ class Symbol(object):
         self.used = False
         self.value = None
 
-    def __str__(self):
-        #return self.name + " " + str(id(self))
-        return str(self.value)
+#    def __str__(self):
+#        #return self.name + " " + str(id(self))
+#        return str(self.value)
 
     def getv(self):
         if not self.is_set:

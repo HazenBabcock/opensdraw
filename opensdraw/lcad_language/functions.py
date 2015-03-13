@@ -24,15 +24,32 @@ import parts
 # Keeps track of all the built in functions.
 builtin_functions = {}
 
-def isTrue(model, arg):
-    temp = interp.getv(interp.interpret(model, arg))
-    if (temp is interp.lcad_t):
+def isTrue(val):
+    if (val is interp.lcad_t):
         return True
-    elif (temp is interp.lcad_nil):
+    if (val is interp.lcad_nil):
         return False
-    else:
-        raise lce.BooleanException()
+    raise lce.BooleanException()
 
+def isType(val, types):
+    for a_type in types:
+        if isinstance(val, a_type):
+            return True
+    return False
+
+def typeToString(a_type):
+    a_string = a_type.__name__
+    if (a_string == "basestring"):
+        return "string"
+    if (a_string == "interp.List"):
+        return "list"
+    if (a_string == "interp.Symbol"):
+        return "symbol"        
+    if (a_string == "numpy.ndarray"):
+        return "vector, matrix"
+    if (a_string == "numbers.Number"):
+        return "number"
+    return a_string
 
 class LCadFunction(object):
     """
@@ -48,27 +65,43 @@ class LCadFunction(object):
         args = tree.value[1:]
         if self.has_extra_args:
             if (len(args) < self.minimum_args):
-                raise lce.NumberArgumentsException(str(self.minimum_args) + "+", len(args))
+                raise lce.NumberArgumentsException("at least " + str(self.minimum_args), len(args))
         else:
             if (len(args) != self.minimum_args):
-                raise lce.NumberArgumentsException(str(self.minimum_args), len(args))
+                raise lce.NumberArgumentsException("exactly " + str(self.minimum_args), len(args))
+        tree.initialized = True
+
+    def call(self, model, tree):
+        pass
 
     def getArg(self, model, tree, index):
         """
-        This should only be used for standard arguments. It is primarily
-        designed for core functions like def(), if(), etc.
+        This will get the arguments one at time. It only works with 
+        standard and optional arguments.
         """
         arg = interp.getv(interp.interpret(model, tree.value[index+1]))
-        if not type(arg) in self.signature[index]:
-            raise lce.WrongTypeException(", ".join(map(str, self.signature[index])), type(arg))
+
+        # Standard arguments.
+        if (index < self.minimum_args):
+            if not isType(val, self.signature[index]):
+                raise lce.WrongTypeException(", ".join(map(typeToString, self.signature[index])), type(arg))
+            return arg
+        
+        # Optional arguments.
+        if (index >= len(self.signature)):
+            index = len(self.signature) - 1
+        if not isType(val, self.signature[index][1]):
+            raise lce.WrongTypeException(", ".join(map(typeToString, self.signature[index][1])), type(arg))
+        return arg
 
     def getArgs(self, model, tree):
         """
-        This is what you want to use most of the time. It will return a list of
-        containing the standard arguments, followed by the optional arguments and
-        a dictionary of the keyword arguments in this form:
+        This is what you want to use most of the time. It will return either (1) A list
+        containing the standard arguments, followed by the optional arguments or (2) a
+        a list containing the standard arguments followed by the keyword dictionary.
 
-        [[standard / optional arguments], keyword dictionary]
+        (1) [[standard / optional arguments]]
+        (2) [[standard arguments], keyword dictionary]
 
         The defaults for the keywords are filled in with the defaults if they are 
         not found.
@@ -78,12 +111,74 @@ class LCadFunction(object):
         index = 0
 
         # Standard arguments.
-        
+        standard_args = []
+        while (not isinstance(self.signature[index][0], basestring)):
+            val = interp.getv(interp.interpret(model, args[index]))
+            if not isType(val, self.signature[index]):
+                raise lce.WrongTypeException(", ".join(map(typeToString, self.signature[index])), type(val))
+            standard_args.append(val)
+            index += 1
+        if (index == len(args)):
+            return standard_args
 
-    def call(self, model, tree):
-        pass
+        # Optional arguments.
+        if (self.signature[index][0] == "optional"):
+            sig_index = index
+            while (index < len(args)):
+                val = interp.getv(interp.interpret(model, args[index]))
+                if not isType(val, self.signature[sig_index][1]):
+                    raise lce.WrongTypeException(", ".join(map(typeToString, self.signature[sig_index][1])), type(val))
+                standard_args.append(val)
+                index += 1
+                if (sig_index < (len(self.signature) - 2)):
+                    sig_index += 1
+            return [standard_args]
 
+        # Keyword arguments.
+        if (self.signature[index][0] == "keyword"):
+            sig_dict = self.signature[index][1]
+
+            # Fill in keyword dictionary.
+            keyword_dict = {}
+            for key in keys(sig_dict):
+                keyword_dict[key] = sig_dict[key][1]
+
+            # Parse keywords.
+            while (index < len(args)):
+                key = args[index].value
+                if (key[0] != ":"):
+                    raise lce.KeywordException(args[index].value)
+                key = key[1:]
+                if not key in keys(sig_dict):
+                    raise lce.UnknownKeywordException(key)
+                val = interp.getv(interp.interpret(model, args[index+1]))
+                if not isType(val, sig_dict[key][0]):
+                    raise lce.WrongTypeException(", ".join(map(typeToString, self.signature[sig_index][1])), type(val))
+                index += 2
+            return [standard_args, keyword_dict]
+
+        raise lce.LCadException(str(self.signature[index][0]) + " function signature type not recognized.")
+
+    def numberArgs(self, tree):
+        return len(tree.value) - 1
+                                
     def setSignature(self, signature):
+        """
+        Signature is a list containing the following:
+
+        (1) Standard arguments:
+            [[ type ], [ type ], ..,
+        (2) Optional arguments:
+            [ "optional", [ type ]]]
+            If the list or arguments is longer than standard + optional the remaining
+            arguments must have the same type as the last optional argument.
+        (3) Keyword arguments:
+            [ "keyword", {'keyword1', [[ type ], default value], 'keyword2', ..}]]
+
+        Note you should either have (2) or (3) but not both. All the functions that
+        are not internal only take keywords.
+
+        """
         self.signature = signature
         for arg in self.signature:
             if not isinstance (arg[0], basestring):

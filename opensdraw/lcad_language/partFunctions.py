@@ -36,26 +36,20 @@ class PrimitiveFunction(PartFunction):
     def __init__(self, name):
         PartFunction.__init__(self, name)
 
-    def argCheck(self, tree):
-        args = tree.value[1:]
-        if (len(args) != self.num_vertices)  and (len(args) != (self.num_vertices + 1)):
-            raise lce.NumberArgumentsException(str(self.num_vertices) + "-" + str(self.num_vertices + 1),
-                                               len(args))
-
     def call(self, model, tree):
-        args = tree.value[1:]
+        args = self.getArgs(model, tree)[0]
         coords = []
 
         # Get color.
         if (len(args) == (self.num_vertices + 1)):
-            color = interp.getv(interp.interpret(model, args[-1]))
+            color = args[-1]
             args = args[:-1]
         else:
             color = 16
 
         # Get coordinates.
         for vertex in args:
-            coords.extend(geometryFunctions.parseArgs(model, vertex))
+            coords.extend(geometryFunctions.parseArgs(vertex))
 
         group = model.curGroup()
         group.addPart(self.parts_fn(group.matrix(), coords, color), True)
@@ -81,14 +75,10 @@ class Comment(PartFunction):
     """
     def __init__(self):
         PartFunction.__init__(self, "comment")
-        self.signature = [[basestring, numbers.Number]]
-
-    def argCheck(self, tree):
-        if (len(tree.value) != 2):
-            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
+        self.setSignature([[basestring, numbers.Number]])
 
     def call(self, model, tree):
-        text = str(tree.value[1].value)
+        text = str(self.getArg(model, tree, 0))
         group = model.curGroup()
         group.addComment(parts.Comment(text))
         return text
@@ -122,19 +112,11 @@ class Group(PartFunction):
     """
     def __init__(self):
         PartFunction.__init__(self, "group")
-        self.signature = [[basestring], 
-                          "body"]
-
-    def argCheck(self, tree):
-        if (len(tree.value)<3):
-            raise lce.NumberArgumentsException("2+", len(flist)-1)
+        self.setSignature([[basestring], ["body"]])
 
     def call(self, model, tree):
-        if (len(tree.value) > 2):
-            name = interp.getv(interp.interpret(model, tree.value[1]))
-            if not isinstance(name, basestring):
-                raise lce.WrongTypeException("string", type(name))
-            model.pushGroup(name)
+        if (self.numberArgs(tree) > 1):
+            model.pushGroup(self.getArg(mode, tree, 0))
             val = interp.interpret(model, tree.value[2:])
             model.popGroup()
             return val
@@ -162,12 +144,8 @@ class Header(PartFunction):
         PartFunction.__init__(self, "header")
         self.signature = [[basestring]]
 
-    def argCheck(self, tree):
-        if (len(tree.value) != 2):
-            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
-
     def call(self, model, tree):
-        text = str(tree.value[1].value)
+        text = self.getArg(mode, tree, 0)
         model.curGroup().header.append(text)
         return text
 
@@ -198,9 +176,9 @@ class Line(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "line")
         self.num_vertices = 2
         self.parts_fn = parts.Line
-        self.signature = [[interp.List, numpy.ndarray], 
-                          [interp.List, numpy.ndarray], 
-                          ["optional", [basestring, int]]]
+        self.setSignature([[interp.List, numpy.ndarray], 
+                           [interp.List, numpy.ndarray], 
+                           ["optional", [basestring, int]]])
 
 lcad_functions["line"] = Line()
 
@@ -236,11 +214,11 @@ class OptionalLine(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "optional-line")
         self.num_vertices = 4
         self.parts_fn = parts.OptionalLine
-        self.signature = [[interp.List, numpy.ndarray], 
-                          [interp.List, numpy.ndarray],
-                          [interp.List, numpy.ndarray],
-                          [interp.List, numpy.ndarray],
-                          ["optional", [basestring, int]]]
+        self.setSignature([[interp.List, numpy.ndarray], 
+                           [interp.List, numpy.ndarray],
+                           [interp.List, numpy.ndarray],
+                           [interp.List, numpy.ndarray],
+                           ["optional", [basestring, int]]])
 
 lcad_functions["optional-line"] = OptionalLine()
 
@@ -262,16 +240,12 @@ class Part(PartFunction):
     """
     def __init__(self):
         PartFunction.__init__(self, "part")
-
-    def argCheck(self, tree):
-        flist = tree.value
-        if (len(flist) != 3) and (len(flist) != 4):
-            raise lce.NumberArgumentsException("2-3", len(flist) - 1)
+        self.setSignature([[basestring],
+                           [basestring, numbers.Number],
+                           ["optional", [numbers.Number]]])
 
     def call(self, model, tree):
-        args = tree.value[1:]
-        part_id = interp.getv(interp.interpret(model, args[0]))
-        part_color = interp.getv(interp.interpret(model, args[1]))
+        args = self.getArgs(model, tree)[0]
 
         # Get step offset.
         step_offset = interp.getv(interp.builtin_symbols["step-offset"])
@@ -284,11 +258,11 @@ class Part(PartFunction):
             raise lce.WrongTypeException("number", type(step_offset))
 
         if (len(args) == 3):
-            part_step = interp.getv(interp.interpret(model, args[2])) + step_offset
+            part_step = args[2] + step_offset
         else:
             part_step = step_offset
         group = model.curGroup()
-        group.addPart(parts.Part(group.matrix(), part_id, part_color, part_step), False)
+        group.addPart(parts.Part(group.matrix(), args[0], args[1], part_step), False)
         return None
 
 lcad_functions["part"] = Part()
@@ -330,11 +304,11 @@ class Quadrilateral(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "quadrilateral")
         self.num_vertices = 4
         self.parts_fn = parts.Quadrilateral
-        self.signature = [[interp.List, numpy.ndarray], 
-                          [interp.List, numpy.ndarray],
-                          [interp.List, numpy.ndarray],
-                          [interp.List, numpy.ndarray],
-                          ["optional", [basestring, int]]]
+        self.setSignature([[interp.List, numpy.ndarray], 
+                           [interp.List, numpy.ndarray],
+                           [interp.List, numpy.ndarray],
+                           [interp.List, numpy.ndarray],
+                           ["optional", [basestring, int]]])
 
 lcad_functions["quadrilateral"] = Quadrilateral()
 
@@ -372,10 +346,10 @@ class Triangle(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "triangle")
         self.num_vertices = 3
         self.parts_fn = parts.Triangle
-        self.signature = [[interp.List, numpy.ndarray], 
-                          [interp.List, numpy.ndarray],
-                          [interp.List, numpy.ndarray],
-                          ["optional", [basestring, int]]]
+        self.setSignature([[interp.List, numpy.ndarray], 
+                           [interp.List, numpy.ndarray],
+                           [interp.List, numpy.ndarray],
+                           ["optional", [basestring, int]]])
 
 lcad_functions["triangle"] = Triangle()
 

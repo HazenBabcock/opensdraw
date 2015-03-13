@@ -27,24 +27,20 @@ class CurveFunction(functions.LCadFunction):
 
     def __init__(self, curve):
         functions.LCadFunction.__init__(self, "user created curve function")
+        self.setSignature([[interp.Symbol, numbers.Number]])        
         self.curve = curve
 
-    def argCheck(self, tree):
-        if (len(tree.value) != 2):
-            raise lcadExceptions.NumberArgumentsException("1", len(tree.value) - 1)
-
     def call(self, model, tree):
-        arg = interp.getv(interp.interpret(model, tree.value[1]))
+        arg = self.getArg(model, tree, 0)
 
         # If arg is t return the curve length.
-        if (arg is interp.lcad_t):
-            return self.curve.length
+        if isinstance(arg, interp.Symbol):
+            if (arg is interp.lcad_t):
+                return self.curve.length
+            else:
+                return interp.lcad_nil
 
-        # Get distance along curve.
-        if not isinstance(arg, numbers.Number):
-            raise lcadExceptions.WrongTypeException("number", type(arg))
-
-        # Determine position and orientation.
+        # Return position and orientation.
         return interp.List(self.curve.getCoords(arg))
 
 

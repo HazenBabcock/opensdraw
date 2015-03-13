@@ -26,6 +26,7 @@ def printSymbolTableIds(lenv):
         lenv = lenv.parent
     print "-"
 
+
 class CoreFunction(functions.LCadFunction):
     pass
 
@@ -41,21 +42,13 @@ class Append(CoreFunction):
     """
     def __init__(self):
         CoreFunction.__init__(self, "append")
-
-    def argCheck(self, tree):
-        if (len(tree.value) < 3):
-            raise lce.NumberArgumentsException("2+", len(tree.value) - 1)
+        self.setSignature([[interp.List], [object], ["optional", [object]]])
 
     def call(self, model, tree):
-        tlist = interp.getv(interp.interpret(model, tree.value[1]))
-
-        if not isinstance(tlist, interp.List):
-            raise lce.WrongTypeException("List", type(tlist))
-
-        for arg in tree.value[2:]:
-            val = interp.getv(interp.interpret(model, arg))
-            tlist.addElt(val)
-
+        args = self.getArgs(model, tree)[0]
+        tlist = args[0]
+        for arg in args[1:]:
+            tlist.addElt(arg)
         return tlist
 
 lcad_functions["append"] = Append()
@@ -72,20 +65,12 @@ class Aref(CoreFunction):
     """
     def __init__(self):
         CoreFunction.__init__(self, "aref")
-
-    def argCheck(self, tree):
-        if (len(tree.value) != 3):
-            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
+        self.setSignature([[interp.List], [numbers.Number]])
 
     def call(self, model, tree):
-        tlist = interp.getv(interp.interpret(model, tree.value[1]))
-        index = interp.getv(interp.interpret(model, tree.value[2]))
-
-        if not isinstance(tlist, interp.List):
-            raise lce.WrongTypeException("List", type(tlist))
-
-        if not isinstance(index, int):
-            raise lce.WrongTypeException("int", type(index))
+        args = self.getArgs(model, tree)[0]
+        tlist = args[0]
+        index = args[1]
 
         if ((index >= 0) and (index < tlist.size)):
             return tlist.getv(index)
@@ -110,12 +95,11 @@ class Block(CoreFunction):
     """
     def __init__(self):
         CoreFunction.__init__(self, "block")
+        self.setSignature([["optional", [object]]])
 
     def call(self, model, tree):
-        val = None
-        for node in tree.value[1:]:
-            val = interp.interpret(model, node)
-        return val
+        args = self.getArgs(model, tree)[0]
+        return args[-1]
 
 lcad_functions["block"] = Block()
 
@@ -131,16 +115,12 @@ class Concatenate(CoreFunction):
     """
     def __init__(self):
         CoreFunction.__init__(self, "cond")
-
-    def argCheck(self, tree):
-        if (len(tree.value)<3):
-            raise lce.NumberArgumentsException("2+", len(tree.value)-1)
+        self.setSignature([[basestring, numbers.Number], ["optional", [basestring, numbers.Number]]])
 
     def call(self, model, tree):
         a_string = ""
-        for arg in tree.value[1:]:
-            val = interp.getv(interp.interpret(model, arg))
-            a_string += str(val)
+        for arg in self.getArgs(model, tree)[0]:
+            a_string += str(arg)
         return a_string
                             
 lcad_functions["concatenate"] = Concatenate()
@@ -160,20 +140,18 @@ class Cond(CoreFunction):
     """
     def __init__(self):
         CoreFunction.__init__(self, "cond")
-
-    def argCheck(self, tree):
-        if (len(tree.value)<3):
-            raise lce.NumberArgumentsException("2+", 1)
+        self.setSignature([[object], ["optional", [object]]])
 
     def call(self, model, tree):
         args = tree.value[1:]
-        ret = None
+        ret = interp.lcad_nil
         for arg in args:
             nodes = arg.value
-            if functions.isTrue(model, nodes[0]):
+            if functions.isTrue(interp.getv(interp.interpret(model, nodes[0])))
                 for node in nodes[1:]:
                     ret = interp.interpret(model, node)
                 return ret
+        return ret
 
 lcad_functions["cond"] = Cond()
 
@@ -205,7 +183,6 @@ class Def(CoreFunction):
         CoreFunction.__init__(self, "def")
 
     def argCheck(self, tree):
-
         # def needs at least 3 arguments.
         if (len(tree.value)<3):
             raise lce.NumberArgumentsException("2 or more", len(tree.value) - 1)
@@ -224,6 +201,7 @@ class Def(CoreFunction):
         # Functions have already been created (so that they can be called out of
         # order), just return the function.
         if (len(args) == 3):
+            tree.initialized = True
             return lenv.symbols[args[0].value].getv()
 
         # Create Symbols.
@@ -251,7 +229,6 @@ class Def(CoreFunction):
                 ret = val
             tree.initialized = True
             return ret
-        return None
 
 lcad_functions["def"] = Def()
 
@@ -294,11 +271,10 @@ class For(CoreFunction):
             raise lce.LCadException("loop variable must be a symbol.")
 
         # Create loop variable.
-        if not tree.initialized:
-            inc_name = loop_args[0].value
-            interp.checkOverride(tree.lenv, inc_name)
-            tree.lenv.symbols[inc_name] = interp.Symbol(inc_name, tree.filename)
-            tree.initialized = True
+        inc_name = loop_args[0].value
+        interp.checkOverride(tree.lenv, inc_name)
+        tree.lenv.symbols[inc_name] = interp.Symbol(inc_name, tree.filename)
+        tree.initialized = True
 
     def call(self, model, tree):
         loop_args = tree.value[1].value
@@ -342,35 +318,6 @@ class For(CoreFunction):
 lcad_functions["for"] = For()
 
 
-class Header(CoreFunction):
-    """
-    **header** - Adds header information to the model.
-
-    This will add a line of text, prepended with "0 ", to the
-    current model. Multiple calls will add multiple lines, in
-    the same order as the calls.
-
-    Usage::
-    
-    (header "FILE mymoc")
-    (header "Name: mymoc")
-    (header "Author: My Name")
-    """
-    def __init__(self):
-        CoreFunction.__init__(self, "header")
-
-    def argCheck(self, tree):
-        if (len(tree.value) != 2):
-            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
-
-    def call(self, model, tree):
-        text = str(tree.value[1].value)
-        model.curGroup().header.append(text)
-        return text
-
-lcad_functions["header"] = Header()
-
-
 class If(CoreFunction):
     """
     **if** - If statement. 
@@ -396,10 +343,11 @@ class If(CoreFunction):
     def argCheck(self, tree):
         if (len(tree.value) != 3) and (len(tree.value) != 4):
             raise lce.NumberArgumentsException("2 or 3", len(tree.value) - 1)
+        tree.initialized = True
 
     def call(self, model, tree):
         args = tree.value[1:]
-        if functions.isTrue(model, args[0]):
+        if functions.isTrue(interp.getv(interp.interpret(model, args[0])))
             return interp.interpret(model, args[1])
         else:
             if (len(args)==3):
@@ -491,11 +439,11 @@ class Lambda(CoreFunction):
     """
     def __init__(self):
         CoreFunction.__init__(self, "lambda")
-        self.name = "lambda"
 
     def argCheck(self, tree):
         if (len(tree.value) != 3):
             raise lce.NumberArgumentsException("2", len(tree.value) - 1)
+        tree.initialized = True
 
     def call(self, model, tree):
         return functions.UserFunction(tree)
@@ -513,18 +461,10 @@ class Len(CoreFunction):
     """
     def __init__(self):
         CoreFunction.__init__(self, "len")
-
-    def argCheck(self, tree):
-        if (len(tree.value) != 2):
-            raise lce.NumberArgumentsException("1", len(tree.value) - 1)
+        self.setSignature([[interp.List]])
 
     def call(self, model, tree):
-        tlist = interp.getv(interp.interpret(model, tree.value[1]))
-
-        if not isinstance(tlist, interp.List):
-            raise lce.WrongTypeException("List", type(tlist))
-
-        return tlist.size
+        return self.getArg(model, tree, 0).size
 
 lcad_functions["len"] = Len()
 
@@ -540,11 +480,12 @@ class List(CoreFunction):
     """
     def __init__(self):
         CoreFunction.__init__(self, "list")
+        self.setSignature([["optional", [object]]])
 
     def call(self, model, tree):
         vals = []
-        for node in tree.value[1:]:
-            vals.append(interp.interpret(model, node))
+        for arg in self.getArgs(model, tree)[0]:
+            vals.append(arg)
         return interp.List(vals)
     
 lcad_functions["list"] = List()
@@ -561,12 +502,12 @@ class Print(CoreFunction):
     """
     def __init__(self):
         CoreFunction.__init__(self, "print")
-        self.name = "print"
+        self.setSignature([["optional", [object]]])
 
     def call(self, model, tree):
         string = ""
-        for node in tree.value[1:]:
-            string += str(interp.interpret(model, node))
+        for arg in self.getArgs(model, tree)[0]:
+            string += str(arg)
         print string
         return string
 
@@ -590,6 +531,7 @@ class Set(CoreFunction):
         flist = tree.value
         if (len(flist) < 3) or ((len(flist[1:])%2) != 0):
             raise lce.NumberArgumentsException("A multiple of 2", len(flist[1:]))
+        tree.initialized = True
 
     def call(self, model, tree):
         args = tree.value[1:]
@@ -628,12 +570,13 @@ class While(CoreFunction):
 
     def argCheck(self, tree):
         if (len(tree.value)<3):
-            raise lce.NumberArgumentsException("2+", 1)
+            raise lce.NumberArgumentsException("2+", len(tree.value) - 1)
+        tree.initialized = True
 
     def call(self, model, tree):
         args = tree.value[1:]
         ret = None
-        while functions.isTrue(model, args[0]):
+        while functions.isTrue(interp.getv(interp.interpret(model, args[0])))
             for arg in args[1:]:
                 ret = interp.interpret(model, arg)
         return ret

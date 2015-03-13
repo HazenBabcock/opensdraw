@@ -35,9 +35,7 @@ def ldrawCoeffsToMatrix(model, coeffs):
     return m
 
 
-def parseArgs(model, args):
-
-    val = interp.getv(interp.interpret(model, args))
+def parseArgs(val):
 
     # Numpy array. This should be a 4 element vector. A 3 element list will be returned.
     if isinstance(val, numpy.ndarray):
@@ -46,12 +44,12 @@ def parseArgs(model, args):
         return val.tolist()[0:3]
 
     # LCad list.
-    elif isinstance(val, interp.List):
+    if isinstance(val, interp.List):
         if not (val.size > 2):
             raise lce.LCadException("Expected a list with 3+ members, got " + str(val.size))
         ret = []
         for i in range(val.size):
-            temp = interp.getv(val.getv(i))
+            temp = val.getv(i)
             if not isinstance(temp, numbers.Number):
                 raise lce.WrongTypeException("number", type(temp))
             ret.append(temp)
@@ -70,11 +68,7 @@ def translationMatrix(tx, ty, tz):
 
 
 class GeometryFunction(functions.LCadFunction):
-
-    def argCheck(self, tree):
-        args = tree.value[1:]
-        if (len(args) < 2):
-            raise lce.NumberArgumentsException("2+", len(args))
+    pass
 
 
 class Matrix(GeometryFunction):
@@ -116,14 +110,10 @@ class Matrix(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "matrix")
-
-    def argCheck(self, tree):
-        args = tree.value[1:]
-        if (len(args) != 1):
-            raise lce.NumberArgumentsException("1", len(args))
+        self.setSignature([[interp.List]])
 
     def call(self, model, tree):
-        vals = parseArgs(model, tree.value[1])
+        vals = parseArgs(self.getArg(model, tree, 0))
         
         # 12 elements.
         if (len(vals) == 12):
@@ -138,7 +128,6 @@ class Matrix(GeometryFunction):
 
         else:
             raise lce.LCadException("Expected a list with 6 or 12 members, got " + str(len(vals)))
-            
 
 lcad_functions["matrix"] = Matrix()
 
@@ -160,10 +149,11 @@ class Mirror(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "mirror")
+        self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
         if (len(tree.value) > 2):
-            [mx, my, mz] = parseArgs(model, tree.value[1])
+            [mx, my, mz] = parseArgs(self.getArg(model, tree, 0))
 
             m = numpy.identity(4)
             if (mx == 1):
@@ -206,10 +196,11 @@ class Rotate(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "rotate")
+        self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
         if (len(tree.value) > 2):
-            m = angles.rotationMatrix(*parseArgs(model, tree.value[1]))
+            m = angles.rotationMatrix(*parseArgs(self.getArg(model, tree, 0)))
             cur_matrix = model.curGroup().matrix().copy()
             model.curGroup().setMatrix(numpy.dot(cur_matrix, m))
             val = interp.interpret(model, tree.value[2:])
@@ -242,10 +233,11 @@ class Scale(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "scale")
+        self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
         if (len(tree.value) > 2):
-            [sx, sy, sz] = parseArgs(model, tree.value[1])
+            [sx, sy, sz] = parseArgs(self.getArg(model, tree, 0))
 
             m = numpy.identity(4)
             m[0,0] = sx
@@ -294,12 +286,12 @@ class Transform(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "transform")
-
+        self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
         if (len(tree.value) > 2):
             
-            val = interp.getv(interp.interpret(model, tree.value[1]))
+            val = self.getArg(model, tree, 0)
 
             # Transform matrix.
             if isinstance(val, numpy.ndarray):
@@ -313,13 +305,10 @@ class Transform(GeometryFunction):
                     raise lce.LCadException("Expected a list with 12 members, got " + str(val.size))
                 m = numpy.identity(4)
                 for i in range(12):
-                    temp = interp.getv(val.getv(i))
+                    temp = val.getv(i)
                     if not isinstance(temp, numbers.Number):
                         raise lce.WrongTypeException("number", type(temp))
                     m[mapping[i][1]] = temp
-
-            else:
-                raise lce.WrongTypeException("list, numpy.ndarray", type(val))
 
             cur_matrix = model.curGroup().matrix().copy()
             model.curGroup().setMatrix(numpy.dot(cur_matrix, m))
@@ -352,11 +341,12 @@ class Translate(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "translate")
+        self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
 
         if (len(tree.value) > 2):
-            m = translationMatrix(*parseArgs(model, tree.value[1]))
+            m = translationMatrix(*parseArgs(self.getArg(model, tree, 0)))
 
             cur_matrix = model.curGroup().matrix().copy()
             model.curGroup().setMatrix(numpy.dot(cur_matrix, m))
@@ -388,19 +378,12 @@ class Vector(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "vector")
-
-    def argCheck(self, tree):
-        args = tree.value[1:]
-        if (len(args) != 3):
-            raise lce.NumberArgumentsException("3", len(args))
+        self.setSignature([[numbers.Number], [numbers.Number], [numbers.Number]])
 
     def call(self, model, tree):
-        args = tree.value[1:]
+        args = self.getArgs(model, tree)[0]
         vals = []
         for arg in args:
-            val = interp.getv(interp.interpret(model, arg))
-            if not isinstance(val, numbers.Number):
-                raise lce.WrongTypeException("number", type(val))
             vals.append(val)
 
         vals.append(1.0)

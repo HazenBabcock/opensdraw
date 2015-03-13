@@ -20,9 +20,7 @@ class LogicFunction(functions.LCadFunction):
     """
     Logic functions, and, or, not
     """
-    def argCheck(self, tree):
-        if (len(tree.value) < 3):
-            raise lce.NumberArgumentsException("2+", len(tree.value) - 1)
+    pass
 
 class And(LogicFunction):
     """
@@ -33,9 +31,13 @@ class And(LogicFunction):
      (and (< 1 2) (< 2 3)) ; t
      (and (fn x) nil)      ; nil
     """
+    def __init__(self, name):
+        LogicFunction.__init__(self, name)
+        self.setSignature([[interp.Symbol], [interp.Symbol], ["optional", [interp.Symbol]]])
+
     def call(self, model, tree):
-        for node in tree.value[1:]:
-            if not(functions.isTrue(model, node)):
+        for i in range(len(tree.value[1:])):
+            if not (functions.isTrue(self.getArg(model, tree, i)))
                 return interp.lcad_nil
         return interp.lcad_t
 
@@ -52,9 +54,13 @@ class Or(LogicFunction):
      (or (fn x) t)         ; t
      (or nil nil)          ; nil
     """
+    def __init__(self, name):
+        LogicFunction.__init__(self, name)
+        self.setSignature([[interp.Symbol], [interp.Symbol], ["optional", [interp.Symbol]]])
+
     def call(self, model, tree):
-        for node in tree.value[1:]:
-            if functions.isTrue(model, node):
+        for i in range(len(tree.value[1:])):
+            if functions.isTrue(self.getArg(model, tree, i)):
                 return interp.lcad_t
         return interp.lcad_nil
 
@@ -70,12 +76,12 @@ class Not(LogicFunction):
      (not t)  ; nil
      (not ()) ; t
     """
-    def argCheck(self, tree):
-        if (len(tree.value) != 2):
-            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
+    def __init__(self, name):
+        LogicFunction.__init__(self, name)
+        self.setSignature([[interp.Symbol]])
 
     def call(self, model, tree):
-        if functions.isTrue(model, tree.value[1]):
+        if functions.isTrue(self.getArg(model, tree, 0))
             return interp.lcad_nil
         else:
             return interp.lcad_t

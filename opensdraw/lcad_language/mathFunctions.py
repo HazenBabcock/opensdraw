@@ -23,30 +23,9 @@ class MathFunction(functions.LCadFunction):
     """
     Math functions.
     """
-    def isNumber(self, value):
-        num = interp.getv(value)
-        if not isinstance(num, numbers.Number):
-            raise lce.WrongTypeException("number", type(num))
-        return num
+    pass
 
-    def isScalarOrVector(self, value):
-        num = interp.getv(value)
-        if not isinstance(num, numbers.Number) and not isinstance(num, numpy.ndarray):
-            raise lce.WrongTypeException("number, numpy.ndarray", type(num))
-        return num
-
-
-# "Basic" math functions.
-
-class BasicMathFunction(MathFunction):
-    """
-    Basic math functions, + - * /.
-    """
-    def argCheck(self, tree):
-        if (len(tree.value) < 3):
-            raise lce.NumberArgumentsException("2+", len(tree.value) - 1)
-
-class Divide(BasicMathFunction):
+class Divide(MathFunction):
     """
     **/** - Divide the first number, vector or matrix by one or more additional 
     numbers, vectors or matrices. Vectors and matrices are divided pointwise.
@@ -56,16 +35,23 @@ class Divide(BasicMathFunction):
      (/ 4 2) ; 2
 
     """
+    def __init__(self, name):
+        MathFunction.__init__(self, name)
+        self.setSignature([[numbers.Number, numpy.ndarray],
+                           [numbers.Number, numpy.ndarray],
+                           ["optional", [numbers.Number, numpy.ndarray]]])
+
     def call(self, model, tree):
-        total = self.isScalarOrVector(interp.interpret(model, tree.value[1]))
-        for node in tree.value[2:]:
-            total = total/self.isScalarOrVector(interp.interpret(model, node))
+        args = self.getArgs(model, tree)[0]
+        total = args[0]
+        for arg in args[1:]
+            total = total/arg
         return total
 
 lcad_functions["/"] = Divide("/")
 
 
-class Minus(BasicMathFunction):
+class Minus(MathFunction):
     """
     **-** - Subtract one or more numbers, vectors or matrices from the first 
     number, vector or matrix.
@@ -76,28 +62,30 @@ class Minus(BasicMathFunction):
      (- 50)      ; -50
 
     """
-    def argCheck(self, tree):
-        if (len(tree.value) < 2):
-            raise lce.NumberArgumentsException("1+", len(tree.value) - 1)
+    def __init__(self, name):
+        MathFunction.__init__(self, name)
+        self.setSignature([[numbers.Number, numpy.ndarray],
+                           ["optional", [numbers.Number, numpy.ndarray]]])
 
     def call(self, model, tree):
-        if (len(tree.value) == 2):
-            return -self.isScalarOrVector(interp.interpret(model, tree.value[1]))
+        args = self.getArgs(model, tree)[0]
+        if (args == 1):
+            return -args[0]
         else:
-            total = self.isScalarOrVector(interp.interpret(model, tree.value[1]))
+            total = args[0]
 
             # If this a numpy array, make a copy to avoid destroying the original.
             if isinstance(total, numpy.ndarray):
                 total = total.copy()
 
-            for node in tree.value[2:]:
-                total -= self.isScalarOrVector(interp.interpret(model, node))
+            for arg in args[1:]
+                total -= arg
             return total
 
 lcad_functions["-"] = Minus("-")
 
 
-class Modulo(BasicMathFunction):
+class Modulo(MathFunction):
     """
     **%** - Return remainder of the first number divided by the second number.
 
@@ -106,19 +94,18 @@ class Modulo(BasicMathFunction):
      (% 10 2) ; 0
 
     """
-    def argCheck(self, tree):
-        if (len(tree.value) != 3):
-            raise lce.NumberArgumentsException("2", len(tree.value) - 1)
+    def __init__(self, name):
+        MathFunction.__init__(self, name)
+        self.setSignature([[numbers.Number], [numbers.Number]])
 
     def call(self, model, tree):
-        n1 = self.isNumber(interp.interpret(model, tree.value[1]))
-        n2 = self.isNumber(interp.interpret(model, tree.value[2]))
-        return n1 % n2
+        args = self.getArgs(model, tree)[0]
+        return args[0] % args[1]
 
 lcad_functions["%"] = Modulo("%")
 
 
-class Multiply(BasicMathFunction):
+class Multiply(MathFunction):
     """
     ***** - Multiply two or more numbers, vectors or matrices. If the first 
     number is a matrix, then multiplication will be done using matrix 
@@ -129,13 +116,20 @@ class Multiply(BasicMathFunction):
      (* 2 2 y) ; 4 * y
 
     """
+    def __init__(self, name):
+        MathFunction.__init__(self, name)
+        self.setSignature([[numbers.Number, numpy.ndarray],
+                           [numbers.Number, numpy.ndarray],
+                           ["optional", [numbers.Number, numpy.ndarray]]])
+
     def call(self, model, tree):
+        args = self.getArgs(model, tree)[0]
         total = 1.0
-        for node in tree.value[1:]:
+        for arg in args[1:]:
             if isinstance(total, numpy.ndarray) and (len(total.shape) == 2):
-                total = numpy.dot(total, self.isScalarOrVector(interp.interpret(model, node)))
+                total = numpy.dot(total, arg)
             else:
-                total = total * self.isScalarOrVector(interp.interpret(model, node))
+                total = total * arg
         return total
 
 lcad_functions["*"] = Multiply("*")
@@ -150,10 +144,17 @@ class Plus(BasicMathFunction):
      (+ 10 20 y) ; 30 + y
 
     """
+    def __init__(self, name):
+        MathFunction.__init__(self, name)
+        self.setSignature([[numbers.Number, numpy.ndarray],
+                           [numbers.Number, numpy.ndarray],
+                           ["optional", [numbers.Number, numpy.ndarray]]])
+
     def call(self, model, tree):
+        args = self.getArgs(model, tree)[0]
         total = 0
-        for node in tree.value[1:]:
-            total += self.isScalarOrVector(interp.interpret(model, node))
+        for arg in args:
+            total += arg
         return total
 
 lcad_functions["+"] = Plus("+")
@@ -168,15 +169,10 @@ class AdvMathFunction(MathFunction):
     def __init__(self, name, py_func):
         MathFunction.__init__(self, name)
         self.py_func = py_func
+        self.setSignature([[numbers.Number], ["optional", [numbers.Number]]])
 
     def call(self, model, tree):
-        args = tree.value[1:]
-
-        i_args = []
-        for arg in args:
-            i_args.append(self.isNumber(interp.interpret(model, arg)))
-
-        return self.py_func(*i_args)
+        return self.py_func(*self.getArgs(model, tree)[0])
 
 for name in dir(math):
     obj = getattr(math, name)

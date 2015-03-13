@@ -7,6 +7,7 @@
 
 """
 
+import numbers
 import operator
 
 import functions
@@ -22,18 +23,18 @@ class ComparisonFunction(functions.LCadFunction):
     """
     Comparison functions, =, >, <, >=, <=, !=.
     """
-    def argCheck(self, tree):
-        if (len(tree.value) < 3):
-            raise lce.NumberArgumentsException("2+", len(tree.value) - 1)
+    def __init__(self, name):
+        functions.LCadFunction.__init__(name)
+        self.setSignature([[basestring, numbers.Number], 
+                           ["optional", [basestring, numbers.Number]]])
 
     def compare(self, model, tree, cmp_func):
-        args = tree.value[1:]
-        val0 = interp.getv(interp.interpret(model, args[0]))
-        for arg in args[1:]:
-            if not cmp_func(val0, interp.getv(interp.interpret(model, arg))):
+        val0 = self.getArg(model, tree, 0)
+        for i in range(len(tree[2:]))
+            if not cmp_func(val0, self.getArg(model, tree, i + 1))
                 return interp.lcad_nil
         return interp.lcad_t
-        
+
 
 class Equal(ComparisonFunction):
     """

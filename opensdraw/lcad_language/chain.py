@@ -26,24 +26,20 @@ class ChainFunction(functions.LCadFunction):
 
     def __init__(self, chain):
         functions.LCadFunction.__init__(self, "user created chain function")
+        self.setSignature([[interp.Symbol, numbers.Number]])
         self.chain = chain
 
-    def argCheck(self, tree):
-        if (len(tree.value) != 2):
-            raise lcadExceptions.NumberArgumentsException("1", len(tree.value) - 1)
-
     def call(self, model, tree):
-        arg = interp.getv(interp.interpret(model, tree.value[1]))
+        arg = self.getArg(model, tree, 0)
 
-        # If arg is t return the curve length.
-        if (arg is interp.lcad_t):
-            return self.chain.chain_length        
+        # If arg is t return the chain length.
+        if isinstance(arg, interp.Symbol):
+            if (arg is interp.lcad_t):
+                return self.chain.chain_length
+            else:
+                return interp.lcad_nil
 
-        # Get distance along chain.
-        if not isinstance(arg, numbers.Number):
-            raise lcadExceptions.WrongTypeException("number", type(arg))
-
-        # Determine position and orientation.
+        # Return position and orientation.
         return interp.List(self.chain.getPositionOrientation(arg))
 
 
@@ -87,59 +83,27 @@ class LCadChain(functions.LCadFunction):
     """
     def __init__(self):
         functions.LCadFunction.__init__(self, "chain")
-
-    def argCheck(self, tree):
-        if (len(tree.value) < 2):
-            raise lcadExceptions.NumberArgumentsException(len(tree.value)-1)
-
-        # Check keyword arguments.
-        if (len(tree.value) > 2):
-            args = tree.value[2:]
-            index = 0
-            while (index < len(args)):
-                arg = args[index]
-            
-                if (arg.value[0] == ":"):
-                    if not (arg.value in [":continuous"]):
-                        raise lcadExceptions.UnknownKeywordException(arg.value)
-                    index += 2
-                    if (index > len(args)):
-                        raise lcadExceptions.KeywordValueException()
-                else:
-                    raise lcadExceptions.KeywordException(arg.value)
-
+        self.setSignature([[interp.List], "keyword", {"continuous", [[interp.Symbol], interp.lcad_t]}])
 
     def call(self, model, tree):
+        [args, keywords] = self.getArgs(model, tree)
 
-        # Keyword defaults.
-        continuous = True
+        # Keywords
+        if functions.isTrue(keywords["continuous"]):
+            continuous = True
+        else:
+            continuous = False
 
         # Get list of sprockets.
-        sprocket_list = interp.getv(interp.interpret(model, tree.value[1]))
-
-        if not isinstance(sprocket_list, interp.List):
-            raise lcadExceptions.WrongTypeException("list", type(sprocket_list))
-
+        sprocket_list = args[0]
         if (sprocket_list.size < 2):
             raise NumberSprocketsException(sprocket_list.size)
-
-        # Process keywords.
-        index = 0
-        args = tree.value[2:]
-        while (index < len(args)):
-            arg = args[index]
-
-            # Process keyword.
-            if (arg.value == ":continuous"):
-                continuous = functions.isTrue(model, args[index+1])
-            index += 2
 
         # Create sprockets.
         sprockets = []
         for i in range(sprocket_list.size):
         
-            sprocket = interp.getv(sprocket_list.getv(i))
-
+            sprocket = sprocket_list.getv(i)
             if not isinstance(sprocket, interp.List):
                 raise lcadExceptions.WrongTypeException("list", type(sprocket))
 
@@ -148,7 +112,7 @@ class LCadChain(functions.LCadFunction):
 
             vals = []
             for j in range(4):
-                val = interp.getv(sprocket.getv(j))
+                val = sprocket.getv(j)
                 if not isinstance(val, numbers.Number):
                     raise lcadExceptions.WrongTypeException("number", type(val))
                 vals.append(val)
