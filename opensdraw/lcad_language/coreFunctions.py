@@ -97,7 +97,7 @@ class Aref(CoreFunction):
         # 1D list / vector.
         if (len(args) == 2):
             if (args[1] >= 0) and (args[1] < len(tlist)):
-                return ArefSymbol(tlist, index)
+                return ArefSymbol(tlist, args[1])
             else:
                 raise lce.OutOfRangeException(tlist.size - 1, args[1])
 
