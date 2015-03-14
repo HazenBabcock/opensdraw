@@ -93,12 +93,25 @@ class Aref(CoreFunction):
     def call(self, model, tree):
         args = self.getArgs(model, tree)
         tlist = args[0]
-        index = args[1]
-        
-        if (index >= 0) and (index < len(tlist)):
-            return ArefSymbol(tlist, index)
+
+        # 1D list / vector.
+        if (len(args) == 2):
+            if (args[1] >= 0) and (args[1] < len(tlist)):
+                return ArefSymbol(tlist, index)
+            else:
+                raise lce.OutOfRangeException(tlist.size - 1, args[1])
+
+        # 2D matrix.
         else:
-            raise lce.OutOfRangeException(tlist.size - 1, index)
+            if not isinstance(tlist, numpy.ndarray):
+                raise lce.WrongTypeException("numpy.ndarray", type(elt))
+            if (len(tlist.shape) != 2):
+                raise lce.LCadException("Expected a 2D matrix, got a " + str(len(val.shape)) + "D matrix.")
+
+            if (args[1] >= 0) and (args[1] < tlist.shape[0]) and (args[2] >= 0) and (args[2] < tlist.shape[1]):
+                return ArefSymbol(tlist, tuple(args[1:]))
+            else:
+                raise lce.LCadException(" index " + str(tuple(args[1:])) + " is outside of " + str(tlist.shape))
 
 lcad_functions["aref"] = Aref()
 
