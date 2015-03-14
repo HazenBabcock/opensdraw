@@ -74,7 +74,7 @@ class RandGauss(RandomNumberFunction):
         self.setSignature([["optional", [numbers.Number]]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
+        args = self.getArgs(model, tree)
         if (len(args) == 2):
             return random.gauss(*args)
         else:
@@ -97,7 +97,7 @@ class RandInteger(RandomNumberFunction):
         self.setSignature([[numbers.Number], [numbers.Number]])
 
     def call(self, model, tree):
-        return random.randint(*self.getArgs(model, tree)[0])
+        return random.randint(*self.getArgs(model, tree))
 
 lcad_functions["rand-integer"] = RandInteger("rand-integer")
 
@@ -117,7 +117,7 @@ class RandUniform(RandomNumberFunction):
         self.setSignature([["optional", [numbers.Number]]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
+        args = self.getArgs(model, tree)
         if (len(args) == 2):
             return random.uniform(*args)
         else:

@@ -37,7 +37,7 @@ class PrimitiveFunction(PartFunction):
         PartFunction.__init__(self, name)
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
+        args = self.getArgs(model, tree)
         coords = []
 
         # Get color.
@@ -112,11 +112,11 @@ class Group(PartFunction):
     """
     def __init__(self):
         PartFunction.__init__(self, "group")
-        self.setSignature([[basestring], ["body"]])
+        self.setSignature([[basestring], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
-            model.pushGroup(self.getArg(mode, tree, 0))
+            model.pushGroup(self.getArg(model, tree, 0))
             val = interp.interpret(model, tree.value[2:])
             model.popGroup()
             return val
@@ -142,10 +142,10 @@ class Header(PartFunction):
     """
     def __init__(self):
         PartFunction.__init__(self, "header")
-        self.signature = [[basestring]]
+        self.setSignature([[basestring]])
 
     def call(self, model, tree):
-        text = self.getArg(mode, tree, 0)
+        text = self.getArg(model, tree, 0)
         model.curGroup().header.append(text)
         return text
 
@@ -245,7 +245,7 @@ class Part(PartFunction):
                            ["optional", [numbers.Number]]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
+        args = self.getArgs(model, tree)
 
         # Get step offset.
         step_offset = interp.getv(interp.builtin_symbols["step-offset"])

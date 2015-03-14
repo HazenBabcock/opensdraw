@@ -33,11 +33,11 @@ class And(LogicFunction):
     """
     def __init__(self, name):
         LogicFunction.__init__(self, name)
-        self.setSignature([[interp.Symbol], [interp.Symbol], ["optional", [interp.Symbol]]])
+        self.setSignature([[interp.LObject], [interp.LObject], ["optional", [interp.LObject]]])
 
     def call(self, model, tree):
-        for i in range(len(tree.value[1:])):
-            if not (functions.isTrue(self.getArg(model, tree, i)))
+        for i in range(self.numberArgs(tree)):
+            if not (functions.isTrue(self.getArg(model, tree, i))):
                 return interp.lcad_nil
         return interp.lcad_t
 
@@ -56,10 +56,10 @@ class Or(LogicFunction):
     """
     def __init__(self, name):
         LogicFunction.__init__(self, name)
-        self.setSignature([[interp.Symbol], [interp.Symbol], ["optional", [interp.Symbol]]])
+        self.setSignature([[interp.LObject], [interp.LObject], ["optional", [interp.LObject]]])
 
     def call(self, model, tree):
-        for i in range(len(tree.value[1:])):
+        for i in range(self.numberArgs(tree)):
             if functions.isTrue(self.getArg(model, tree, i)):
                 return interp.lcad_t
         return interp.lcad_nil
@@ -78,10 +78,10 @@ class Not(LogicFunction):
     """
     def __init__(self, name):
         LogicFunction.__init__(self, name)
-        self.setSignature([[interp.Symbol]])
+        self.setSignature([[interp.LObject]])
 
     def call(self, model, tree):
-        if functions.isTrue(self.getArg(model, tree, 0))
+        if functions.isTrue(self.getArg(model, tree, 0)):
             return interp.lcad_nil
         else:
             return interp.lcad_t

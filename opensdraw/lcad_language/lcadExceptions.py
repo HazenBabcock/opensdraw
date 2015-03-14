@@ -20,7 +20,7 @@ class CannotOverrideBuiltIn(LCadException):
 
 class CannotSetException(LCadException):
     def __init__(self, item_type):
-        LCadException.__init__(self, "type '" + item_type + "' is not settable.")
+        LCadException.__init__(self, "type '" + str(item_type.__name__) + "' is not settable.")
 
 class FileNotFoundException(LCadException):
     def __init__(self, filename):

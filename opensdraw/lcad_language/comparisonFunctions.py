@@ -24,14 +24,14 @@ class ComparisonFunction(functions.LCadFunction):
     Comparison functions, =, >, <, >=, <=, !=.
     """
     def __init__(self, name):
-        functions.LCadFunction.__init__(name)
+        functions.LCadFunction.__init__(self, name)
         self.setSignature([[basestring, numbers.Number], 
                            ["optional", [basestring, numbers.Number]]])
 
     def compare(self, model, tree, cmp_func):
         val0 = self.getArg(model, tree, 0)
-        for i in range(len(tree[2:]))
-            if not cmp_func(val0, self.getArg(model, tree, i + 1))
+        for i in range(self.numberArgs(tree) - 1):
+            if not cmp_func(val0, self.getArg(model, tree, i + 1)):
                 return interp.lcad_nil
         return interp.lcad_t
 

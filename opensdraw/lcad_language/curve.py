@@ -96,34 +96,20 @@ class LCadCurve(functions.LCadFunction):
     """
     def __init__(self):
         functions.LCadFunction.__init__(self, "curve")
-
-    def argCheck(self, tree):
-        if (len(tree.value) < 2):
-            raise lcadExceptions.NumberArgumentsException(len(tree.value)-1)
-        
-        # Check keyword arguments.
-        if (len(tree.value) > 2):
-            args = tree.value[2:]
-            index = 0
-            while (index < len(args)):
-                arg = args[index]
-            
-                if (arg.value[0] == ":"):
-                    if not (arg.value in [":auto-scale", ":extrapolate", ":scale", ":twist"]):
-                        raise lcadExceptions.UnknownKeywordException(arg.value)
-                    index += 2
-                    if (index > len(args)):
-                        raise lcadExceptions.KeywordValueException()
-                else:
-                    raise lcadExceptions.KeywordException(arg.value)
+        self.setSignature([[interp.List], 
+                           ["keyword", {"auto-scale" : [[interp.Symbol], interp.lcad_t],
+                                        "extrapolate" : [[interp.Symbol], interp.lcad_t],
+                                        "scale" : [[numbers.Number], 1.0],
+                                        "twist" : [[numbers.Number], 0]}]])
 
     def call(self, model, tree):
+        [args, keywords] = self.getArgs(model, tree)
 
         # Keyword defaults.
-        auto_scale = True
-        extrapolate = True
-        scale = 1.0
-        twist = 0
+        auto_scale = True if functions.isTrue(keywords["auto-scale"]) else False
+        extrapolate = True if functions.isTrue(keywords["extrapolate"]) else False
+        scale = keywords["scale"]
+        twist = keywords["twist"]
 
         # Get list of control points.
         controlp_list = interp.getv(interp.interpret(model, tree.value[1]))

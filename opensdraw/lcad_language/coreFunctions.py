@@ -45,7 +45,7 @@ class Append(CoreFunction):
         self.setSignature([[interp.List], [object], ["optional", [object]]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
+        args = self.getArgs(model, tree)
         tlist = args[0]
         for arg in args[1:]:
             tlist.addElt(arg)
@@ -68,7 +68,7 @@ class Aref(CoreFunction):
         self.setSignature([[interp.List], [numbers.Number]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
+        args = self.getArgs(model, tree)
         tlist = args[0]
         index = args[1]
 
@@ -98,7 +98,7 @@ class Block(CoreFunction):
         self.setSignature([["optional", [object]]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
+        args = self.getArgs(model, tree)
         return args[-1]
 
 lcad_functions["block"] = Block()
@@ -119,7 +119,7 @@ class Concatenate(CoreFunction):
 
     def call(self, model, tree):
         a_string = ""
-        for arg in self.getArgs(model, tree)[0]:
+        for arg in self.getArgs(model, tree):
             a_string += str(arg)
         return a_string
                             
@@ -147,7 +147,7 @@ class Cond(CoreFunction):
         ret = interp.lcad_nil
         for arg in args:
             nodes = arg.value
-            if functions.isTrue(interp.getv(interp.interpret(model, nodes[0])))
+            if functions.isTrue(interp.getv(interp.interpret(model, nodes[0]))):
                 for node in nodes[1:]:
                     ret = interp.interpret(model, node)
                 return ret
@@ -212,7 +212,7 @@ class Def(CoreFunction):
 
                 # FIXME: Maybe something more appropriate for the error, like can only create symbols?
                 if not isinstance(key, lexerParser.LCadSymbol):
-                    raise lce.CannotSetException(key)
+                    raise lce.CannotSetException(type(key))
 
                 symbol_name = key.value
                 if not tree.initialized:
@@ -347,7 +347,7 @@ class If(CoreFunction):
 
     def call(self, model, tree):
         args = tree.value[1:]
-        if functions.isTrue(interp.getv(interp.interpret(model, args[0])))
+        if functions.isTrue(interp.getv(interp.interpret(model, args[0]))):
             return interp.interpret(model, args[1])
         else:
             if (len(args)==3):
@@ -446,7 +446,7 @@ class Lambda(CoreFunction):
         tree.initialized = True
 
     def call(self, model, tree):
-        return functions.UserFunction(tree)
+        return functions.UserFunction(tree, "anonymous")
 
 lcad_functions["lambda"] = Lambda()
 
@@ -484,7 +484,7 @@ class List(CoreFunction):
 
     def call(self, model, tree):
         vals = []
-        for arg in self.getArgs(model, tree)[0]:
+        for arg in self.getArgs(model, tree):
             vals.append(arg)
         return interp.List(vals)
     
@@ -506,7 +506,7 @@ class Print(CoreFunction):
 
     def call(self, model, tree):
         string = ""
-        for arg in self.getArgs(model, tree)[0]:
+        for arg in self.getArgs(model, tree):
             string += str(arg)
         print string
         return string
@@ -576,7 +576,7 @@ class While(CoreFunction):
     def call(self, model, tree):
         args = tree.value[1:]
         ret = None
-        while functions.isTrue(interp.getv(interp.interpret(model, args[0])))
+        while functions.isTrue(interp.getv(interp.interpret(model, args[0]))):
             for arg in args[1:]:
                 ret = interp.interpret(model, arg)
         return ret

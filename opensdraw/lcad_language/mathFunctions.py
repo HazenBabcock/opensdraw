@@ -42,9 +42,9 @@ class Divide(MathFunction):
                            ["optional", [numbers.Number, numpy.ndarray]]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
+        args = self.getArgs(model, tree)
         total = args[0]
-        for arg in args[1:]
+        for arg in args[1:]:
             total = total/arg
         return total
 
@@ -68,8 +68,8 @@ class Minus(MathFunction):
                            ["optional", [numbers.Number, numpy.ndarray]]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
-        if (args == 1):
+        args = self.getArgs(model, tree)
+        if (len(args) == 1):
             return -args[0]
         else:
             total = args[0]
@@ -78,7 +78,7 @@ class Minus(MathFunction):
             if isinstance(total, numpy.ndarray):
                 total = total.copy()
 
-            for arg in args[1:]
+            for arg in args[1:]:
                 total -= arg
             return total
 
@@ -99,7 +99,7 @@ class Modulo(MathFunction):
         self.setSignature([[numbers.Number], [numbers.Number]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
+        args = self.getArgs(model, tree)
         return args[0] % args[1]
 
 lcad_functions["%"] = Modulo("%")
@@ -123,9 +123,9 @@ class Multiply(MathFunction):
                            ["optional", [numbers.Number, numpy.ndarray]]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
+        args = self.getArgs(model, tree)
         total = 1.0
-        for arg in args[1:]:
+        for arg in args:
             if isinstance(total, numpy.ndarray) and (len(total.shape) == 2):
                 total = numpy.dot(total, arg)
             else:
@@ -135,7 +135,7 @@ class Multiply(MathFunction):
 lcad_functions["*"] = Multiply("*")
 
 
-class Plus(BasicMathFunction):
+class Plus(MathFunction):
     """
     **+** - Add together two or more numbers, vectors or matrices.
 
@@ -151,7 +151,7 @@ class Plus(BasicMathFunction):
                            ["optional", [numbers.Number, numpy.ndarray]]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
+        args = self.getArgs(model, tree)
         total = 0
         for arg in args:
             total += arg
@@ -172,7 +172,7 @@ class AdvMathFunction(MathFunction):
         self.setSignature([[numbers.Number], ["optional", [numbers.Number]]])
 
     def call(self, model, tree):
-        return self.py_func(*self.getArgs(model, tree)[0])
+        return self.py_func(*self.getArgs(model, tree))
 
 for name in dir(math):
     obj = getattr(math, name)

@@ -83,16 +83,14 @@ class LCadChain(functions.LCadFunction):
     """
     def __init__(self):
         functions.LCadFunction.__init__(self, "chain")
-        self.setSignature([[interp.List], "keyword", {"continuous", [[interp.Symbol], interp.lcad_t]}])
+        self.setSignature([[interp.List], 
+                           ["keyword", {"continuous" : [[interp.Symbol], interp.lcad_t]}]])
 
     def call(self, model, tree):
         [args, keywords] = self.getArgs(model, tree)
 
         # Keywords
-        if functions.isTrue(keywords["continuous"]):
-            continuous = True
-        else:
-            continuous = False
+        continuous = True if functions.isTrue(keywords["continuous"]) else False
 
         # Get list of sprockets.
         sprocket_list = args[0]
@@ -103,7 +101,7 @@ class LCadChain(functions.LCadFunction):
         sprockets = []
         for i in range(sprocket_list.size):
         
-            sprocket = sprocket_list.getv(i)
+            sprocket = interp.getv(sprocket_list.getv(i))
             if not isinstance(sprocket, interp.List):
                 raise lcadExceptions.WrongTypeException("list", type(sprocket))
 
@@ -112,7 +110,7 @@ class LCadChain(functions.LCadFunction):
 
             vals = []
             for j in range(4):
-                val = sprocket.getv(j)
+                val = interp.getv(sprocket.getv(j))
                 if not isinstance(val, numbers.Number):
                     raise lcadExceptions.WrongTypeException("number", type(val))
                 vals.append(val)

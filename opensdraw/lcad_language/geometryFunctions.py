@@ -49,7 +49,7 @@ def parseArgs(val):
             raise lce.LCadException("Expected a list with 3+ members, got " + str(val.size))
         ret = []
         for i in range(val.size):
-            temp = val.getv(i)
+            temp = interp.getv(val.getv(i))
             if not isinstance(temp, numbers.Number):
                 raise lce.WrongTypeException("number", type(temp))
             ret.append(temp)
@@ -152,7 +152,7 @@ class Mirror(GeometryFunction):
         self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
-        if (len(tree.value) > 2):
+        if (self.numberArgs(tree) > 1):
             [mx, my, mz] = parseArgs(self.getArg(model, tree, 0))
 
             m = numpy.identity(4)
@@ -199,7 +199,7 @@ class Rotate(GeometryFunction):
         self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
-        if (len(tree.value) > 2):
+        if (self.numberArgs(tree) > 1):
             m = angles.rotationMatrix(*parseArgs(self.getArg(model, tree, 0)))
             cur_matrix = model.curGroup().matrix().copy()
             model.curGroup().setMatrix(numpy.dot(cur_matrix, m))
@@ -236,7 +236,7 @@ class Scale(GeometryFunction):
         self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
-        if (len(tree.value) > 2):
+        if (self.numberArgs(tree) > 1):
             [sx, sy, sz] = parseArgs(self.getArg(model, tree, 0))
 
             m = numpy.identity(4)
@@ -289,7 +289,7 @@ class Transform(GeometryFunction):
         self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
-        if (len(tree.value) > 2):
+        if (self.numberArgs(tree) > 1):
             
             val = self.getArg(model, tree, 0)
 
@@ -305,7 +305,7 @@ class Transform(GeometryFunction):
                     raise lce.LCadException("Expected a list with 12 members, got " + str(val.size))
                 m = numpy.identity(4)
                 for i in range(12):
-                    temp = val.getv(i)
+                    temp = interp.getv(val.getv(i))
                     if not isinstance(temp, numbers.Number):
                         raise lce.WrongTypeException("number", type(temp))
                     m[mapping[i][1]] = temp
@@ -345,7 +345,7 @@ class Translate(GeometryFunction):
 
     def call(self, model, tree):
 
-        if (len(tree.value) > 2):
+        if (self.numberArgs(tree) > 1):
             m = translationMatrix(*parseArgs(self.getArg(model, tree, 0)))
 
             cur_matrix = model.curGroup().matrix().copy()
@@ -381,10 +381,10 @@ class Vector(GeometryFunction):
         self.setSignature([[numbers.Number], [numbers.Number], [numbers.Number]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)[0]
+        args = self.getArgs(model, tree)
         vals = []
         for arg in args:
-            vals.append(val)
+            vals.append(arg)
 
         vals.append(1.0)
         return numpy.array(vals)
