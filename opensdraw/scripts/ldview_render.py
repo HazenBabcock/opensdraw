@@ -25,7 +25,7 @@ options = ["-DefaultMatrix=-0.861209,0.362189,0.356561,0.455131,0.861824,0.22385
            "-SaveHeight=480",
            "-FOV=10"]
 
-for dat_file in glob.glob(sys.argv[1] + "*.dat"):
+for dat_file in sorted(glob.glob(sys.argv[1] + "*.mpd")):
     print "Processing:", dat_file
     proc_params = ["LDView", 
                    dat_file,
