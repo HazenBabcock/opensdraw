@@ -302,7 +302,7 @@ class Transform(GeometryFunction):
             # Transform matrix.
             if isinstance(val, numpy.ndarray):
                 if (len(val.shape) != 2):
-                    raise lce.LCadException("Expected a 2D vector, got a " + str(len(val.shape)) + "D matrix.")
+                    raise lce.LCadException("Expected a 2D matrix, got a " + str(len(val.shape)) + "D matrix.")
                 m = val
 
             # LCad list.
@@ -366,8 +366,8 @@ lcad_functions["translate"] = Translate()
 
 class Vector(GeometryFunction):
     """
-    **vector** - Create a vector (a numpy array). This is what you want
-    to use for geometry operations. It is more efficient than a list and
+    **vector** - Create a vector (a numpy array). This is typically what you 
+    want to use for geometry operations. It is more efficient than a list and
     you can more easily use it for math operations. However, unlike list,
     it can only be used for numbers.
 
