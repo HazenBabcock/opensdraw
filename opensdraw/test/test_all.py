@@ -54,12 +54,21 @@ def text_time_index():
 def test_append_1():
     assert exe("(def m (list 1)) (append m 2) (aref m 1)") == 2
 
+def test_append_2():
+    assert exe("(def m (list 1)) (append m 2 3) (aref m 2)") == 3
+
 # aref
 def test_aref_1():
     assert exe("(aref (list 1 2 3) 1)") == 2
     
 def test_aref_2():
     assert exe("(def x (list 1 2 3)) (set (aref x 1) 4) (aref x 1)") == 4
+
+def test_aref_3():
+    assert exe("(def x (vector 1 2 3)) (set (aref x 1) 4) (aref x 1)") == 4
+
+def test_aref_4():
+    assert exe("(def m (matrix (list 1 2 3 4 5 6 7 8 9 10 11 12))) (set (aref m 1 1) 0) (aref m 1 1)") == 0
 
 # block
 def test_block_1():
@@ -88,6 +97,12 @@ def test_def_4():
 
 def test_def_5():
     assert exe("(def incf (x :y 0) (+ x y 1)) (incf 1 :y 2)") == 4
+
+def test_def_6():
+    assert exe("(def incf (:y 0) (+ y 1)) (incf :y 2)") == 3
+
+def test_def_7():
+    assert exe("(def incf (:y 0) (+ y 1)) (incf)") == 1
 
 # for
 def test_for_1():
@@ -135,7 +150,7 @@ def test_list_1():
     assert exe("(def x (list 1 2 3)) (aref x 0)") == 1
 
 def test_list_2():
-    assert exe("(list 1 2 3)").getl()[1].getv() == 2
+    assert exe("(list 1 2 3)")[1] == 2
 
 # print
 def test_print_1():
@@ -343,7 +358,7 @@ def test_math_5():
     assert exe("(% 11 2)") == 1
 
 def test_math_6():
-    assert exe("(* (matrix (list 1 1 1 3 0 0 0 3 0 0 0 3)) (vector 1 2 3))")[1] == 7
+    assert exe("(* (matrix (list 1 1 1 3 0 0 0 3 0 0 0 3)) (vector 1 2 3 1))")[1] == 7
 
 def test_math_7():
     assert exe("(* (vector 1 2 3) (vector 1 2 3))")[1] == 4
