@@ -156,7 +156,7 @@ class Line(PrimitiveFunction):
     """
     **line** - Add a line primitive to the model.
 
-    The arguments are (list x1 yz 1) (list x2 y2 z2)
+    The arguments are (list x1 yz 1) (list x2 y2 z2).
 
     :param x1: x position of vertex 1.
     :param y1: y position of vertex 1.
@@ -176,8 +176,8 @@ class Line(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "line")
         self.num_vertices = 2
         self.parts_fn = parts.Line
-        self.setSignature([[interp.List, numpy.ndarray], 
-                           [interp.List, numpy.ndarray], 
+        self.setSignature([[list, numpy.ndarray], 
+                           [list, numpy.ndarray], 
                            ["optional", [basestring, int]]])
 
 lcad_functions["line"] = Line()
@@ -187,7 +187,7 @@ class OptionalLine(PrimitiveFunction):
     """
     **optional-line** - Add a optional line primitive to the model.
 
-    The arguments are (list x1 yz 1) (list x2 y2 z2) (list x3 y3  z3) (list x4 y4 z4)
+    The arguments are (list x1 yz 1) (list x2 y2 z2) (list x3 y3  z3) (list x4 y4 z4).
 
     :param x1: x position of line vertex 1.
     :param y1: y position of line vertex 1.
@@ -214,10 +214,10 @@ class OptionalLine(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "optional-line")
         self.num_vertices = 4
         self.parts_fn = parts.OptionalLine
-        self.setSignature([[interp.List, numpy.ndarray], 
-                           [interp.List, numpy.ndarray],
-                           [interp.List, numpy.ndarray],
-                           [interp.List, numpy.ndarray],
+        self.setSignature([[list, numpy.ndarray], 
+                           [list, numpy.ndarray],
+                           [list, numpy.ndarray],
+                           [list, numpy.ndarray],
                            ["optional", [basestring, int]]])
 
 lcad_functions["optional-line"] = OptionalLine()
@@ -272,7 +272,7 @@ class Quadrilateral(PrimitiveFunction):
     """
     **quadrilateral** - Add a quadrilateral primitive to the model.
 
-    The arguments are (list x1 yz 1) (list x2 y2 z2) (list x3 y3  z3) (list x4 y4 z4)
+    The arguments are (list x1 yz 1) (list x2 y2 z2) (list x3 y3  z3) (list x4 y4 z4).
 
     :param x1: x position of vertex 1.
     :param y1: y position of vertex 1.
@@ -304,10 +304,10 @@ class Quadrilateral(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "quadrilateral")
         self.num_vertices = 4
         self.parts_fn = parts.Quadrilateral
-        self.setSignature([[interp.List, numpy.ndarray], 
-                           [interp.List, numpy.ndarray],
-                           [interp.List, numpy.ndarray],
-                           [interp.List, numpy.ndarray],
+        self.setSignature([[list, numpy.ndarray], 
+                           [list, numpy.ndarray],
+                           [list, numpy.ndarray],
+                           [list, numpy.ndarray],
                            ["optional", [basestring, int]]])
 
 lcad_functions["quadrilateral"] = Quadrilateral()
@@ -317,7 +317,7 @@ class Triangle(PrimitiveFunction):
     """
     **triangle** - Add a triangle primitive to the model.
 
-    The arguments are (list x1 yz 1) (list x2 y2 z2) (list x3 y3  z3)
+    The arguments are (list x1 yz 1) (list x2 y2 z2) (list x3 y3  z3).
 
     :param x1: x position of vertex 1.
     :param y1: y position of vertex 1.
@@ -346,9 +346,9 @@ class Triangle(PrimitiveFunction):
         PrimitiveFunction.__init__(self, "triangle")
         self.num_vertices = 3
         self.parts_fn = parts.Triangle
-        self.setSignature([[interp.List, numpy.ndarray], 
-                           [interp.List, numpy.ndarray],
-                           [interp.List, numpy.ndarray],
+        self.setSignature([[list, numpy.ndarray], 
+                           [list, numpy.ndarray],
+                           [list, numpy.ndarray],
                            ["optional", [basestring, int]]])
 
 lcad_functions["triangle"] = Triangle()

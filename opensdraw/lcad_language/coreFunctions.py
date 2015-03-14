@@ -9,6 +9,7 @@
 
 from itertools import izip
 import numbers
+import numpy
 import os
 
 import functions
@@ -27,13 +28,33 @@ def printSymbolTableIds(lenv):
     print "-"
 
 
+class ArefSymbol(interp.Symbol):
+    """
+    These are created by aref as a "pointer" into a list, so that
+    you can both get and change the value of a particular element
+    in a list, vector or matrix.
+    """
+    def __init__(self, tlist, index):
+        interp.Symbol.__init__(self, "aref-symbol", "na")
+        self.tlist = tlist
+        self.index = index
+
+    def getv(self):
+        return self.tlist[self.index]
+
+    def setv(self, value):
+        if isinstance(self.tlist, numpy.ndarray) and not (isinstance(value, numbers.Number)):
+            raise lce.WrongTypeException("number", type(value))
+        self.tlist[self.index] = value
+
+
 class CoreFunction(functions.LCadFunction):
     pass
 
 
 class Append(CoreFunction):
     """
-    **append** - Add an element to a list.
+    **append** - Add one or more elements to a list.
 
     Usage::
 
@@ -42,13 +63,13 @@ class Append(CoreFunction):
     """
     def __init__(self):
         CoreFunction.__init__(self, "append")
-        self.setSignature([[interp.List], [object], ["optional", [object]]])
+        self.setSignature([[list], [object], ["optional", [object]]])
 
     def call(self, model, tree):
         args = self.getArgs(model, tree)
         tlist = args[0]
         for arg in args[1:]:
-            tlist.addElt(arg)
+            tlist.append(arg)
         return tlist
 
 lcad_functions["append"] = Append()
@@ -56,24 +77,26 @@ lcad_functions["append"] = Append()
 
 class Aref(CoreFunction):
     """
-    **aref** - Return an element of a list.
+    **aref** - Return an element of a list, vector or matrix.
 
     Usage::
 
-     (aref (list 1 2 3) 1)          ; returns 2
-     (set (aref (list 1 2 3) 1) 4)  ; list is now 1, 4, 3
+     (aref (list 1 2 3) 1)           ; returns 2
+     (set (aref (list 1 2 3) 1) 4)   ; list is now 1, 4, 3
+     (aref (vector 1 2 3) 1)         ; returns 2
+     (set (aref (vector 1 2 3) 1) 4) ; vector is now 1, 4, 3
     """
     def __init__(self):
         CoreFunction.__init__(self, "aref")
-        self.setSignature([[interp.List], [numbers.Number]])
+        self.setSignature([[list, numpy.ndarray], [int], ["optional", [int]]])
 
     def call(self, model, tree):
         args = self.getArgs(model, tree)
         tlist = args[0]
         index = args[1]
-
-        if ((index >= 0) and (index < tlist.size)):
-            return tlist.getv(index)
+        
+        if (index >= 0) and (index < len(tlist)):
+            return ArefSymbol(tlist, index)
         else:
             raise lce.OutOfRangeException(tlist.size - 1, index)
 
@@ -282,10 +305,10 @@ class For(CoreFunction):
 
         # Iterate over list.
         arg1 = interp.getv(interp.interpret(model, loop_args[1]))
-        if ((len(loop_args)==2) and (isinstance(arg1, interp.List))):
+        if ((len(loop_args)==2) and (isinstance(arg1, list))):
             ret = None
-            for elt in arg1.getl():
-                inc_var.setv(interp.getv(elt))
+            for elt in arg1:
+                inc_var.setv(elt)
                 for node in tree.value[2:]:
                     ret = interp.interpret(model, node)
             return ret
@@ -461,10 +484,10 @@ class Len(CoreFunction):
     """
     def __init__(self):
         CoreFunction.__init__(self, "len")
-        self.setSignature([[interp.List]])
+        self.setSignature([[list]])
 
     def call(self, model, tree):
-        return self.getArg(model, tree, 0).size
+        return len(self.getArg(model, tree, 0))
 
 lcad_functions["len"] = Len()
 
@@ -486,7 +509,7 @@ class List(CoreFunction):
         vals = []
         for arg in self.getArgs(model, tree):
             vals.append(arg)
-        return interp.List(vals)
+        return vals
     
 lcad_functions["list"] = List()
 

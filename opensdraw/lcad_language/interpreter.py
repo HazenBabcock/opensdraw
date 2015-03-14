@@ -108,41 +108,6 @@ class LEnv(object):
                 self.symbols[fn_name].setv(module.lcad_functions[fn_name])
 
 
-class List(object):
-    """
-    Array class.
-    """
-    def __init__(self, py_list):
-        self.py_list = []
-        self.size = 0
-
-        for elt in py_list:
-            self.addElt(elt)
-
-    def __str__(self):
-        if (self.size < 10):
-            return "(" + " ".join(map(lambda(x): str(x), self.py_list)) + ")"
-        else:
-            tmp = "(" + " ".join(map(lambda(x): str(x), self.py_list[:3]))
-            tmp += " .. " + " ".join(map(lambda(x): str(x), self.py_list[-3:])) + ")"
-            return tmp
-
-    def addElt(self, elt):
-        if isinstance(elt, Symbol):
-            self.py_list.append(elt)
-        else:
-            tmp = Symbol("list_object", "list")
-            tmp.setv(elt)
-            self.py_list.append(tmp)
-        self.size += 1
-
-    def getl(self):
-        return self.py_list
-
-    def getv(self, index):
-        return self.py_list[index]
-
-
 class Model(object):
     """
     This keeps track of the current "model", i.e. the 
@@ -182,10 +147,6 @@ class Symbol(object):
         self.name = name
         self.used = False
         self.value = None
-
-#    def __str__(self):
-#        #return self.name + " " + str(id(self))
-#        return str(self.value)
 
     def getv(self):
         if not self.is_set:

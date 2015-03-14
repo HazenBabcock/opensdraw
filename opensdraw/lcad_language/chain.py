@@ -40,7 +40,7 @@ class ChainFunction(functions.LCadFunction):
                 return interp.lcad_nil
 
         # Return position and orientation.
-        return interp.List(self.chain.getPositionOrientation(arg))
+        return self.chain.getPositionOrientation(arg)
 
 
 class LCadChain(functions.LCadFunction):
@@ -83,7 +83,7 @@ class LCadChain(functions.LCadFunction):
     """
     def __init__(self):
         functions.LCadFunction.__init__(self, "chain")
-        self.setSignature([[interp.List], 
+        self.setSignature([[list], 
                            ["keyword", {"continuous" : [[interp.Symbol], interp.lcad_t]}]])
 
     def call(self, model, tree):
@@ -94,27 +94,25 @@ class LCadChain(functions.LCadFunction):
 
         # Get list of sprockets.
         sprocket_list = args[0]
-        if (sprocket_list.size < 2):
-            raise NumberSprocketsException(sprocket_list.size)
+        if (len(sprocket_list) < 2):
+            raise NumberSprocketsException(len(sprocket_list))
 
         # Create sprockets.
         sprockets = []
-        for i in range(sprocket_list.size):
+        for i in range(len(sprocket_list)):
         
-            sprocket = interp.getv(sprocket_list.getv(i))
-            if not isinstance(sprocket, interp.List):
+            sprocket = sprocket_list[i]
+            if not isinstance(sprocket, list):
                 raise lcadExceptions.WrongTypeException("list", type(sprocket))
 
-            if (sprocket.size != 4):
-                raise SprocketException(sprocket.size)
+            if (len(sprocket) != 4):
+                raise SprocketException(len(sprocket))
 
-            vals = []
-            for j in range(4):
-                val = interp.getv(sprocket.getv(j))
-                if not isinstance(val, numbers.Number):
-                    raise lcadExceptions.WrongTypeException("number", type(val))
-                vals.append(val)
-            sprockets.append(Sprocket(*vals))
+            for elt in sprocket:
+                if not isinstance(elt, numbers.Number):
+                    raise lcadExceptions.WrongTypeException("number", type(elt))
+
+            sprockets.append(Sprocket(*sprocket))
 
         # Create chain.
         for i in range(len(sprockets)-1):

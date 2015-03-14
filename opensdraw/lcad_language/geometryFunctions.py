@@ -36,27 +36,28 @@ def ldrawCoeffsToMatrix(model, coeffs):
 
 
 def parseArgs(val):
+    """
+    This is used by most of the geometry and part functions to parse list or vectors.
+    The list / vector is truncated to 3 elements, as this is what they all use.
+    """
 
-    # Numpy array. This should be a 4 element vector. A 3 element list will be returned.
+    # Numpy array.
     if isinstance(val, numpy.ndarray):
         if (len(val.shape) != 1):
             raise lce.LCadException("Expected a 1D vector, got a " + str(len(val.shape)) + "D matrix.")
+        if (val.size < 3):
+            raise lce.LCadException("Expected a vector with 3+ members, got " + str(val.size))
         return val.tolist()[0:3]
 
     # LCad list.
-    if isinstance(val, interp.List):
-        if not (val.size > 2):
+    if isinstance(val, list):
+        if (len(val) < 3):
             raise lce.LCadException("Expected a list with 3+ members, got " + str(val.size))
-        ret = []
-        for i in range(val.size):
-            temp = interp.getv(val.getv(i))
-            if not isinstance(temp, numbers.Number):
-                raise lce.WrongTypeException("number", type(temp))
-            ret.append(temp)
-        return ret
+        for elt in val:
+            if not isinstance(elt, numbers.Number):
+                raise lce.WrongTypeException("number", type(elt))
+        return val[0:3]
 
-    else:
-        raise lce.WrongTypeException("list, numpy.ndarray", type(val))
 
 def translationMatrix(tx, ty, tz):
     m = numpy.identity(4)
@@ -110,11 +111,16 @@ class Matrix(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "matrix")
-        self.setSignature([[interp.List]])
+        self.setSignature([[list]])
 
     def call(self, model, tree):
-        vals = parseArgs(self.getArg(model, tree, 0))
-        
+        vals = self.getArg(model, tree, 0)
+
+        # Check that the elements have the right type.
+        for elt in vals:
+            if not isinstance(elt, numbers.Number):
+                raise lce.WrongTypeException("number", type(elt))
+
         # 12 elements.
         if (len(vals) == 12):
             m = numpy.identity(4)
@@ -149,7 +155,7 @@ class Mirror(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "mirror")
-        self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
+        self.setSignature([[list, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
@@ -196,7 +202,7 @@ class Rotate(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "rotate")
-        self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
+        self.setSignature([[list, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
@@ -233,7 +239,7 @@ class Scale(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "scale")
-        self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
+        self.setSignature([[list, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
@@ -286,7 +292,7 @@ class Transform(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "transform")
-        self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
+        self.setSignature([[list, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
@@ -300,15 +306,14 @@ class Transform(GeometryFunction):
                 m = val
 
             # LCad list.
-            elif isinstance(val, interp.List):
-                if not (val.size == 12):
-                    raise lce.LCadException("Expected a list with 12 members, got " + str(val.size))
+            elif isinstance(val, list):
+                if not (len(val) == 12):
+                    raise lce.LCadException("Expected a list with 12 members, got " + str(len(val)))
                 m = numpy.identity(4)
-                for i in range(12):
-                    temp = interp.getv(val.getv(i))
-                    if not isinstance(temp, numbers.Number):
-                        raise lce.WrongTypeException("number", type(temp))
-                    m[mapping[i][1]] = temp
+                for i in range(len(val)):
+                    if not isinstance(val[i], numbers.Number):
+                        raise lce.WrongTypeException("number", type(val[i]))
+                    m[mapping[i][1]] = val[i]
 
             cur_matrix = model.curGroup().matrix().copy()
             model.curGroup().setMatrix(numpy.dot(cur_matrix, m))
@@ -341,7 +346,7 @@ class Translate(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "translate")
-        self.setSignature([[interp.List, numpy.ndarray], ["optional", [object]]])
+        self.setSignature([[list, numpy.ndarray], ["optional", [object]]])
 
     def call(self, model, tree):
 
@@ -361,24 +366,23 @@ lcad_functions["translate"] = Translate()
 
 class Vector(GeometryFunction):
     """
-    **vector** - Return a 4 element position vector. The vector is a 
-    numpy array. Currently this vector is immutable, but the plan is 
-    to fix this.
+    **vector** - Create a vector (a numpy array). This is what you want
+    to use for geometry operations. It is more efficient than a list and
+    you can more easily use it for math operations. However, unlike list,
+    it can only be used for numbers.
 
-    :param x: x in LDU.
-    :param y: y in LDU.
-    :param z: z in LDU.
-
-    The 4th element of the vector is always 1.0.
+    :param e1: The first element in the vector.
+    :param e2..: (Optional) additional elements in the vector.
 
     Usage::
 
-     (def v (vector 0 0 5))
+     (def v (vector 0 0 5 1))  ; Create the vector [0 0 5 1]
+     (* mat v)                 ; Multiply the vector with the 4 x 4 matrix mat.
 
     """
     def __init__(self):
         GeometryFunction.__init__(self, "vector")
-        self.setSignature([[numbers.Number], [numbers.Number], [numbers.Number]])
+        self.setSignature([[numbers.Number], ["optional", [numbers.Number]]])
 
     def call(self, model, tree):
         args = self.getArgs(model, tree)
@@ -386,7 +390,6 @@ class Vector(GeometryFunction):
         for arg in args:
             vals.append(arg)
 
-        vals.append(1.0)
         return numpy.array(vals)
 
 lcad_functions["vector"] = Vector()

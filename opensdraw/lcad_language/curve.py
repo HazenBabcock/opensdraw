@@ -41,7 +41,7 @@ class CurveFunction(functions.LCadFunction):
                 return interp.lcad_nil
 
         # Return position and orientation.
-        return interp.List(self.curve.getCoords(arg))
+        return self.curve.getCoords(arg)
 
 
 class LCadCurve(functions.LCadFunction):
@@ -96,7 +96,7 @@ class LCadCurve(functions.LCadFunction):
     """
     def __init__(self):
         functions.LCadFunction.__init__(self, "curve")
-        self.setSignature([[interp.List], 
+        self.setSignature([[list],
                            ["keyword", {"auto-scale" : [[interp.Symbol], interp.lcad_t],
                                         "extrapolate" : [[interp.Symbol], interp.lcad_t],
                                         "scale" : [[numbers.Number], 1.0],
@@ -111,66 +111,40 @@ class LCadCurve(functions.LCadFunction):
         scale = keywords["scale"]
         twist = keywords["twist"]
 
-        # Get list of control points.
-        controlp_list = interp.getv(interp.interpret(model, tree.value[1]))
-        if not isinstance(controlp_list, interp.List):
-            raise lcadExceptions.WrongTypeException("list", type(controlp_list))
-
-        if (controlp_list.size < 2):
-            raise NumberControlPointsException(controlp_list.size)
-
-        # Process keywords.
-        index = 0
-        args = tree.value[2:]
-        while (index < len(args)):
-            arg = args[index]
-
-            # Process keyword.
-            if (arg.value == ":auto-scale"):
-                auto_scale = functions.isTrue(model, args[index+1])
-            elif (arg.value == ":extrapolate"):
-                extrapolate = functions.isTrue(model, args[index+1])
-            elif (arg.value == ":scale"):
-                scale = interp.getv(interp.interpret(model, args[index+1]))
-                if not isinstance(scale, numbers.Number):
-                    raise lcadExceptions.WrongTypeException("number", type(scale))
-            elif (arg.value == ":twist"):
-                twist = interp.getv(interp.interpret(model, args[index+1]))
-                if not isinstance(twist, numbers.Number):
-                    raise lcadExceptions.WrongTypeException("number", type(twist))
-            index += 2
-
         # Process control points.
+        controlp_list = args[0]
+        if (len(controlp_list) < 2):
+            raise NumberControlPointsException(len(controlp_list))
+
         control_points = []
-        for i in range(controlp_list.size):
+        for i in range(len(controlp_list)):
 
             # Get list of control point vectors.
-            control_point = interp.getv(controlp_list.getv(i))
+            control_point = controlp_list[i]
 
-            if not isinstance(control_point, interp.List):
+            if not isinstance(control_point, list):
                 raise lcadExceptions.WrongTypeException("list", type(control_point))
 
             if (i == 0):
-                if (control_point.size != 3):
+                if (len(control_point) != 3):
                     raise ControlPointException("First control point must include a perpendicular vector.")
             else:
-                if (control_point.size != 2):
+                if (len(control_point) != 2):
                     raise ControlPointException("Control point must have a location and a derivative (tangent) vector.")
 
             # Process control point vectors.
             vals = []
-            for j in range(control_point.size):                
-                vec = interp.getv(control_point.getv(j))
+            for j in range(len(control_point)):
+                vec = control_point[j]
+                
+                if (len(vec) != 3):
+                    raise ControlPointException("Control point vector must have 3 elements")
             
-                if isinstance(vec, interp.List):
-                    if (vec.size != 3):
-                        raise ControlPointException("Control point vector must have 3 elements")
-
+                if isinstance(vec, list):
                     for k in range(3):
-                        val = interp.getv(vec.getv(k))
-                        if not isinstance(val, numbers.Number):
-                            raise lcadExceptions.WrongTypeException("number", type(val))
-                        vals.append(val)
+                        if not isinstance(vec[k], numbers.Number):
+                            raise lcadExceptions.WrongTypeException("number", type(vec[k]))
+                        vals.append(vec[k])
 
                 elif isinstance(vec, numpy.ndarray):
                     for k in range(3):

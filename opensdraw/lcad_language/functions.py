@@ -41,8 +41,6 @@ def typeToString(a_type):
     a_string = a_type.__name__
     if (a_string == "basestring"):
         return "string"
-    if (a_string == "interp.List"):
-        return "list"
     if (a_string == "LObject"):
         return "t, nil"
     if (a_string == "interp.Symbol"):

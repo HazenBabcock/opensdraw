@@ -51,10 +51,10 @@ class RandChoice(RandomNumberFunction):
     """
     def __init__(self, name):
         RandomNumberFunction.__init__(self, name)
-        self.setSignature([[interp.List]])
+        self.setSignature([[list]])
 
     def call(self, model, tree):
-        return random.choice(self.getArg(model, tree, 0).getl())
+        return random.choice(self.getArg(model, tree, 0))
 
 lcad_functions["rand-choice"] = RandChoice("rand-choice")
 
