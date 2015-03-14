@@ -1,6 +1,9 @@
 
 Current:
 
+2015-03-13: Implemented function signatures to hopefully make argument parsing
+	    and checking more robust.
+
 2015-03-07: Changed chain so that a chain function will return the same list
             (x y z rx ry rz) as curve so that they can be used interchangeably.
 
