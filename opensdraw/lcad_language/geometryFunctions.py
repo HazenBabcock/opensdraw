@@ -366,29 +366,37 @@ lcad_functions["translate"] = Translate()
 
 class Vector(GeometryFunction):
     """
-    **vector** - Create a vector (a numpy array). This is typically what you 
-    want to use for geometry operations. It is more efficient than a list and
-    you can more easily use it for math operations. However, unlike list,
-    it can only be used for numbers.
+    **vector** - Create a 4 element vector (a numpy array) for geometry
+    operations. This can be used in place of a list for most of the geometry
+    functions like rotate() and translate(). You can also multiply it with
+    4 x 4 transformation matrices.
 
     :param e1: The first element in the vector.
-    :param e2..: (Optional) additional elements in the vector.
+    :param e2: The second element in the vector.
+    :param e3: The third element in the vector.
+    :param e4: (Optional) The fourth element in the vector, defaults to 1.0.
 
     Usage::
 
-     (def v (vector 0 0 5 1))  ; Create the vector [0 0 5 1]
-     (* mat v)                 ; Multiply the vector with the 4 x 4 matrix mat.
+     (def v (vector 0 0 5))  ; Create the vector [0 0 5 1]
+     (translate v .. )       ; Translate by 5 LDU in z.
+     (* mat v)               ; Multiply the vector with the 4 x 4 matrix mat.
 
     """
     def __init__(self):
         GeometryFunction.__init__(self, "vector")
-        self.setSignature([[numbers.Number], ["optional", [numbers.Number]]])
+        self.setSignature([[numbers.Number],
+                           [numbers.Number],
+                           [numbers.Number],
+                           ["optional", [numbers.Number]]])
 
     def call(self, model, tree):
         args = self.getArgs(model, tree)
         vals = []
         for arg in args:
             vals.append(arg)
+        if (len(vals) == 3):
+            vals.append(1.0)
 
         return numpy.array(vals)
 

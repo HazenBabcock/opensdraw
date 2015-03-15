@@ -80,10 +80,10 @@
   (def m2 (matrix (a-curve outer)))
 
   ; Inner vector.
-  (def in-v (vector 6.5  0 (- center inner) 1))
+  (def in-v (vector 6.5  0 (- center inner)))
 
   ; Outer vector.
-  (def out-v (vector 8.01 0 (- center outer) 1))
+  (def out-v (vector 8.01 0 (- center outer)))
 
   (def v1 (* m1 in-v))
   (def v2 (* m2 out-v))
