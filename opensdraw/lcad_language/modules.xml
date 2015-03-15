@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<modules>
+  <module>opensdraw.lcad_language.chain</module>
+  <module>opensdraw.lcad_language.comparisonFunctions</module>
+  <module>opensdraw.lcad_language.coreFunctions</module>
+  <module>opensdraw.lcad_language.curve</module>
+  <module>opensdraw.lcad_language.geometryFunctions</module>
+  <module>opensdraw.lcad_language.logicFunctions</module>
+  <module>opensdraw.lcad_language.mathFunctions</module>
+  <module>opensdraw.lcad_language.partFunctions</module>
+  <module>opensdraw.lcad_language.randomNumberFunctions</module>
+</modules>

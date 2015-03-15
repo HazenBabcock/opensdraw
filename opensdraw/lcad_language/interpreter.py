@@ -8,8 +8,11 @@
 """
 
 import copy
+import importlib
 import math
 import numpy
+import os
+import xml.etree.ElementTree as ElementTree
 
 import lcadExceptions as lce
 import functions
@@ -86,21 +89,12 @@ class LEnv(object):
         for sym_name in builtin_symbols.keys():
             self.symbols[sym_name] = builtin_symbols[sym_name]
 
-        # Functions.
+        # Import function modules (from modules.xml) here.
+        xml = ElementTree.parse(os.path.dirname(__file__) + "/modules.xml").getroot()
+        fn_modules = []
+        for module in xml:
+            fn_modules.append(importlib.import_module(module.text))
 
-        # Import function modules here.
-        import chain
-        import comparisonFunctions
-        import coreFunctions
-        import curve
-        import geometryFunctions
-        import logicFunctions
-        import mathFunctions
-        import partFunctions
-        import randomNumberFunctions
-
-        fn_modules = [chain, comparisonFunctions, coreFunctions, curve, geometryFunctions, 
-                      logicFunctions, mathFunctions, partFunctions, randomNumberFunctions]
         for module in fn_modules:
             for fn_name in module.lcad_functions.keys():
                 functions.builtin_functions[fn_name] = True
