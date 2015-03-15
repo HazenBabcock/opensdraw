@@ -233,9 +233,10 @@ class Part(PartFunction):
 
     Usage::
 
-     (part "32524" 13)
-     (part '32524' "yellow")
-     (part "32524" "yellow" 10)
+     (part "32524" 13)           ; Technic Beam 7, LDraw color 13.
+     (part '32524' "yellow")     ; Technic Beam 7, LDraw color yellow.
+     (part "32524" "yellow" 10)  ; Technic Beam 7, LDraw color yellow, step 10.
+     (part "32524" "0x2808080")  ; Technic Beam 7, direct color (gray).
 
     """
     def __init__(self):

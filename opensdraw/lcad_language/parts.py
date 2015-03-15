@@ -31,8 +31,16 @@ def formatNumber(a_number, precision):
     return s
 
 def toColor(color):
+
+    # Integer color.
     if isinstance(color, int):
         return str(color)
+
+    # Direct color "0x2FFAABB"
+    elif (color[0:3] == "0x2"):
+        return color
+
+    # Look up the color based on the name.
     else:
         return lcad_name_dict[color.lower()].code
 
