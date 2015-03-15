@@ -372,6 +372,9 @@ def test_math_9():
 def test_math_10():
     assert exe("(- (vector 1 2 3) (vector 1 2 3))")[1] == 0
 
+def test_math_11():
+    assert exe("(- 1)") == -1
+
 # python math module
 def test_py_math_1():
     assert int(round(exe("(cos 0)"))) == 1
