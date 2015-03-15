@@ -10,7 +10,7 @@
 (defconst lcad-keywords
       `((,(concat "(\\("
 		  (regexp-opt '("append" "aref" "block" "chain" "comment" "concatenate" "cond" "curve" "def" "for" "group" "header"
-				"if" "import" "lambda" "len" "line" "list" "matrix" "mirror" "optional-line" "part" "print" 
+				"if" "import" "lambda" "len" "line" "list" "matrix" "mirror" "optional-line" "part" "print" "pyimport" 
 				"quadrilateral" "rotate" "scale" "set" "transform" "translate" "triangle" "vector" "while"))
 		  "\\)\\>"
 		  "[ \r\n\t]+")

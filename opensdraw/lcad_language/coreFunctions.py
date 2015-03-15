@@ -7,6 +7,7 @@
 
 """
 
+import importlib
 from itertools import izip
 import numbers
 import numpy
@@ -548,6 +549,44 @@ class Print(CoreFunction):
         return string
 
 lcad_functions["print"] = Print()
+
+
+class PyImport(CoreFunction):
+    """
+    **pyimport** - Import a Python module and add any functions in the
+    modules lcad_functions{} dictionary (that are instances of LCadFunction)
+    to the current lexical environment.
+
+    Usage::
+   
+     (pyimport mymodule)  ; Import the Python module mymodule.py.
+    """
+    def __init__(self):
+        CoreFunction.__init__(self, "pyimport")
+
+    def argCheck(self, tree):
+        if (len(tree.value) < 2):
+            raise lce.NumberArgumentsException("1 or more", len(tree.value) - 1)
+        tree.initialized = True
+
+    def call(self, model, tree):
+        args = tree.value[1:]
+        lenv = tree.lenv.parent
+        for arg in args:
+            module = importlib.import_module(arg.value)
+            if hasattr(module, "lcad_functions"):
+                for fn_name in module.lcad_functions.keys():
+                    fn = module.lcad_functions[fn_name]
+                    if isinstance(fn, functions.LCadFunction):
+                        interp.checkOverride(lenv, fn_name)
+                        lenv.symbols[fn_name] = interp.Symbol(fn_name, "pyimport")
+                        lenv.symbols[fn_name].setv(fn)
+                    else:
+                        print "Warning! Did not load", fn_name, "because it is not of type LCadFunction"
+            else:
+                print "Warning! module", arg.value, "has no LCadFunctions."
+
+lcad_functions["pyimport"] = PyImport()
 
 
 class Set(CoreFunction):
