@@ -20,7 +20,7 @@ Part Functions
 --------------
 
 .. automodule:: opensdraw.lcad_language.partFunctions
-   :members: Group, Header, Line, OptionalLine, Part, Quadrilateral, Triangle
+   :members: Comment, Group, Header, Line, OptionalLine, Part, Quadrilateral, Triangle
 
 Comparison Operators
 --------------------

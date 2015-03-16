@@ -57,10 +57,11 @@ class PrimitiveFunction(PartFunction):
 
 class Comment(PartFunction):
     """
-    **comment** - Adds comments into the model. This different 
-    from header() in that these will appear in the body of the
-    file along with parts, etc.. And if group has comments then
-    the step parameter of the part() function will be ignored,
+    **comment** - Adds comments into the current group. 
+
+    This different from header() in that these will appear in the
+    body of the file along with parts, etc.. And if group has comments 
+    then the step parameter of the part() function will be ignored,
     so if steps are desired they'll need to be manually created
     with this function.
 
@@ -96,13 +97,15 @@ class Group(PartFunction):
     generate output that is better formatted for tools that
     work on mpd files.
 
-    Note that:
+    .. note::
 
-    1. When created groups always have the identity transformation 
-    matrix, not the current transformation matrix.
+     1. Every model will have at least one group, *main*.
 
-    2. Group names must be unique (and also not overlap with the
-    names of any LDraw part files).
+     2. When created groups always have the identity transformation 
+        matrix, not the current transformation matrix.
+
+     3. Group names must be unique (and also not overlap with the
+        names of any LDraw part files).
 
     Usage::
 
@@ -128,7 +131,7 @@ lcad_functions["group"] = Group()
 
 class Header(PartFunction):
     """
-    **header** - Adds header information to the model.
+    **header** - Adds header information to the current group.
 
     This will add a line of text, prepended with "0 ", to the
     current model. Multiple calls will add multiple lines, in
@@ -154,7 +157,7 @@ lcad_functions["header"] = Header()
 
 class Line(PrimitiveFunction):
     """
-    **line** - Add a line primitive to the model.
+    **line** - Add a line primitive to the current group.
 
     The arguments are (list x1 yz 1) (list x2 y2 z2).
 
@@ -185,7 +188,7 @@ lcad_functions["line"] = Line()
 
 class OptionalLine(PrimitiveFunction):
     """
-    **optional-line** - Add a optional line primitive to the model.
+    **optional-line** - Add a optional line primitive to the current group.
 
     The arguments are (list x1 yz 1) (list x2 y2 z2) (list x3 y3  z3) (list x4 y4 z4).
 
@@ -225,7 +228,7 @@ lcad_functions["optional-line"] = OptionalLine()
 
 class Part(PartFunction):
     """
-    **part** - Add a part to the model.
+    **part** - Add a part to the current group.
 
     :param part_id: The name of the LDraw .dat file for this part.
     :param part_color: The LDraw name or id of the color.
@@ -271,7 +274,7 @@ lcad_functions["part"] = Part()
 
 class Quadrilateral(PrimitiveFunction):
     """
-    **quadrilateral** - Add a quadrilateral primitive to the model.
+    **quadrilateral** - Add a quadrilateral primitive to the current group.
 
     The arguments are (list x1 yz 1) (list x2 y2 z2) (list x3 y3  z3) (list x4 y4 z4).
 
@@ -316,7 +319,7 @@ lcad_functions["quadrilateral"] = Quadrilateral()
 
 class Triangle(PrimitiveFunction):
     """
-    **triangle** - Add a triangle primitive to the model.
+    **triangle** - Add a triangle primitive to the current group.
 
     The arguments are (list x1 yz 1) (list x2 y2 z2) (list x3 y3  z3).
 
