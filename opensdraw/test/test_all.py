@@ -152,6 +152,10 @@ def test_list_1():
 def test_list_2():
     assert exe("(list 1 2 3)")[1] == 2
 
+# pyimport
+def test_pyimport_1():
+    assert exe("(pyimport pyimp1) (plus 1 1)") == 2
+
 # print
 def test_print_1():
     assert exe("(print \"123\")") == "123"
