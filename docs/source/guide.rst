@@ -54,7 +54,7 @@ integration is provided. The following steps should enable this:
    (add-hook 'lcad-mode-hook 'lcad-disable-slime) ; You only need this if you also use the SLIME mode.
 
 Once everything is setup up this will provide syntax high-lighting
-and pressing **F5** will automatically convert your .lcad file to a .dat
+and pressing **F5** will automatically convert your .lcad file to a .mpd
 file as well as saving it.
 
 Usage
@@ -67,17 +67,17 @@ The basic work flow is:
      python /path/to/opensdraw/partviewer/partviewer.py
 
 2. Edit your MOC .lcad file to include this part in the desired location.
-3. Convert the MOC .lcad file to a .dat file using *lcad_to_ldraw.py*. ::
+3. Convert the MOC .lcad file to a .mpd file using *lcad_to_ldraw.py*. ::
 
-     python /path/to/opensdraw/scripts/lcad_to_ldraw.py file.lcad file.dat
+     python /path/to/opensdraw/scripts/lcad_to_ldraw.py file.lcad file.mpd
 
-4. Visualize the .dat file with LDView (or equivalent).
+4. Visualize the .mpd file with LDView (or equivalent).
 
 Example .lcad files are provided in the examples directory.
 
 .. note::
 
-   LDView can be configured to automatically poll for changes to .dat files.
+   LDView can be configured to automatically poll for changes to .mpd files.
 
 Understanding Error Messages
 ----------------------------

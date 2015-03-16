@@ -165,3 +165,10 @@ Draw a ring of 18 trucks with different tilts. ::
 .. note::
 
    The complete code is in the examples folder (dumper-truck.lcad).
+
+Step 7
+------
+Convert the .lcad file to a .mpd file using *lcad_to_ldraw.py*. ::
+  
+  cd opensdraw/opensdraw/examples
+  python ../scripts/lcad_to_ldraw.py dumper-truck.lcad

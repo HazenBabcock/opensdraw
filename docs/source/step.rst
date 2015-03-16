@@ -39,14 +39,14 @@ Create the .lcad file. ::
 
 Step 3
 ------
-Convert the .lcad file to a .dat file using *lcad_to_ldraw.py*. ::
+Convert the .lcad file to a .mpd file using *lcad_to_ldraw.py*. ::
   
-  cd openldraw/examples
-  python ../lcad_to_ldraw.py steps.lcad steps.dat
+  cd opensdraw/opensdraw/examples
+  python ../scripts/lcad_to_ldraw.py steps.lcad
 
 Step 4
 ------
-Load the .dat file with your favorite viewer (LDView renderings shown here).
+Load the .mpd file with your favorite viewer (LDView renderings shown here).
 
 .. figure:: step8.png
    :align: center

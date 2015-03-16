@@ -4,6 +4,10 @@ Summary of the Examples
 All of the example can be found in the *examples* directory.
 
 1. *auto-step.lcad* - An automatic build steps example.
+
+.. figure:: auto-step.png
+   :scale: 50%
+
 2. *chain.lcad* - Chain and sprocket system creation and animation.
 
 .. figure:: chain.png
@@ -15,6 +19,10 @@ All of the example can be found in the *examples* directory.
    :scale: 50%
 
 4. *dumper-truck.lcad* - The Dumper Truck example from `here <http://www.holly-wood.it/mlcad/basic1-en.html>`_.
+
+.. figure:: dumper-truck5.png
+   :scale: 50%
+
 5. *gears.lcad* - An animation example.
 
 .. figure:: gears_00001.png
@@ -25,13 +33,22 @@ All of the example can be found in the *examples* directory.
 .. figure:: gripper.png
    :scale: 50%
 
-7. *rib-hose.lcad* - Curves and ribbed-hose example.
+7. *picture.lcad* - Interfacing with Python example.
+
+.. figure:: picture.png
+   :scale: 50%
+
+8. *rib-hose.lcad* - Curves and ribbed-hose example.
 
 .. figure:: rib-hose.png
    :scale: 50%
 
-8. *steps.lcad* - A build steps example.
-9. *wall.lcad* - A random number generator example.
+9. *steps.lcad* - A build steps example.
+
+.. figure:: step20.png
+   :scale: 50%
+
+10. *wall.lcad* - A random number generator example.
 
 .. figure:: wall.png
    :scale: 50%

@@ -23,6 +23,7 @@ User's Guide
    example.rst
    step.rst
    animation.rst
+   interfacing.rst
    examples_list.rst
 
 API Documentation
