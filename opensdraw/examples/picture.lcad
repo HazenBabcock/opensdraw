@@ -8,19 +8,48 @@
 
 (import locate :local)
 
-; import of picture.py module.
+; Import of picture.py module.
 (pyimport picture)
 
-; load the example picture.
-(def pic (open-picture "9393_4.png"))
+; Load the example picture.
+(def pic (open-picture "9393.png"))
 
-; get the picture size.
+; Get the picture size.
 (def size (pic t t))
+(def size-x (aref size 0))
+(def size-y (aref size 1))
+
+; Create picture backing. This works best for pictures whose size 
+; is a multiple of 2. Also, some of the corners can end up as 2 x 2 
+; on top of 2 x 2 which would not actually work.
+(def stripe (y offset length)
+ (block
+  (def pos offset)
+  (if (= (% offset 2) 0)
+    (block
+     (sb pos y 0 90 0 0 "3022" 7)
+     (set pos (+ pos 3)))
+   (block
+    (sb pos y 0 90 0 0 "3020" 7)
+    (set pos (+ pos 4))))
+  (while (< pos (- length 2))
+   (sb pos y 0 90 0 0 "3020" 7)
+   (set pos (+ pos 4)))
+  (if (< pos length)
+    (sb (- pos 1) y 0 90 0 0 "3022" 7))))
+
+; Backing upper layer.
+(for (y (/ (+ size-y 2) 2))
+ (translate (list (bw -0.5) (bw -0.5) (bh 0.3))
+  (stripe (* 2 y) (% (+ y 1) 2) (+ size-x 2))))
+
+; Backing lower layer.
+(for (x (/ (+ size-x 2) 2))
+ (translate (list (bw (- size-x 0.5)) (bw -0.5) (bh 0.6))
+  (rotate (list 0 0 90)
+   (stripe (* 2 x) (% x 2) (+ size-y 2)))))
 
 ; re-create the picture using Plate 1 x 1 Round.
 (for (i (aref size 0))
  (for (j (aref size 1))
-  (sb i j 0 90 0 0 "3070b" (pic i j))
-  ))
-
-
+  (sb i j 0 90 0 0 "4073" (pic i j))))
