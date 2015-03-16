@@ -1,0 +1,26 @@
+;
+; An example of how to write your own functions in Python and use
+; them in OpenSDraw. This requires the PIL (or Pillow) Python
+; module, and works with the picture.py module.
+;
+; Hazen 03/15
+;
+
+(import locate :local)
+
+; import of picture.py module.
+(pyimport picture)
+
+; load the example picture.
+(def pic (open-picture "9393_4.png"))
+
+; get the picture size.
+(def size (pic t t))
+
+; re-create the picture using Plate 1 x 1 Round.
+(for (i (aref size 0))
+ (for (j (aref size 1))
+  (sb i j 0 90 0 0 "3070b" (pic i j))
+  ))
+
+
