@@ -33,6 +33,12 @@ elif (len(sys.argv) == 4):
 with open(sys.argv[1]) as fp:
     ldraw_file_contents = fp.read()
 
+# Add the directory where the .lcad file is located to the Python path 
+# so that pyimport() will word as expected.
+path = os.path.abspath(os.path.dirname(sys.argv[1]))
+if not path in sys.path:
+    sys.path.insert(1, path)
+
 # Generate output files.
 cur_dir = os.getcwd()    
 index = 0
