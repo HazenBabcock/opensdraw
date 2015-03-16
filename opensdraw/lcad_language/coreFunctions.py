@@ -555,7 +555,8 @@ class PyImport(CoreFunction):
     """
     **pyimport** - Import a Python module and add any functions in the
     modules lcad_functions{} dictionary (that are instances of LCadFunction)
-    to the current lexical environment.
+    to the current lexical environment. The module must be on the Python
+    path (which includes the current working directory).
 
     Usage::
    
