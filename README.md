@@ -17,7 +17,7 @@ I use partviewer.py to find LDraw part information, emacs to edit the .lcad file
 ### Dependencies ###
 * [LDraw](http://www.ldraw.org)
 * [numpy](http://www.numpy.org)
-* [Python](https://www.python.org/)
+* [Python 2.7](https://www.python.org/)
 * [PyQt4](http://www.riverbankcomputing.com/software/pyqt/intro)
 * [rply](https://github.com/alex/rply)
 * [scipy](http://www.scipy.org)
