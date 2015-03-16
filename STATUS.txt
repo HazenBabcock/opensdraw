@@ -1,6 +1,10 @@
 
 Current:
 
+2015-03-16: Added pyimport() and an example of how to use your own Python 
+	    functions. Changed interpreter to import modules listed in
+	    modules.xml making it easier to customize.
+
 2015-03-14: Changed to use native Python lists. Improved aref() so that it will
  	    work with native Python lists and numpy.ndarrays.
 
