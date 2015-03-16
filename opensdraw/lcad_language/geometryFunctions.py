@@ -74,10 +74,9 @@ class GeometryFunction(functions.LCadFunction):
 
 class Matrix(GeometryFunction):
     """
-    **matrix** - Return a 4 x 4 transform matrix. The matrix is a numpy 
-    array. Currently this matrix is immutable, but the plan is to fix this.
+    **matrix** - Return a 4 x 4 transform matrix. 
 
-    The arguments are (list x y z a b c d e f g h i) as defined here:
+    The matrix is a numpy array. The arguments are (list x y z a b c d e f g h i) as defined here:
 
     http://www.ldraw.org/article/218.html#lt1
 
@@ -263,7 +262,9 @@ lcad_functions["scale"] = Scale()
 
 class Transform(GeometryFunction):
     """
-    **transform** - Sometimes it is just easier to enter the transform 
+    **transform** - Transform child elements.
+
+    Sometimes it is just easier to enter the transform 
     matrix in LDraw form i.e. (list x y z a b c d e f g h i) as defined here:
 
     http://www.ldraw.org/article/218.html#lt1
@@ -366,8 +367,9 @@ lcad_functions["translate"] = Translate()
 
 class Vector(GeometryFunction):
     """
-    **vector** - Create a 4 element vector (a numpy array) for geometry
-    operations. This can be used in place of a list for most of the geometry
+    **vector** - Create a 4 element vector. 
+
+    This is a numpy array. It can be used in place of a list for most of the geometry
     functions like rotate() and translate(). You can also multiply it with
     4 x 4 transformation matrices.
 
