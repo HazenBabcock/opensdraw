@@ -1,0 +1,92 @@
+;
+; Function to make adding flexible hose to a MOC easier. This is
+; the smooth hose, not the ribbed hose.
+;
+; Hazen 03/15
+;
+
+(import locate :local)
+
+;
+; Create a hose of the specified length that goes along the specified curve.
+; The hose should be in a group so that you can specify the color and back
+; face culling.
+;
+; Example:
+;
+;  (group "my-hose"
+;   (header "!LDRAW_ORG Unofficial_part")
+;   (header "BFC CERTIFY CCW")
+;   (flexible-hose 9 my-curve))
+;  (part "my-hose" 10)
+;
+; length - The total length of the hose in LDU.
+; a-curve - The curve function that the hose should follow.
+;
+(def flexible-hose (length a-curve)
+ (block
+
+  (def tube (start step stop rad ccw)
+   (block
+    (def dist start)
+    (def cr 0)
+    (def lr 0)
+    (def vec (vector rad 0 0))
+
+    ; Ring calculation.
+    (def calc-ring ()
+     (block
+      (def m (matrix (a-curve dist)))
+      (def ring (list))
+      (for (angle 0 22.5 366)
+       (def mr (matrix (list 0 0 0 0 0 angle)))
+       (append ring (* m mr vec)))
+      ring))
+
+    ; Tube drawing.
+    (def draw-tube ()
+     (if ccw
+       (for (i 16)
+	(triangle (aref lr i) (aref lr (+ i 1)) (aref cr i))
+	(triangle (aref cr i) (aref lr (+ i 1)) (aref cr (+ i 1))))
+      (for (i 16)
+       (triangle (aref lr (+ i 1)) (aref lr i) (aref cr i))
+       (triangle (aref lr (+ i 1)) (aref cr i) (aref cr (+ i 1))))))
+
+    ; Calculate starting ring.
+    (set lr (calc-ring))
+
+    ; Draw tubes.
+    (set dist (+ dist step))
+    (while (<= dist stop)
+     (set cr (calc-ring))
+     (draw-tube)
+     (set lr cr)
+     (set dist (+ dist step)))
+
+    ; Draw final tube (if necessary).
+    (if (!= dist stop)
+      (block
+       (set dist stop)
+       (set cr (calc-ring))
+       (draw-tube)))))
+
+  ; Start element.
+  (transform (matrix (a-curve 1))
+   (translate (list 0 0 -1)
+    (rotate (list 90 0 0)
+     (part "u9053.dat" 16))))
+
+  ; Outer tube.
+  (tube 1 4 (- length 1) 4 t)
+
+  ; Inner tube.
+  (tube 1 4 (- length 1) 2 nil)
+
+  ; End element.
+  (transform (matrix (a-curve (- length 1)))
+   (translate (list 0 0 1)
+    (rotate (list -90 0 0)
+     (part "u9053.dat" 16))))
+
+  ))
