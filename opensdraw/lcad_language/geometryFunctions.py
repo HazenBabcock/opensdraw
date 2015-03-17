@@ -68,6 +68,7 @@ def translationMatrix(tx, ty, tz):
     return m
 
 
+# Maybe these types should go in a separate file, possibly with other types?
 class LCadMatrix(numpy.ndarray):
     pass
 
@@ -77,6 +78,42 @@ class LCadVector(numpy.ndarray):
 
 class GeometryFunction(functions.LCadFunction):
     pass
+
+
+class CrossProduct(GeometryFunction):
+    """
+    **cross-product** - Return the cross product of two vectors.
+
+    :param v1: The first vector.
+    :param v2: The second vector.
+    :param normalize: t/nil (Optional) Normalize the result vector, default is t.
+
+    Usage::
+
+     (cross-product (vector 1 0 0) (vector 0 1 0))     ; Returns (vector 0 0 1)
+     (cross-product (vector 1 0 0) (vector 0 2 0) nil) ; Returns (vector 0 0 2)
+
+    """
+    def __init__(self):
+        GeometryFunction.__init__(self, "cross-product")
+        self.setSignature([[LCadVector], [LCadVector], ["optional", [interp.LObject]]])
+
+    def call(self, model, tree):
+        args = self.getArgs(model, tree)
+
+        normalize = True
+        if (len(args) == 3):
+            normalize = True if functions.isTrue(args[2]) else False
+
+        cp = numpy.cross(args[0][0:3], args[1][0:3])
+        
+        if normalize:
+            cp = cp/numpy.linalg.norm(cp)
+
+        cp = numpy.append(cp, 1)
+        return cp.view(LCadVector)
+
+lcad_functions["cross-product"] = CrossProduct()
 
 
 class DotProduct(GeometryFunction):
@@ -102,6 +139,9 @@ class DotProduct(GeometryFunction):
         # Ignore 4th element.
         v1 = v1[0:3]
         v2 = v2[0:3]
+        return numpy.dot(v1, v2) / (numpy.linalg.norm(v1) * numpy.linalg.norm(v2))
+
+lcad_functions["dot-product"] = DotProduct()
 
 
 class Matrix(GeometryFunction):

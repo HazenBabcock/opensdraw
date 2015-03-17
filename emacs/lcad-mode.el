@@ -1,5 +1,5 @@
 ;;
-;; Major mode for openlcad.
+;; Major mode for opensdraw.
 ;;
 ;; Sources:
 ;;  hy-mode.el from the Hy language project.
@@ -9,9 +9,41 @@
 
 (defconst lcad-keywords
       `((,(concat "(\\("
-		  (regexp-opt '("append" "aref" "block" "chain" "comment" "concatenate" "cond" "curve" "def" "for" "group" "header"
-				"if" "import" "lambda" "len" "line" "list" "matrix" "mirror" "optional-line" "part" "print" "pyimport" 
-				"quadrilateral" "rotate" "scale" "set" "transform" "translate" "triangle" "vector" "while"))
+		  (regexp-opt '("append" 
+				"aref" 
+				"block" 
+				"chain" 
+				"comment" 
+				"concatenate" 
+				"cond" 
+				"curve" 
+				"cross-product" 
+				"def" 
+				"dot-product" 
+				"for" 
+				"group" 
+				"header" 
+				"if" 
+				"import" 
+				"lambda" 
+				"len" 
+				"line" 
+				"list" 
+				"matrix" 
+				"mirror" 
+				"optional-line" 
+				"part" 
+				"print" 
+				"pyimport" 
+				"quadrilateral" 
+				"rotate" 
+				"scale" 
+				"set" 
+				"transform" 
+				"translate" 
+				"triangle" 
+				"vector" 
+				"while"))
 		  "\\)\\>"
 		  "[ \r\n\t]+")
 	 (1 font-lock-function-name-face))

@@ -11,6 +11,7 @@ import math
 import numbers
 import numpy
 
+import opensdraw.lcad_language.geometryFunctions as geometryFunctions
 import opensdraw.lcad_language.interpreter as interpreter
 import opensdraw.lcad_language.lexerParser as lexerParser
 
@@ -266,12 +267,26 @@ def test_ne_2():
 
 ## Geometry Functions.
 
+# cross product
+def test_cross_product_1():
+    assert exe("(aref (cross-product (vector 1 0 0) (vector 0 1 0)) 2)") == 1
+
+def test_cross_product_2():
+    assert exe("(aref (cross-product (vector 1 0 0) (vector 0 2 0) nil) 2)") == 2
+
+# dot product
+def test_dot_product_1():
+    assert exe("(dot-product (vector 1 0 0) (vector 1 0 0))") == 1
+
+def test_dot_product_2():
+    assert exe("(dot-product (vector 1 0 0) (vector 0 1 0))") == 0
+
 # matrix
 def test_matrix_1():
-    assert isinstance(exe("(matrix (list 1 2 3 1 2 3 1 2 3 1 2 3))"), numpy.ndarray)
+    assert isinstance(exe("(matrix (list 1 2 3 1 2 3 1 2 3 1 2 3))"), geometryFunctions.LCadMatrix)
 
 def test_matrix_2():
-    assert isinstance(exe("(matrix (list 0 0 0 0 0 0))"), numpy.ndarray)
+    assert isinstance(exe("(matrix (list 0 0 0 0 0 0))"), geometryFunctions.LCadMatrix)
 
 # mirror
 def test_mirror_1():
@@ -313,7 +328,7 @@ def test_translate_1():
 
 # vector
 def test_vector_1():
-    assert isinstance(exe("(vector 1 2 3)"), numpy.ndarray)
+    assert isinstance(exe("(vector 1 2 3)"), geometryFunctions.LCadVector)
 
 
 ## Logical Operators.
