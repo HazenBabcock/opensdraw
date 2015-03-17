@@ -9,6 +9,7 @@ Step 1
 Create the lcad file.
 
 .. literalinclude:: ./../../opensdraw/examples/gears.lcad
+   :lines: 6-
 
 .. note::
 

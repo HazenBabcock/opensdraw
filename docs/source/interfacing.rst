@@ -9,6 +9,7 @@ Step 1
 Create the Python file.
 
 .. literalinclude:: ./../../opensdraw/examples/picture.py
+   :lines: 1,8-
 
 .. note::
    
@@ -20,6 +21,7 @@ Step 2
 Create the lcad file.
 
 .. literalinclude:: ./../../opensdraw/examples/picture.lcad
+   :lines: 8-
 
 .. note::
 
