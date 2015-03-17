@@ -44,7 +44,11 @@ def typeToString(a_type):
     if (a_string == "LObject"):
         return "t, nil"
     if (a_string == "interp.Symbol"):
-        return "symbol"        
+        return "symbol"
+    if (a_string == "LCadVector"):
+        return "vector"
+    if (a_string == "LCadMatrix"):
+        return "matrix"
     if (a_string == "numpy.ndarray"):
         return "vector, matrix"
     if (a_string == "numbers.Number"):
@@ -85,7 +89,7 @@ class LCadFunction(object):
         # Standard arguments.
         if (index < self.minimum_args):
             if not isType(val, self.signature[index]):
-                raise lce.WrongTypeException(", ".join(map(typeToString, self.signature[index])), type(val))
+                raise lce.WrongTypeException(", ".join(map(typeToString, self.signature[index])), typeToString(type(val)))
             return val
         
         # All arguments that are beyond the length of the signature are

@@ -68,8 +68,40 @@ def translationMatrix(tx, ty, tz):
     return m
 
 
+class LCadMatrix(numpy.ndarray):
+    pass
+
+class LCadVector(numpy.ndarray):
+    pass
+
+
 class GeometryFunction(functions.LCadFunction):
     pass
+
+
+class DotProduct(GeometryFunction):
+    """
+    **dot-product** - Return the dot product of two vectors.
+
+    :param v1: The first vector.
+    :param v2: The second vector.
+
+    Usage::
+
+     (dot-product (vector 1 0 0) (vector 1 0 0))  ; Returns 1.
+     (dot-product (vector 1 0 0) (vector 0 1 0))  ; Returns 0.
+
+    """
+    def __init__(self):
+        GeometryFunction.__init__(self, "dot-product")
+        self.setSignature([[LCadVector], [LCadVector]])
+
+    def call(self, model, tree):
+        [v1, v2] = self.getArgs(model, tree)
+
+        # Ignore 4th element.
+        v1 = v1[0:3]
+        v2 = v2[0:3]
 
 
 class Matrix(GeometryFunction):
@@ -100,7 +132,7 @@ class Matrix(GeometryFunction):
     :param z: translation in z in LDU.
     :param ax: rotation angle around x axis (degrees).
     :param ay: rotation angle around y axis (degrees).
-    :param az: roration angle around z axis (degrees).
+    :param az: rotation angle around z axis (degrees).
 
     Usage::
 
@@ -125,11 +157,11 @@ class Matrix(GeometryFunction):
             m = numpy.identity(4)
             for i in range(12):
                 m[mapping[i][1]] = vals[i]
-            return m
+            return m.view(LCadMatrix)
 
         # 6 elements.
         elif (len(vals) == 6):
-            return numpy.dot(translationMatrix(*vals[0:3]), angles.rotationMatrix(*vals[3:6]))
+            return numpy.dot(translationMatrix(*vals[0:3]), angles.rotationMatrix(*vals[3:6])).view(LCadMatrix)
 
         else:
             raise lce.LCadException("Expected a list with 6 or 12 members, got " + str(len(vals)))
@@ -154,7 +186,7 @@ class Mirror(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "mirror")
-        self.setSignature([[list, numpy.ndarray], ["optional", [object]]])
+        self.setSignature([[list, LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
@@ -201,7 +233,7 @@ class Rotate(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "rotate")
-        self.setSignature([[list, numpy.ndarray], ["optional", [object]]])
+        self.setSignature([[list, LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
@@ -238,7 +270,7 @@ class Scale(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "scale")
-        self.setSignature([[list, numpy.ndarray], ["optional", [object]]])
+        self.setSignature([[list, LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
@@ -293,7 +325,7 @@ class Transform(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "transform")
-        self.setSignature([[list, numpy.ndarray], ["optional", [object]]])
+        self.setSignature([[list, LCadMatrix], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
@@ -347,7 +379,7 @@ class Translate(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "translate")
-        self.setSignature([[list, numpy.ndarray], ["optional", [object]]])
+        self.setSignature([[list, LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
 
@@ -400,7 +432,7 @@ class Vector(GeometryFunction):
         if (len(vals) == 3):
             vals.append(1.0)
 
-        return numpy.array(vals)
+        return numpy.array(vals).view(LCadVector)
 
 lcad_functions["vector"] = Vector()
 

@@ -72,7 +72,7 @@ class VariableNotSetException(LCadException):
 
 class WrongTypeException(LCadException):
     def __init__(self, expected, got):
-        LCadException.__init__(self, "wrong type, got '" + str(got.__name__) + "' expected '" + str(expected) + "'.")
+        LCadException.__init__(self, "wrong type, got '" + str(got) + "' expected '" + str(expected) + "'.")
 
 
 #

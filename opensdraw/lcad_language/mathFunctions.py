@@ -12,6 +12,7 @@ import numbers
 import numpy
 
 import functions
+import geometryFunctions
 import interpreter as interp
 import lcadExceptions as lce
 
@@ -126,8 +127,8 @@ class Multiply(MathFunction):
         args = self.getArgs(model, tree)
         total = 1.0
         for arg in args:
-            if isinstance(total, numpy.ndarray) and (len(total.shape) == 2):
-                total = numpy.dot(total, arg)
+            if isinstance(total, geometryFunctions.LCadMatrix):
+                total = numpy.dot(total, arg).view(geometryFunctions.LCadMatrix)
             else:
                 total = total * arg
         return total
