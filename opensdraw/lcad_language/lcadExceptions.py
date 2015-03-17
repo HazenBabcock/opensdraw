@@ -28,7 +28,7 @@ class FileNotFoundException(LCadException):
 
 class GroupExistsException(LCadException):
     def __init__(self, name):
-        LCadException.__init__(self, "A group with the name " + name + " already exists.")
+        LCadException.__init__(self, "A group with the name '" + name + "' already exists.")
 
 class IllegalArgumentTypeException(LCadException):
     def __init__(self):
