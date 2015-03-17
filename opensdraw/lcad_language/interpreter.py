@@ -129,6 +129,7 @@ class Model(object):
         new_group = Group(name)
         self.m_cur_group.append(new_group)
         self.m_groups.append(new_group)
+        self.used_names[name] = 1
 
 
 class Symbol(object):
