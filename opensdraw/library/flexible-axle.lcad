@@ -9,9 +9,18 @@
 ;
 ; Create an axle of the specified length that goes along the specified curve.
 ; The curve starts after the initial straight end stud. This is (I think)
-; pretty correct, less some optional lines.
+; pretty correct, less some optional lines. The axle should be in a group
+; so that you can specify the color and back face culling.
 ;
-; length - The total length of the axle in bricks / studs.
+; Example:
+;
+;  (group "my-axle"
+;   (header "!LDRAW_ORG Unofficial_part")
+;   (header "BFC CERTIFY CCW")
+;   (flexible-axle 9 my-curve))
+;  (part "my-axle" 10)
+;
+; length - The total length of the axle in LDU.
 ; a-curve - The curve function that the axle should follow.
 ;
 (def flexible-axle (length a-curve)
