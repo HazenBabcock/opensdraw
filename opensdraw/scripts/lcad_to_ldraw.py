@@ -34,7 +34,7 @@ with open(sys.argv[1]) as fp:
     ldraw_file_contents = fp.read()
 
 # Add the directory where the .lcad file is located to the Python path 
-# so that pyimport() will word as expected.
+# so that pyimport() will work as expected.
 path = os.path.abspath(os.path.dirname(sys.argv[1]))
 if not path in sys.path:
     sys.path.insert(1, path)
@@ -50,6 +50,8 @@ while (index < time_points):
         os.chdir(os.path.dirname(sys.argv[1]))
 
     # Generate model.
+    if (index == 0):
+        print "Building model."
     model = interpreter.execute(ldraw_file_contents, filename = sys.argv[1], time_index = index)
 
     # Check for single or multi-part model.
@@ -98,13 +100,15 @@ while (index < time_points):
         dat_fname = name + "_" + "{0:05d}".format(index) + ext
         
     # Write the file.
+    main_name = os.path.splitext(os.path.basename(sys.argv[1]))[0]
+    group_names = model.used_names
     with open(dat_fname, "w") as fp_out:
 
         added_opensdraw = False
         for group in model.groups():
 
             # Add File name.
-            fp_out.write("0 FILE " + group.name + "\n")
+            fp_out.write("0 FILE " + main_name + " - " + group.name + "\n")
 
             # Add header.
             for text in group.header:
@@ -120,8 +124,17 @@ while (index < time_points):
             parts = group.getParts()
             for i in range(len(parts)):
 
+                # Some fiddling to splice in the file name for parts
+                # that refer to other parts (groups) in the file.
+                part_text = parts[i].toLDraw()
+                if (part_text[0] == "1"):
+                    part_data = part_text.split(" ")
+                    part_name = " ".join(part_data[14:])
+                    if (part_name in group_names):
+                        part_text = " ".join(part_data[:14]) + " " + main_name + " - " + part_name
+                  
                 # Write part.
-                fp_out.write(parts[i].toLDraw() + "\n")
+                fp_out.write(part_text + "\n")
 
                 # Check if we need to add a step.
                 if (i < (len(parts)-1)) and not group.have_comments:
