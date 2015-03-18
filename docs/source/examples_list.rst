@@ -48,7 +48,12 @@ All of the example can be found in the *examples* directory.
 .. figure:: step20.png
    :scale: 50%
 
-10. *wall.lcad* - A random number generator example.
+10. *trefoil.lcad* - A LDraw primitives example.
+
+.. figure:: trefoil.png
+   :scale: 50%
+
+11. *wall.lcad* - A random number generator example.
 
 .. figure:: wall.png
    :scale: 50%
