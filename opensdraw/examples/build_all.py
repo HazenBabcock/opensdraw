@@ -18,6 +18,7 @@ examples = ["auto-step.lcad",
             "gripper.lcad",
             "rib-hose.lcad",
             "steps.lcad",
+            "trefoil.lcad",
             "wall.lcad"]
 
 builder = "../scripts/lcad_to_ldraw.py"
