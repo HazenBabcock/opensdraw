@@ -35,7 +35,7 @@
 ;; Hoses
 
 ; Using curve().
-(group "hose1.dat"
+(group "hose1.ldr"
  (header "!LDRAW_ORG Unofficial_part")
  (header "BFC CERTIFY CCW")
  
@@ -45,7 +45,7 @@
 			      (list (list 0 0 (bw 5.5)) (list 1 0 0))))))
 
 ; Using chain().
-(group "hose2.dat"
+(group "hose2.ldr"
  (header "!LDRAW_ORG Unofficial_part")
  (header "BFC CERTIFY CCW")
 
@@ -58,9 +58,9 @@
  ; modified version that doesn't start at zero.
  (ribbed-hose 26 (lambda (x) (a-chain (+ x 124.5)))))
 
-(tb -1 1 1.5 0 0 0 "hose1" 1)
-(tb -1 -1 1.5 -90 0 180 "hose2" 1)
+(tb -1 1 1.5 0 0 0 "hose1.ldr" 1)
+(tb -1 -1 1.5 -90 0 180 "hose2.ldr" 1)
 
-(tb 1 1 1.5 90 0 0 "hose2" 1)
-(tb 1 -1 1.5 0 0 180 "hose1" 1)
+(tb 1 1 1.5 90 0 0 "hose2.ldr" 1)
+(tb 1 -1 1.5 0 0 180 "hose1.ldr" 1)
 

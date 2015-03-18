@@ -40,7 +40,7 @@
 ; Create flexible axle sub-parts.
 ;
 (for (i 14)
- (group (concatenate "faxles" i ".dat")
+ (group (concatenate "faxles" i ".ldr")
   (header "!LDRAW_ORG Unofficial_part")  ; So that edges will be smoothed.
   (header "BFC CERTIFY CCW")
 
@@ -64,7 +64,7 @@
 
 ; Add flexible axles.
 (for (i 14)
- (tb i -1.5 -2 180 0 0 (concatenate "faxles" i) 0)
- (tb i -1.5 2 180 180 0 (concatenate "faxles" i) 0))
+ (tb i -1.5 -2 180 0 0 (concatenate "faxles" i ".ldr") 0)
+ (tb i -1.5 2 180 180 0 (concatenate "faxles" i ".ldr") 0))
 
 
