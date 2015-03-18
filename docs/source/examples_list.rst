@@ -1,7 +1,7 @@
 Summary of the Examples
 =======================
 
-All of the example can be found in the *examples* directory.
+All of the examples can be found in the *examples* directory.
 
 1. *auto-step.lcad* - An automatic build steps example.
 
