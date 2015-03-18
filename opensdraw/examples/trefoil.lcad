@@ -1,0 +1,73 @@
+;
+; Primitives example, a trefoil knot created using the triangle primitive.
+;
+; Hazen 3/15
+;
+
+(header "!LDRAW_ORG Unofficial_part")
+(header "BFC CERTIFY CCW")
+
+; Return the XYZ position given the parameter (0 - 2pi).
+(def trefoil-pos (p)
+ (vector (+ (sin p) (* 2 (sin (* 2 p))))
+	 (- (cos p) (* 2 (cos (* 2 p))))
+	 (- (sin (* 3 p)))))
+
+; Return the tangent vector given the parameter (0 - 2pi).
+(def trefoil-vec (p)
+ (vector (+ (cos p) (* 4 (cos (* 2 p))))
+	 (- (* 4 (sin (* 2 p))) (sin p))
+	 (- (* 3 (cos (* 3 p))))))
+
+; Return the matrix that will move us into the trefoil coordinate system.
+(def trefoil (p size)
+ (block
+  (def pos (* size (trefoil-pos p)))
+
+  ; zvec points along the tangent to the trefoil.
+  (def zvec (trefoil-vec p))
+  
+  ; xvec points up.
+  (def xvec (vector 0 0 1))
+
+  ; Calculate (normalized) x, y and z vectors.
+  (def yvec (cross-product zvec xvec))
+  (set xvec (cross-product yvec zvec))
+  (set zvec (cross-product xvec yvec))
+
+  ; Return transform matrix.
+  (matrix (list (aref pos 0) (aref pos 1) (aref pos 2)
+		(aref xvec 0) (aref yvec 0) (aref zvec 0)
+		(aref xvec 1) (aref yvec 1) (aref zvec 1)
+		(aref xvec 2) (aref yvec 2) (aref zvec 2)))))
+
+; Draw trefoil using marching triangles.
+(group "trefoil.dat"
+ (header "!LDRAW_ORG Unofficial_part")
+ (header "BFC CERTIFY CCW")
+ (def index 0)
+ (def m1 (trefoil 0 2))
+ (def d-angle 10)
+ (def d-p (/ (* 2 pi) 120))
+ (for (p d-p d-p (+ (* 2 pi) (/ d-p 2)))
+  (def m2 (trefoil p 2))
+  (def angle (if (= (% index 2) 0) 0 d-angle))
+  (def p1 (* m1 (matrix (list 0 0 0 0 0 angle)) (vector 1 0 0)))
+  (set angle (+ angle d-angle))
+  (def p2 (* m2 (matrix (list 0 0 0 0 0 angle)) (vector 1 0 0)))
+  (while (< angle (if (= (% index 2) 0) 360 (+ 360 d-angle)))
+   (set angle (+ angle d-angle))
+   (def p3 (* m1 (matrix (list 0 0 0 0 0 angle)) (vector 1 0 0)))
+   (set angle (+ angle d-angle))
+   (def p4 (* m2 (matrix (list 0 0 0 0 0 angle)) (vector 1 0 0)))
+   (triangle p1 p3 p2)
+   (triangle p2 p3 p4)
+   (set p1 p3)
+   (set p2 p4))
+  (set index (+ index 1))
+  (set m1 m2)))
+
+(part "trefoil" 1)
+
+
+
