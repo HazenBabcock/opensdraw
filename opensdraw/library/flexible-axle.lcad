@@ -4,6 +4,8 @@
 ; Hazen 02/15
 ;
 
+(pyimport opensdraw.library.shapes)
+
 (import locate :local)
 
 ;
@@ -33,51 +35,6 @@
 		  "axleho10"
 		  "axlehol9"))
 
-  ; The positions of the vertices around an axle.
-  (def vert (list (vector 6 0 0)
-		  (vector 5.602 2 0)
-		  (vector 2 2 0)
-		  (vector 2 5.602 0)
-		  (vector 0 6 0)
-		  (vector -2 5.602 0)
-		  (vector -2 2 0)
-		  (vector -5.602 2 0)
-		  (vector -6 0 0)
-		  (vector -5.602 -2 0)
-		  (vector -2 -2 0)
-		  (vector -2 -5.602 0)
-		  (vector 0 -6 0)
-		  (vector 2 -5.602 0)
-		  (vector 2 -2 0)
-		  (vector 5.602 -2 0)))
-
-  (def last-v 0)
-  (def cur-v 0)
-
-  ; Drawing axles.
-  (def axle-start (pos)
-   (block
-    (set last-v (list))
-    (def m (matrix (a-curve pos)))
-    (for (elt vert)
-     (append last-v (* m elt)))))
-
-  (def axle-end (pos)
-   (block
-    (set cur-v (list))
-    (def m (matrix (a-curve pos)))
-    (for (elt vert)
-     (append cur-v (* m elt)))
-    (for (i (- (len vert) 1))
-     (line (aref last-v i) (aref cur-v i))
-     (triangle (aref last-v i) (aref last-v (+ i 1)) (aref cur-v i))
-     (triangle (aref last-v (+ i 1)) (aref cur-v (+ i 1)) (aref cur-v i)))
-    (def li (- (len vert) 1))
-    (line (aref last-v li) (aref cur-v li))
-    (triangle (aref last-v li) (aref last-v 0) (aref cur-v li))
-    (triangle (aref last-v 0) (aref cur-v 0) (aref cur-v li))
-    (set last-v cur-v)))
-
   ; Drawing cylinders.
   (def cylinder (pos)
    (block
@@ -86,17 +43,7 @@
 
     (def sv (vector 6 0 0))
 
-    (def v1 (* m1 sv))
-    (def v2 (* m2 sv))
-    (def d-angle 22.5)
-    (for (angle d-angle d-angle 365)
-     (def mr (matrix (list 0 0 0 0 0 angle)))
-     (def v3 (* m1 mr sv))
-     (def v4 (* m2 mr sv))
-     (triangle v1 v3 v2)
-     (triangle v2 v3 v4)
-     (set v1 v3)
-     (set v2 v4))
+    (ring m1 sv m2 sv nil)
     ))
 
   ; Stud start element.
@@ -116,9 +63,8 @@
     (for (elt disc)
      (part elt 16))))
 
-  (axle-start dist)
+  (axle a-curve dist (+ dist 4.8))
   (set dist (+ dist 4.8))
-  (axle-end dist)
   (transform (matrix (a-curve dist))
    (rotate (vector 90 0 0)
     (for (elt disc)
@@ -131,9 +77,8 @@
     (for (elt disc)
      (part elt 16))))
 
-  (axle-start dist)
+  (axle a-curve dist (+ dist 4.8))
   (set dist (+ dist 4.8))
-  (axle-end dist)
   (transform (matrix (a-curve dist))
    (rotate (vector 90 0 0)
     (for (elt disc)
@@ -148,15 +93,8 @@
 
 
   ; Middle segments.
-  (axle-start dist)
-  (while (< dist (- length (bw 3)))
-   (set dist (+ dist 4))
-   (axle-end dist))
-
-  (if (!= dist (- length (bw 3)))
-    (block
-     (set dist (- length (bw 3)))
-     (axle-end dist)))
+  (axle a-curve dist (- length (bw 3)))
+  (set dist (- length (bw 3)))
 
   ; Final segment.
   (transform (matrix (a-curve dist))
@@ -171,9 +109,8 @@
     (for (elt disc)
      (part elt 16))))
 
-  (axle-start dist)
+  (axle a-curve dist (+ dist 4.8))
   (set dist (+ dist 4.8))
-  (axle-end dist)
   (transform (matrix (a-curve dist))
    (rotate (vector 90 0 0)
     (for (elt disc)
@@ -186,9 +123,8 @@
     (for (elt disc)
      (part elt 16))))
 
-  (axle-start dist)
+  (axle a-curve dist (+ dist 4.8))
   (set dist (+ dist 4.8))
-  (axle-end dist)
   (transform (matrix (a-curve dist))
    (rotate (vector 90 0 0)
     (for (elt disc)
