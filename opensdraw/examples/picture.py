@@ -90,6 +90,7 @@ class Picture(functions.LCadFunction):
         args = self.getArgs(model, tree)
 
         # If we got t/nil return the size of the picture.
+        # (Note: To check for True use 'x is interpreter.lcad_t').
         if isinstance(args[0], interpreter.LObject) or isinstance(args[1], interpreter.LObject):
             return list(self.im.size)
 
