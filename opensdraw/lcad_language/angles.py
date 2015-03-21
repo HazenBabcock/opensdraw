@@ -12,9 +12,9 @@ import numpy
 
 
 def rotationMatrix(ax, ay, az):
-    ax = toRadians(ax)
-    ay = toRadians(ay)
-    az = toRadians(az)
+    ax = math.radians(ax)
+    ay = math.radians(ay)
+    az = math.radians(az)
 
     rx = numpy.identity(4)
     rx[1,1] = math.cos(ax)
@@ -35,12 +35,6 @@ def rotationMatrix(ax, ay, az):
     rz[1,1] = rz[0,0]
 
     return numpy.dot(rx, numpy.dot(ry, rz))
-
-def toDegrees(angle):
-    return 180.0 * angle/math.pi
-
-def toRadians(angle):
-    return math.pi * angle/180.0
 
 def vectorsToAngles(x_vec, y_vec, z_vec):
     ry = math.atan2(-z_vec[0], math.sqrt(z_vec[1]*z_vec[1] + z_vec[2]*z_vec[2]))
