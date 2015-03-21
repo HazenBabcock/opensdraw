@@ -106,16 +106,17 @@ class LDraw(object):
         self.color = toColor(color)
         self.step = 0
 
-        # Transform coordinates using current transformation matrix.
-        for i in range(len(coords)/3):
-            vec = numpy.array([self.coords[3*i],
-                               self.coords[3*i+1],
-                               self.coords[3*i+2],
-                               1.0])
-            loc = numpy.dot(matrix, vec)
-            self.coords[3*i] = loc[0]
-            self.coords[3*i+1] = loc[1]
-            self.coords[3*i+2] = loc[2]
+        # Transform coordinates using transformation matrix.
+        if matrix is not None:
+            for i in range(len(coords)/3):
+                vec = numpy.array([self.coords[3*i],
+                                   self.coords[3*i+1],
+                                   self.coords[3*i+2],
+                                   1.0])
+                loc = numpy.dot(matrix, vec)
+                self.coords[3*i] = loc[0]
+                self.coords[3*i+1] = loc[1]
+                self.coords[3*i+2] = loc[2]
 
     def toLDraw(self):
         ld_str = self.prefix + self.color + " "
