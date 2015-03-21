@@ -104,7 +104,7 @@ class LCadFunction(object):
         """
         This is what you want to use most of the time. It will return either (1) A list
         containing the standard arguments, followed by the optional arguments or (2) a 
-        list containing a lis of the standard arguments followed by the keyword dictionary.
+        list containing a list of the standard arguments followed by the keyword dictionary.
 
         (1) [standard / optional arguments]
         (2) [[standard arguments], keyword dictionary]
