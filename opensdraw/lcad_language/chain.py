@@ -42,6 +42,10 @@ class ChainFunction(functions.LCadFunction):
         # Return position and orientation.
         return self.chain.getPositionOrientation(arg)
 
+    # This is to make it easier to call directly from other Python modules.
+    def getPosOrientation(self, pos):
+        return self.chain.getPositionOrientation(pos)
+
 
 class LCadChain(functions.LCadFunction):
     """

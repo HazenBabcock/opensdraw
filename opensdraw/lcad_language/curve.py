@@ -43,6 +43,10 @@ class CurveFunction(functions.LCadFunction):
         # Return position and orientation.
         return self.curve.getCoords(arg)
 
+    # This is to make it easier to call directly from other Python modules.
+    def getPosOrientation(self, pos):
+        return self.curve.getCoords(pos)
+
 
 class LCadCurve(functions.LCadFunction):
     """
