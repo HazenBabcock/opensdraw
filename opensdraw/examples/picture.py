@@ -47,7 +47,9 @@ class OpenPicture(functions.LCadFunction):
     #
     # Typically you don't do anything directly with these arguments, but you
     # can if you want to. Examples of functions that use and/or manipulate
-    # the parse tree can be found in coreFunctions, such as def(), if(), for().
+    # the parse tree can be found in lcad_langauge.coreFunctions, such as 
+    # def(), if(), for(). Examples of functions that use the model can found
+    # in library.shapes.
     #
     def call(self, model, tree):
 
