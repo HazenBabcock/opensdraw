@@ -4,6 +4,8 @@
 ; Hazen 03/15
 ;
 
+(pyimport opensdraw.library.shapes)
+
 ;
 ; Create a ribbed hose with specified number of segments that goes along a curve. The hose
 ; is created using primitives, it should be in a group so that you can specify the color
@@ -86,26 +88,14 @@
   ; Outer vector.
   (def out-v (vector 8.01 0 (- center outer)))
 
-  (def v1 (* m1 in-v))
-  (def v2 (* m2 out-v))
-  (def d-angle 22.5)
-  (for (angle d-angle d-angle 365)
-   (def mr (matrix (list 0 0 0 0 0 angle)))
-   (def v3 (* m1 mr in-v))
-   (def v4 (* m2 mr out-v))
-   (if ccw
-     (block
-      (triangle v1 v2 v3)
-      (triangle v3 v2 v4))
-     (block
-      (triangle v2 v1 v3)
-      (triangle v2 v3 v4)))
-   (set v1 v3)
-   (set v2 v4)
-   )))
- 
-;; Sub-parts that the ribbed hose is assembled from.
+  ; Use shapes module to draw the ring.
+  (ring m1 in-v m2 out-v ccw)
 
+  ))
+
+;; 
+;; Sub-parts that the ribbed hose is assembled from.
+;;
 (def ribbed-hose-cylinder ()
  (rotate (list 90 0 0)
   (header "~OpenLDraw Technic Ribbed Hose Cylinder")

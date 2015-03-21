@@ -39,7 +39,7 @@
  (header "!LDRAW_ORG Unofficial_part")
  (header "BFC CERTIFY CCW")
  
- (ribbed-hose 27 (curve (list (list (list 0 0 0) (list 0 0 1) (list 0 1 0))
+ (ribbed-hose 26 (curve (list (list (list 0 0 4) (list 0 0 1) (list 0 1 0))
 			      (list (list 0 0 (bw 1)) (list 0 0 1))
 			      (list (list (bw -1) 0 (bw 5.5)) (list 1 0 0))
 			      (list (list 0 0 (bw 5.5)) (list 1 0 0))))))
@@ -56,7 +56,7 @@
 
  ; Because chain starts wound around the first axle, provide a 
  ; modified version that doesn't start at zero.
- (ribbed-hose 26 (lambda (x) (a-chain (+ x 124.5)))))
+ (ribbed-hose 26 (lambda (x) (a-chain (+ x 128.5)))))
 
 (tb -1 1 1.5 0 0 0 "hose1.ldr" 1)
 (tb -1 -1 1.5 -90 0 180 "hose2.ldr" 1)
