@@ -4,6 +4,8 @@
 ; Hazen 03/15
 ;
 
+; Specify the full path to the shapes module, otherwise Python will not be able to find it
+; as this will likely not be executed in the current working directory.
 (pyimport opensdraw.library.shapes)
 
 ;
