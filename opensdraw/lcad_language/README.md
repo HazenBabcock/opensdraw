@@ -11,6 +11,7 @@ This folder contains the modules that define the lcad language. This is a [prefi
 * geometryFunctions.py - Rotate, Translate, ..
 * interpreter.py - The lcad language interpreter.
 * lcadExceptions.py - Lcad language specific exceptions.
+* lcadTypes.py - Lcad language types.
 * lexerParser.py - The lexer/parser for the lcad language.
 * logicFunctions.py - And, Or, Not.
 * mathFunctions.py - /, *, +, -, ..
