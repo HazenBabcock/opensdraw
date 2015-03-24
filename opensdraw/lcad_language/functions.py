@@ -41,7 +41,7 @@ def typeToString(a_type):
     a_string = a_type.__name__
     if (a_string == "basestring"):
         return "string"
-    if (a_string == "LObject"):
+    if (a_string == "LCadObject"):
         return "t, nil"
     if (a_string == "interp.Symbol"):
         return "symbol"

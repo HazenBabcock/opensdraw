@@ -14,9 +14,9 @@ import numpy
 import os
 
 import functions
-import geometryFunctions
 import interpreter as interp
 import lcadExceptions as lce
+import lcadTypes
 import lexerParser
 
 lcad_functions = {}
@@ -105,7 +105,7 @@ class Aref(CoreFunction):
 
         # 2D matrix.
         else:
-            if not isinstance(tlist, geometryFunctions.LCadMatrix):
+            if not isinstance(tlist, lcadTypes.LCadMatrix):
                 raise lce.WrongTypeException("matrix", functions.typeToString(type(tlist)))
 
             if (args[1] >= 0) and (args[1] < tlist.shape[0]) and (args[2] >= 0) and (args[2] < tlist.shape[1]):

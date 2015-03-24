@@ -17,6 +17,7 @@ import xml.etree.ElementTree as ElementTree
 import lcadExceptions as lce
 import functions
 import lexerParser
+import lcadTypes
 
 # Keeps track of all the built in symbols.
 builtin_symbols = {}
@@ -157,21 +158,14 @@ class Symbol(object):
 # t and nil are objects so that we can do comparisons using 'is' and
 # be gauranteed that there is only one truth and one false.
 
-class LObject(object):
-    
-    def __init__(self, name):
-        self.name = name
-        
-    def __str__(self):
-        return str(self.name)
-
-lcad_t = LObject("t")
+lcad_t = lcadTypes.LCadObject("t")
 builtin_symbols["t"] = Symbol("t", "builtin")
 builtin_symbols["t"].setv(lcad_t)
 
-lcad_nil = LObject("nil")
+lcad_nil = lcadTypes.LCadObject("nil")
 builtin_symbols["nil"] = Symbol("nil", "builtin")
 builtin_symbols["nil"].setv(lcad_nil)
+
 
 builtin_symbols["e"] = Symbol("e", "builtin")
 builtin_symbols["e"].setv(math.e)

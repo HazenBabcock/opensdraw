@@ -12,9 +12,9 @@ import numbers
 import numpy
 
 import functions
-import geometryFunctions
 import interpreter as interp
 import lcadExceptions as lce
+import lcadTypes
 
 
 lcad_functions = {}
@@ -25,6 +25,7 @@ class MathFunction(functions.LCadFunction):
     Math functions.
     """
     pass
+
 
 class Divide(MathFunction):
     """
@@ -127,8 +128,8 @@ class Multiply(MathFunction):
         args = self.getArgs(model, tree)
         total = 1.0
         for arg in args:
-            if isinstance(total, geometryFunctions.LCadMatrix):
-                total = numpy.dot(total, arg).view(geometryFunctions.LCadMatrix)
+            if isinstance(total, lcadTypes.LCadMatrix):
+                total = numpy.dot(total, arg).view(lcadTypes.LCadMatrix)
             else:
                 total = total * arg
         return total

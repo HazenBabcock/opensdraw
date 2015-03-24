@@ -15,6 +15,7 @@ import angles
 import functions
 import interpreter as interp
 import lcadExceptions as lce
+import lcadTypes
 
 lcad_functions = {}
 
@@ -68,14 +69,6 @@ def translationMatrix(tx, ty, tz):
     return m
 
 
-# Maybe these types should go in a separate file, possibly with other types?
-class LCadMatrix(numpy.ndarray):
-    pass
-
-class LCadVector(numpy.ndarray):
-    pass
-
-
 class GeometryFunction(functions.LCadFunction):
     pass
 
@@ -96,7 +89,7 @@ class CrossProduct(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "cross-product")
-        self.setSignature([[LCadVector], [LCadVector], ["optional", [interp.LObject]]])
+        self.setSignature([[lcadTypes.LCadVector], [lcadTypes.LCadVector], ["optional", [lcadTypes.LCadObject]]])
 
     def call(self, model, tree):
         args = self.getArgs(model, tree)
@@ -111,7 +104,7 @@ class CrossProduct(GeometryFunction):
             cp = cp/numpy.linalg.norm(cp)
 
         cp = numpy.append(cp, 1)
-        return cp.view(LCadVector)
+        return cp.view(lcadTypes.LCadVector)
 
 lcad_functions["cross-product"] = CrossProduct()
 
@@ -131,7 +124,7 @@ class DotProduct(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "dot-product")
-        self.setSignature([[LCadVector], [LCadVector]])
+        self.setSignature([[lcadTypes.LCadVector], [lcadTypes.LCadVector]])
 
     def call(self, model, tree):
         [v1, v2] = self.getArgs(model, tree)
@@ -197,11 +190,11 @@ class Matrix(GeometryFunction):
             m = numpy.identity(4)
             for i in range(12):
                 m[mapping[i][1]] = vals[i]
-            return m.view(LCadMatrix)
+            return m.view(lcadTypes.LCadMatrix)
 
         # 6 elements.
         elif (len(vals) == 6):
-            return numpy.dot(translationMatrix(*vals[0:3]), angles.rotationMatrix(*vals[3:6])).view(LCadMatrix)
+            return numpy.dot(translationMatrix(*vals[0:3]), angles.rotationMatrix(*vals[3:6])).view(lcadTypes.LCadMatrix)
 
         else:
             raise lce.LCadException("Expected a list with 6 or 12 members, got " + str(len(vals)))
@@ -226,7 +219,7 @@ class Mirror(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "mirror")
-        self.setSignature([[list, LCadVector], ["optional", [object]]])
+        self.setSignature([[list, lcadTypes.LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
@@ -273,7 +266,7 @@ class Rotate(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "rotate")
-        self.setSignature([[list, LCadVector], ["optional", [object]]])
+        self.setSignature([[list, lcadTypes.LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
@@ -310,7 +303,7 @@ class Scale(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "scale")
-        self.setSignature([[list, LCadVector], ["optional", [object]]])
+        self.setSignature([[list, lcadTypes.LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
@@ -365,7 +358,7 @@ class Transform(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "transform")
-        self.setSignature([[list, LCadMatrix], ["optional", [object]]])
+        self.setSignature([[list, lcadTypes.LCadMatrix], ["optional", [object]]])
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
@@ -419,7 +412,7 @@ class Translate(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "translate")
-        self.setSignature([[list, LCadVector], ["optional", [object]]])
+        self.setSignature([[list, lcadTypes.LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
 
@@ -472,7 +465,7 @@ class Vector(GeometryFunction):
         if (len(vals) == 3):
             vals.append(1.0)
 
-        return numpy.array(vals).view(LCadVector)
+        return numpy.array(vals).view(lcadTypes.LCadVector)
 
 lcad_functions["vector"] = Vector()
 

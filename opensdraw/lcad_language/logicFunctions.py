@@ -10,6 +10,7 @@
 import functions
 import interpreter as interp
 import lcadExceptions as lce
+import lcadTypes
 
 lcad_functions = {}
 
@@ -33,7 +34,7 @@ class And(LogicFunction):
     """
     def __init__(self, name):
         LogicFunction.__init__(self, name)
-        self.setSignature([[interp.LObject], [interp.LObject], ["optional", [interp.LObject]]])
+        self.setSignature([[lcadTypes.LCadObject], [lcadTypes.LCadObject], ["optional", [lcadTypes.LCadObject]]])
 
     def call(self, model, tree):
         for i in range(self.numberArgs(tree)):
@@ -56,7 +57,7 @@ class Or(LogicFunction):
     """
     def __init__(self, name):
         LogicFunction.__init__(self, name)
-        self.setSignature([[interp.LObject], [interp.LObject], ["optional", [interp.LObject]]])
+        self.setSignature([[lcadTypes.LCadObject], [lcadTypes.LCadObject], ["optional", [lcadTypes.LCadObject]]])
 
     def call(self, model, tree):
         for i in range(self.numberArgs(tree)):
@@ -78,7 +79,7 @@ class Not(LogicFunction):
     """
     def __init__(self, name):
         LogicFunction.__init__(self, name)
-        self.setSignature([[interp.LObject]])
+        self.setSignature([[lcadTypes.LCadObject]])
 
     def call(self, model, tree):
         if functions.isTrue(self.getArg(model, tree, 0)):
