@@ -11,9 +11,9 @@ import math
 import numbers
 import numpy
 
-import opensdraw.lcad_language.geometryFunctions as geometryFunctions
 import opensdraw.lcad_language.interpreter as interpreter
 import opensdraw.lcad_language.lexerParser as lexerParser
+import opensdraw.lcad_language.lcadTypes as lcadTypes
 
 def exe(string):
     """
@@ -283,10 +283,10 @@ def test_dot_product_2():
 
 # matrix
 def test_matrix_1():
-    assert isinstance(exe("(matrix (list 1 2 3 1 2 3 1 2 3 1 2 3))"), geometryFunctions.LCadMatrix)
+    assert isinstance(exe("(matrix (list 1 2 3 1 2 3 1 2 3 1 2 3))"), lcadTypes.LCadMatrix)
 
 def test_matrix_2():
-    assert isinstance(exe("(matrix (list 0 0 0 0 0 0))"), geometryFunctions.LCadMatrix)
+    assert isinstance(exe("(matrix (list 0 0 0 0 0 0))"), lcadTypes.LCadMatrix)
 
 # mirror
 def test_mirror_1():
@@ -328,7 +328,7 @@ def test_translate_1():
 
 # vector
 def test_vector_1():
-    assert isinstance(exe("(vector 1 2 3)"), geometryFunctions.LCadVector)
+    assert isinstance(exe("(vector 1 2 3)"), lcadTypes.LCadVector)
 
 
 ## Logical Operators.

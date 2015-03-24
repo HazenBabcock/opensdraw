@@ -13,8 +13,8 @@ import numpy
 import opensdraw.lcad_language.angles as angles
 import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.geometryFunctions as geometryFunctions
-import opensdraw.lcad_language.interpreter as interpreter
 import opensdraw.lcad_language.parts as parts
+import opensdraw.lcad_language.lcadTypes as lcadTypes
 
 lcad_functions = {}
 
@@ -218,11 +218,11 @@ class Ring(functions.LCadFunction):
         functions.LCadFunction.__init__(self, "ring")
 
         self.matrices = rotationMatrices()
-        self.setSignature([[geometryFunctions.LCadMatrix],
-                           [geometryFunctions.LCadVector],
-                           [geometryFunctions.LCadMatrix],
-                           [geometryFunctions.LCadVector],
-                           [interpreter.LObject]])
+        self.setSignature([[lcadTypes.LCadMatrix],
+                           [lcadTypes.LCadVector],
+                           [lcadTypes.LCadMatrix],
+                           [lcadTypes.LCadVector],
+                           [lcadTypes.LCadObject]])
 
     def call(self, model, tree):
         [m1, v1, m2, v2, ccw] = self.getArgs(model, tree)
