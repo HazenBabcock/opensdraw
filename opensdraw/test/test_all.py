@@ -418,6 +418,8 @@ def test_chain_1():
 def test_curve_1():
     assert exe("(curve (list (list (list 0 0 0) (list 1 1 0) (list 0 0 1)) (list (list 5 0 0) (list 1 0 0)))) 1") == 1
 
+def test_curve_2():
+    assert exe("(def my-curve (curve (list (list (list 0 0 0) (list 1 0 0) (list 0 0 1)) (list (list 1 0 0) (list 1 0 0))))) (my-curve t)") == 1.0
 
 # Random Number Functions.
 def test_rand_seed_1():
