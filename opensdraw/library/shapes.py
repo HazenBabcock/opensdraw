@@ -255,6 +255,70 @@ class Ring(functions.LCadFunction):
 lcad_functions["ring"] = Ring()
 
 
+class Rod(functions.LCadFunction):
+    """
+    **rod** - Draw a rod using LDraw primitives.
+
+    :param curve: The curve that the rod should follow.
+    :param start: The starting point on the curve.
+    :param stop: The stopping point on the curve.
+    :param radius: The radius of the rod.
+
+    The rod will have the color 16.
+
+    Usage::
+
+     (rod curve 0 10 2) ; Draw a 2 LDU diameter rod from 0 to 10 along curve.
+
+    """
+    def __init__(self):
+        functions.LCadFunction.__init__(self, "rod")
+
+        self.matrices = rotationMatrices()
+        self.setSignature([[functions.LCadFunction],
+                           [numbers.Number],
+                           [numbers.Number],
+                           [numbers.Number]])
+
+    def call(self, model, tree):
+        [curve, start, stop, radius] = self.getArgs(model, tree)
+
+        group = model.curGroup()
+        matrix = group.matrix()
+        stepper = Stepper(curve, start, stop)
+
+        # Create vectors.
+        vectors = createVectors(self.matrices, numpy.array([radius, 0, 0, 1]))
+        
+        # Starting ring.
+        cm = numpy.dot(matrix, transformMatrix(stepper.posOri()))
+        last_v = createRing(cm, vectors)
+
+        n_vert = len(last_v) - 1
+        pos = stepper.nextPos()
+        while (pos < stop):
+            cm = numpy.dot(matrix, transformMatrix(stepper.posOri()))
+            cur_v = createRing(cm, vectors)
+
+            for i in range(n_vert):
+                group.addPart(parts.Line(None, numpy.append(last_v[i], cur_v[i]), 16), True)
+                group.addPart(parts.Triangle(None, numpy.append(last_v[i], [last_v[i+1], cur_v[i]]), 16), True)
+                group.addPart(parts.Triangle(None, numpy.append(last_v[i+1], [cur_v[i+1], cur_v[i]]), 16), True)
+
+            pos = stepper.nextPos()
+            last_v = cur_v
+
+        cm = numpy.dot(matrix, transformMatrix(curve.getPosOrientation(stop)))
+        cur_v = createRing(cm, vectors)
+
+        for i in range(n_vert):
+            group.addPart(parts.Line(None, numpy.append(last_v[i], cur_v[i]), 16), True)
+            group.addPart(parts.Triangle(None, numpy.append(last_v[i], [last_v[i+1], cur_v[i]]), 16), True)
+            group.addPart(parts.Triangle(None, numpy.append(last_v[i+1], [cur_v[i+1], cur_v[i]]), 16), True)
+
+lcad_functions["rod"] = Rod()
+
+
 class Tube(functions.LCadFunction):
     """
     **tube** - Draw a tube using LDraw primitives.
