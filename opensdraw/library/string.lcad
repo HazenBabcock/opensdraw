@@ -1,0 +1,48 @@
+;
+; Function to make adding string to a MOC easier.
+;
+; Hazen 03/15
+;
+
+(pyimport opensdraw.library.shapes)
+
+(import locate :local)
+
+;
+; Create a string of the specified length that goes along the specified curve.
+; The string should be in a group so that you can specify the color and back
+; face culling.
+;
+; Example:
+;
+;  (group "my-string"
+;   (header "!LDRAW_ORG Unofficial_part")
+;   (header "BFC CERTIFY CCW")
+;   (string 0 20 1 my-curve))
+;  (part "my-string" 0)
+;
+; start - String starting point on the curve.
+; stop - String stopping point on the curve.
+; radius - Radius of the string.
+; a-curve - The curve function that the string should follow.
+;
+(def string (start stop radius a-curve)
+ (block
+
+  ; Start element.
+  (transform (matrix (a-curve start))
+   (rotate (vector 90 0 0)
+    (scale (vector radius 1 radius)
+     (part "4-4edge" 16)
+     (part "4-4disc" 16))))
+
+  (rod a-curve start stop radius)
+
+  ; End element.
+  (transform (matrix (a-curve stop))
+   (rotate (vector -90 0 0)
+    (scale (vector radius 1 radius)
+     (part "4-4edge" 16)
+     (part "4-4disc" 16))))
+  ))
+
