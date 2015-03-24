@@ -2,6 +2,7 @@
 This folder contains the modules that define the lcad language. This is a [prefix](http://en.wikipedia.org/wiki/Polish_notation) notation language similar to [Scheme](http://en.wikipedia.org/wiki/Scheme_%28programming_language%29).
 
 ### Files ###
+* angles.py - Geometry utility functions.
 * chain.py - A function for creating chains, tracks, ..
 * comparisonFunctions.py - >, <, = , ..
 * coreFunctions.py - The basic functions in OpenLDraw.
@@ -13,6 +14,7 @@ This folder contains the modules that define the lcad language. This is a [prefi
 * lexerParser.py - The lexer/parser for the lcad language.
 * logicFunctions.py - And, Or, Not.
 * mathFunctions.py - /, *, +, -, ..
+* modules.xml - The standard modules that opensdraw will load.
 * partFunctions.py - LDraw parts and primitives (line, triangle, ..).
 * parts.py - The Part object.
 * randomNumberFunctions.py - Random number generating functions.
