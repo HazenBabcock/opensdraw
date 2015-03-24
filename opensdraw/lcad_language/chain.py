@@ -12,40 +12,13 @@ import numbers
 import numpy
 
 import angles
+import curveFunctions
 import functions
 import interpreter as interp
 import lcadExceptions
 import lcadTypes
 
 lcad_functions = {}
-
-
-#
-# These classes create a chain function that can be used in opensdraw.
-#
-class ChainFunction(functions.LCadFunction):
-
-    def __init__(self, chain):
-        functions.LCadFunction.__init__(self, "user created chain function")
-        self.setSignature([[lcadTypes.LCadObject, numbers.Number]])
-        self.chain = chain
-
-    def call(self, model, tree):
-        arg = self.getArg(model, tree, 0)
-
-        # If arg is t return the chain length.
-        if not isinstance(arg, numbers.Number):
-            if functions.isTrue(arg):
-                return self.chain.chain_length
-            else:
-                return interp.lcad_nil
-
-        # Return position and orientation.
-        return self.chain.getPositionOrientation(arg)
-
-    # This is to make it easier to call directly from other Python modules.
-    def getPosOrientation(self, pos):
-        return self.chain.getPositionOrientation(pos)
 
 
 class LCadChain(functions.LCadFunction):
@@ -89,7 +62,7 @@ class LCadChain(functions.LCadFunction):
     def __init__(self):
         functions.LCadFunction.__init__(self, "chain")
         self.setSignature([[list], 
-                           ["keyword", {"continuous" : [[interp.Symbol], interp.lcad_t]}]])
+                           ["keyword", {"continuous" : [[lcadTypes.LCadObject], interp.lcad_t]}]])
 
     def call(self, model, tree):
         [args, keywords] = self.getArgs(model, tree)
@@ -130,7 +103,7 @@ class LCadChain(functions.LCadFunction):
         chain.finishChain()
 
         # Return chain function.
-        return ChainFunction(chain)
+        return curveFunctions.CurveFunction(chain, "user created chain function.")
 
 lcad_functions["chain"] = LCadChain()
 
@@ -186,10 +159,7 @@ class Chain(object):
                              0])
         return angles.vectorsToAngles(x_vec, y_vec, z_vec)
 
-    def getLen(self):
-        return len(self.chain)
-
-    def getPositionOrientation(self, distance):
+    def getCoords(self, distance):
         """
         Return the position and orientation for a segment at distance along the chain.
         distance is modulo the chain length.
@@ -278,6 +248,12 @@ class Chain(object):
         return [self.chain[start].x + dx,
                 self.chain[start].y + dy,
                 0, rx, ry, rz]
+
+    def getLen(self):
+        return len(self.chain)
+
+    def getLength(self):
+        return self.chain_length
 
 
 class ChainSegment(object):
@@ -489,7 +465,7 @@ if (__name__ == "__main__"):
 
     if 1:
         for i in range(23):
-            [x, y, z, rx, ry, rz] = chain.getPositionOrientation(i - 3)
+            [x, y, z, rx, ry, rz] = chain.getCoords(i - 3)
             dx = math.cos(rz * math.pi/180.0)
             dy = math.sin(rz * math.pi/180.0)
             ax.arrow(x, y, dx, dy, head_width=0.05, head_length=0.1, fc='k', ec='k')

@@ -13,40 +13,13 @@ import numpy
 from scipy.optimize import minimize
 
 import angles
+import curveFunctions
 import functions
 import interpreter as interp
 import lcadExceptions
 import lcadTypes
 
 lcad_functions = {}
-
-
-#
-# These classes create a curve function that can be used in opensdraw.
-#
-class CurveFunction(functions.LCadFunction):
-
-    def __init__(self, curve):
-        functions.LCadFunction.__init__(self, "user created curve function")
-        self.setSignature([[lcadTypes.LCadObject, numbers.Number]])
-        self.curve = curve
-
-    def call(self, model, tree):
-        arg = self.getArg(model, tree, 0)
-
-        # If arg is t return the curve length.
-        if not isinstance(arg, numbers.Number):
-            if functions.isTrue(arg):
-                return self.curve.length
-            else:
-                return interp.lcad_nil
-
-        # Return position and orientation.
-        return self.curve.getCoords(arg)
-
-    # This is to make it easier to call directly from other Python modules.
-    def getPosOrientation(self, pos):
-        return self.curve.getCoords(pos)
 
 
 class LCadCurve(functions.LCadFunction):
@@ -102,8 +75,8 @@ class LCadCurve(functions.LCadFunction):
     def __init__(self):
         functions.LCadFunction.__init__(self, "curve")
         self.setSignature([[list],
-                           ["keyword", {"auto-scale" : [[interp.Symbol], interp.lcad_t],
-                                        "extrapolate" : [[interp.Symbol], interp.lcad_t],
+                           ["keyword", {"auto-scale" : [[lcadTypes.LCadObject], interp.lcad_t],
+                                        "extrapolate" : [[lcadTypes.LCadObject], interp.lcad_t],
                                         "scale" : [[numbers.Number], 1.0],
                                         "twist" : [[numbers.Number], 0]}]])
 
@@ -174,7 +147,7 @@ class LCadCurve(functions.LCadFunction):
             curve.addSegment(control_points[i], control_points[i+1])
 
         # Return curve function.
-        return CurveFunction(curve)
+        return curveFunctions.CurveFunction(curve, "user created curve function.")
 
 lcad_functions["curve"] = LCadCurve()
 
@@ -348,6 +321,9 @@ class Curve(object):
         # Add twist to the z angle.
         rz += self.total_twist * (dist / self.length)
         return [x, y, z, rx, ry, rz]
+
+    def getLength(self):
+        return self.length
                 
 
 class Segment(object):
