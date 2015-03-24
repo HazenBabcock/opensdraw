@@ -7,6 +7,7 @@ This folder contains the modules that define the lcad language. This is a [prefi
 * comparisonFunctions.py - >, <, = , ..
 * coreFunctions.py - The basic functions in OpenLDraw.
 * curve.py - A function for creating curves (cubic splines).
+* curveFunctions.py - The function returned by curve, chain.
 * functions.py - The LCadFunction and UserFunction classes.
 * geometryFunctions.py - Rotate, Translate, ..
 * interpreter.py - The lcad language interpreter.
