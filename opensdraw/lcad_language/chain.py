@@ -15,6 +15,7 @@ import angles
 import functions
 import interpreter as interp
 import lcadExceptions
+import lcadTypes
 
 lcad_functions = {}
 
@@ -26,15 +27,15 @@ class ChainFunction(functions.LCadFunction):
 
     def __init__(self, chain):
         functions.LCadFunction.__init__(self, "user created chain function")
-        self.setSignature([[interp.Symbol, numbers.Number]])
+        self.setSignature([[lcadTypes.LCadObject, numbers.Number]])
         self.chain = chain
 
     def call(self, model, tree):
         arg = self.getArg(model, tree, 0)
 
         # If arg is t return the chain length.
-        if isinstance(arg, interp.Symbol):
-            if (arg is interp.lcad_t):
+        if not isinstance(arg, numbers.Number):
+            if functions.isTrue(arg):
                 return self.chain.chain_length
             else:
                 return interp.lcad_nil
