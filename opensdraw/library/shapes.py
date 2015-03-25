@@ -11,6 +11,7 @@ import numbers
 import numpy
 
 import opensdraw.lcad_language.angles as angles
+import opensdraw.lcad_language.curveFunctions as curveFunctions
 import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.geometryFunctions as geometryFunctions
 import opensdraw.lcad_language.parts as parts
@@ -159,7 +160,7 @@ class Axle(functions.LCadFunction):
                         numpy.array([5.602, -2, 0, 1]),
                         numpy.array([6, 0, 0, 1])]
 
-        self.setSignature([[functions.LCadFunction],
+        self.setSignature([[curveFunctions.CurveFunction],
                            [numbers.Number],
                            [numbers.Number]])
 
@@ -275,7 +276,7 @@ class Rod(functions.LCadFunction):
         functions.LCadFunction.__init__(self, "rod")
 
         self.matrices = rotationMatrices()
-        self.setSignature([[functions.LCadFunction],
+        self.setSignature([[curveFunctions.CurveFunction],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number]])
@@ -341,7 +342,7 @@ class Tube(functions.LCadFunction):
         functions.LCadFunction.__init__(self, "tube")
 
         self.matrices = rotationMatrices()
-        self.setSignature([[functions.LCadFunction],
+        self.setSignature([[curveFunctions.CurveFunction],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number],
