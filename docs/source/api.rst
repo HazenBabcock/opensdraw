@@ -54,7 +54,6 @@ Usage::
   (sin x)
   ...
 
-
 Miscellaneous Functions
 -----------------------
 
@@ -63,6 +62,9 @@ Miscellaneous Functions
 
 .. automodule:: opensdraw.lcad_language.curve
    :members: LCadCurve
+
+.. automodule:: opensdraw.lcad_language.spring
+   :members: LCadSpring
 
 Random Number Functions
 -----------------------
