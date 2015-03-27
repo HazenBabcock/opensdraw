@@ -1,5 +1,5 @@
 ;
-; Function to make adding string to a MOC easier.
+; Function to make adding a flexible rod to a MOC easier.
 ;
 ; Hazen 03/15
 ;
@@ -9,25 +9,27 @@
 (import locate :local)
 
 ;
-; Create a string of the specified length that goes along the specified curve.
-; The string should be in a group so that you can specify the color and back
+; Create a rod of the specified length that goes along the specified curve.
+; The rod should be in a group so that you can specify the color and back
 ; face culling.
 ;
 ; Example:
 ;
-;  (group "my-string"
+;  (group "my-rod.ldr"
 ;   (header "!LDRAW_ORG Unofficial_part")
 ;   (header "BFC CERTIFY CCW")
-;   (string 0 20 1 my-curve))
-;  (part "my-string" 0)
+;   (flexible-rod 0 20 1 my-curve))
+;  (part "my-rod.ldr" 0)
 ;
-; start - String starting point on the curve.
-; stop - String stopping point on the curve.
-; radius - Radius of the string.
-; a-curve - The curve function that the string should follow.
+; start - Rod starting point on the curve.
+; stop - Rod stopping point on the curve.
+; diameter - Diameter of the rod.
+; a-curve - The curve function that the rod should follow.
 ;
-(def string (start stop radius a-curve)
+(def flexible-rod (start stop diameter a-curve)
  (block
+
+  (def radius (/ diameter 2.0))
 
   ; Start element.
   (transform (matrix (a-curve start))
