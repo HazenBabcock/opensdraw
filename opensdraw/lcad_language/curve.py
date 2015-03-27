@@ -362,24 +362,6 @@ class Segment(object):
         self.y_coeff = numpy.linalg.solve(A, vy)
         self.z_coeff = numpy.linalg.solve(A, vz)
 
-    #
-    # This is the same approach that is used in ldraw_to_lcad.py to 
-    # extract the rotation angles from the rotation matrix.
-    #
-    def getAngles(self, p, x_vec):
-
-        # Calculate z vector.
-        z_vec = normVector(self.d_xyz(p))
-    
-        # Calculate x vector.
-        proj = projVector(x_vec, z_vec)
-        x_vec = normVector(x_vec - proj)
-
-        # Calculate y vector
-        y_vec = crossProduct(z_vec, x_vec)
-
-        return angles.vectorsToAngles(x_vec, y_vec, z_vec)        
-
     def calcLUTs(self, dist_offset):
 
         # Compute distance look-up table and segment length
@@ -441,6 +423,24 @@ class Segment(object):
         return numpy.array([numpy.sum(self.x_coeff * p_vec),
                             numpy.sum(self.y_coeff * p_vec),
                             numpy.sum(self.z_coeff * p_vec)])
+
+    #
+    # This is the same approach that is used in ldraw_to_lcad.py to 
+    # extract the rotation angles from the rotation matrix.
+    #
+    def getAngles(self, p, x_vec):
+
+        # Calculate z vector.
+        z_vec = normVector(self.d_xyz(p))
+    
+        # Calculate x vector.
+        proj = projVector(x_vec, z_vec)
+        x_vec = normVector(x_vec - proj)
+
+        # Calculate y vector
+        y_vec = crossProduct(z_vec, x_vec)
+
+        return angles.vectorsToAngles(x_vec, y_vec, z_vec)        
 
     def getCoords(self, distance):
 
