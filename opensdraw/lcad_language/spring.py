@@ -38,6 +38,7 @@ class LCadSpring(functions.LCadFunction):
     :param end-turns: (optional) The number of turns at the end of the spring, default is 2.
 
     Usage::
+
      (import flexible-rod :locale)            ; Import the flexible-rod module.
      (def a-spring (spring 40 10 1 10))       ; Create a length 40 spring with diameter 10, gauge 1 and 10 turns.
      (flexible-rod a-spring 0 (a-spring t) 1) ; Draw a rod a long the path of a-spring with diameter 1.
