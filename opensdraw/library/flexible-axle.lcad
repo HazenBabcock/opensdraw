@@ -16,11 +16,11 @@
 ;
 ; Example:
 ;
-;  (group "my-axle"
+;  (group "my-axle.ldr"
 ;   (header "!LDRAW_ORG Unofficial_part")
 ;   (header "BFC CERTIFY CCW")
 ;   (flexible-axle 9 my-curve))
-;  (part "my-axle" 10)
+;  (part "my-axle.ldr" 10)
 ;
 ; length - The total length of the axle in LDU.
 ; a-curve - The curve function that the axle should follow.

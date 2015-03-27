@@ -20,11 +20,11 @@
 ;
 ; Example:
 ;
-;  (group "my-hose"
+;  (group "my-hose.ldr"
 ;   (header "!LDRAW_ORG Unofficial_part")
 ;   (header "BFC CERTIFY CCW")
 ;   (ribbed-hose 20 my-curve))
-;  (part "my-hose" 10)
+;  (part "my-hose.ldr" 10)
 ;
 ; segments - The number of ribs in the ribbed hose.
 ; a-curve - The curve function that the ribbed hose should follow.

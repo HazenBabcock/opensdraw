@@ -16,11 +16,11 @@
 ;
 ; Example:
 ;
-;  (group "my-hose"
+;  (group "my-hose.ldr"
 ;   (header "!LDRAW_ORG Unofficial_part")
 ;   (header "BFC CERTIFY CCW")
 ;   (flexible-hose 9 my-curve))
-;  (part "my-hose" 10)
+;  (part "my-hose.ldr" 10)
 ;
 ; length - The total length of the hose in LDU.
 ; a-curve - The curve function that the hose should follow.
