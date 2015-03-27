@@ -1,6 +1,8 @@
 
 Current:
 
+2014-03-27: Add spring() module for spring (and helix) creation.
+
 2015-03-23: Add Python shapes module to speed up adding primitives to a
 	    model for things like tubes, axles, etc.
 
