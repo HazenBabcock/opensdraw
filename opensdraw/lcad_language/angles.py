@@ -49,4 +49,4 @@ def vectorsToAngles(x_vec, y_vec, z_vec):
         rx = math.atan2(-z_vec[1], z_vec[2])
         rz = math.atan2(-y_vec[0], x_vec[0])
 
-    return map(lambda(x): x * 180.0/math.pi, [rx, ry, rz])
+    return map(lambda(x): math.degrees(x), [rx, ry, rz])
