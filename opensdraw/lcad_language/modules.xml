@@ -9,4 +9,5 @@
   <module>opensdraw.lcad_language.mathFunctions</module>
   <module>opensdraw.lcad_language.partFunctions</module>
   <module>opensdraw.lcad_language.randomNumberFunctions</module>
+  <module>opensdraw.lcad_language.spring</module>
 </modules>
