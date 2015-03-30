@@ -13,6 +13,7 @@ import numpy
 import angles
 import curveFunctions
 import functions
+import geometryFunctions
 import interpreter as interp
 import lcadExceptions
 import lcadTypes
@@ -32,9 +33,44 @@ class LCadBelt(functions.LCadFunction):
     chain function this allows for (almost) arbitrary locations and 
     orientations of the pulleys / sprockets. All units are in LDU.
 
+    Each pulley / sprocket is specified by a 4 member list consisting of
+    *(position orientation radius winding-direction)* where position and
+    orientation are 3 element lists specifying the location and the 
+    vector perpendicular to the pulley / sprocket respectively. 
+    winding-direction specifies which way belt goes around the pulley 
+    / sprocket (1 = counter-clockwise, -1 = clockwise). The belt goes 
+    around the pulleys / sprockets in the order in which they are 
+    specified, and when *:continuous* is t returns from the last pulley 
+    / sprocket to the first to close the loop.
+
+    When you call the created belt function you will get a 6 element list
+    *(x y z rx ry rz)* where *x*, *y*, and *z* specify the position of the
+    belt at distance *d*. The angle *rx*, *ry* and *rz* will rotate the
+    coordinate system such that z-axis is pointing along the belt, the
+    y-axis is in the plane of the belt and the x-axis is perpendicular
+    to the plane of the belt.
+
+    If you call the created belt function with the argument **t** it will return the 
+    length of the belt.
+
+    Additionally belt has the keyword argument::
+
+      :continuous t/nil  ; The default is t, distances will be interpreted modulo the belt length, and
+                         ; the belt will go from that last pulley back to the first pulley. If nil
+                         ; then negative distances will wrap around the first pulley and positive
+                         ; distances will wrap around the last pulley.
+
     Usage::
 
-     ...
+     (def a-belt (belt (list (list (list 0 0 0) ; Create a belt with two pulleys.
+                                   (list 0 0 1) ; Pulley one is at 0,0,0 and is in the
+                                   1.0 1)       ; x-y plane with radius 1 and counter-clockwise
+                             (list (list 4 0 0) ; winding direction.
+                                   (list 0 0 1) ; Pulley two is at 4,0,0 with radius 1.5.
+                                   1.5 1))))  
+
+     (def b1 (a-belt 1))                        ; b1 is the list (x y z rx ry rz).
+     (a-belt t)                                 ; Returns the length of the belt.
 
     """
 
@@ -44,13 +80,58 @@ class LCadBelt(functions.LCadFunction):
                            ["optional", [numbers.Number]]])
 
     def call(self, model, tree):
-        args = self.getArgs(model, tree)
+        [args, keywords] = self.getArgs(model, tree)
+
+        # Keywords
+        continuous = True if functions.isTrue(keywords["continuous"]) else False
+
+        # Get list of pulleys.
+        pulley_list = args[0]
+        if (len(pulley_list) < 2):
+            raise NumberPulleysException(len(pulley_list))
+
+        # Create belt.
+        belt = Belt(continuous)
+        for pulley in pulley_list:
+        
+            if not isinstance(pulley, list):
+                raise lcadExceptions.WrongTypeException("list", type(pulley))
+
+            if (len(pulley) != 4):
+                raise PulleyException(len(pulley))
+
+            # Position vector.
+            pos = geometryFunctions.parseArgs(pulley[0])
+
+            # Orientation vector.
+            z_vec = geometryFunctions.parseArgs(pulley[1])
+
+            # Radius
+            radius = pulley[2]
+            if not isinstance(radius, numbers.Number):
+                raise lcadExceptions.WrongTypeException("number", type(radius))
+
+            # Winding.
+            winding = pulley[3]
+            if not isinstance(winding, numbers.Number):
+                raise lcadExceptions.WrongTypeException("number", type(winding))
+
+            belt.addSprocket(Sprocket(pos, z_vec, radius, winding))
+
+        belt.finalize()
 
         # Return belt function.
         return curveFunctions.CurveFunction(belt, "user created belt function.")
 
 lcad_functions["belt"] = LCadBelt()
 
+class NumberPulleysException(lcadExceptions.LCadException):
+    def __init__(self, got):
+        lcadExceptions.LCadException.__init__(self, "A belt must have 2 sprockets, got " + str(got))
+
+class PulleyException(lcadExceptions.LCadException):
+    def __init__(self, got):
+        lcadExceptions.LCadException.__init__(self, "A pulley must have 4 arguments, got " + str(got))
 
 #
 # The classes below do the math necessary to create a belt / chain.
@@ -73,8 +154,7 @@ class Belt(object):
         # Add sprockets.
         for i in range(len(self.sprockets) - 1):
             self.sprockets[i].nextSprocket(self.sprockets[i+1])
-        if self.continuous:
-            self.sprockets[-1].nextSprocket(self.sprockets[0])
+        self.sprockets[-1].nextSprocket(self.sprockets[0])
 
         # Calculate tangents.
         for i in range(len(self.sprockets) - 1):
@@ -115,8 +195,10 @@ class Sprocket(object):
     """
     A sprocket / pulley. This does most of the work.
     """
-    def __init__(self, coords, radius, ccw):
-        self.ccw = ccw
+    def __init__(self, pos, z_vec, radius, ccw):
+        self.ccw = True
+        if (ccw == -1):
+            self.ccw = False
         self.enter_angle = None
         self.enter_vec = None
         self.leave_angle = None
@@ -124,12 +206,12 @@ class Sprocket(object):
         self.length = 0
         self.matrix = numpy.zeros((3,3))
         self.n_vec = None
-        self.pos = numpy.array(coords[:3])
+        self.pos = numpy.array(pos)
         self.radius = radius
         self.sp_length = 0
         self.t_twist = None
         self.t_vec = None
-        self.z_vec = numpy.array(coords[3:])
+        self.z_vec = numpy.array(z_vec)
         
         self.z_vec = self.z_vec/numpy.linalg.norm(self.z_vec)
 
@@ -145,8 +227,9 @@ class Sprocket(object):
                 while (self.leave_angle > self.enter_angle):
                     self.leave_angle -= 2.0 * math.pi
 
-        if (self.t_vec is not None):
             self.sp_length = self.radius * abs(self.enter_angle - self.leave_angle)
+
+        if (self.t_vec is not None):
             self.length = self.sp_length + numpy.linalg.norm(self.t_vec)
 
     def calcTangent(self, next_sp):
@@ -204,37 +287,29 @@ class Sprocket(object):
         z_vec = self.t_vec / numpy.linalg.norm(self.t_vec)
 
         y_vec = numpy.cross(z_vec, next_sp.z_vec)
-#        if not next_sp.ccw:
-#            y_vec = -y_vec
-#        if next_sp.ccw:
-#            y_vec = numpy.cross(z_vec, next_sp.z_vec)
-#        else:
-#            y_vec = numpy.cross(next_sp.z_vec, z_vec)
         y_vec = y_vec / numpy.linalg.norm(y_vec)
         x_vec = numpy.cross(y_vec, z_vec)
 
         self.t_twist = math.atan2(numpy.dot(l_vec, x_vec), numpy.dot(l_vec, y_vec))
-        #print self.t_twist
-        #print numpy.linalg.norm(x_vec), numpy.linalg.norm(y_vec), numpy.linalg.norm(z_vec)
-        #print self.z_vec, next_sp.z_vec
-        #print numpy.dot(l_vec, x_vec), numpy.dot(l_vec, y_vec), self.t_twist
 
     def getCoords(self, distance):
 
         # On the sprocket.
         if (distance < self.sp_length) or (self.t_vec is None):
+            angle = self.enter_angle
+            if (distance < 0):
+                angle = self.leave_angle
+
             if self.ccw:
-                angle = self.enter_angle + distance / self.radius
+                angle += distance / self.radius
             else:
-                angle = self.enter_angle - distance / self.radius
+                angle -= distance / self.radius
             y_vec = self.rotateVector(numpy.array([self.radius, 0, 0]), angle)
             pos = self.pos + y_vec
             y_vec = y_vec/numpy.linalg.norm(y_vec)
 
             if not self.ccw:
                 y_vec = -y_vec
-            #else:
-            #z_vec = numpy.cross(y_vec, self.z_vec)
 
             z_vec = numpy.cross(self.z_vec, y_vec)
             x_vec = numpy.cross(y_vec, z_vec)
@@ -250,10 +325,6 @@ class Sprocket(object):
 
             z_vec = self.t_vec / numpy.linalg.norm(self.t_vec)
             y_vec = numpy.cross(z_vec, self.z_vec)
-            #if self.ccw:
-            #    y_vec = numpy.cross(z_vec, self.z_vec)
-            #else:
-            #    y_vec = numpy.cross(self.z_vec, z_vec)
             y_vec = y_vec/numpy.linalg.norm(y_vec)
             x_vec = numpy.cross(y_vec, z_vec)
             [rx, ry, rz] = angles.vectorsToAngles(x_vec, y_vec, z_vec)
@@ -262,12 +333,12 @@ class Sprocket(object):
 
     def nextSprocket(self, next_sp):
         """
+        Calculate sprocket coordinate system.
+
         z_vec points up.
         y_vec is in the plane defined by z_vec and the centers of the current and the next sprocket.
         x_vec is perpendicular to y_vec and z_vec.
         """
-
-        # Calculate sprocket coordinate system.
         self.n_vec = next_sp.pos - self.pos
         self.n_vec = self.n_vec/numpy.linalg.norm(self.n_vec)
 
@@ -301,13 +372,13 @@ if (__name__ == "__main__"):
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
 
-    #    sprockets = [Sprocket([0, 0, 0, 0, 0, 1], 1.0, True),
-    #                 Sprocket([4, -1, 1, 0, -1, 0], 1.0, True),
-    #                 Sprocket([0, 0, 2, 0, 0, -1], 1.0, True),
-    #                 Sprocket([4, 1, 1, 0, 1, 0], 1.0, True)]
+    sprockets = [Sprocket([0, 0, 0], [0, 0, 1], 1.0, 1),
+                 Sprocket([4, -1, 1], [0, -1, 0], 1.0, 1),
+                 Sprocket([5, 0, 5], [-1, 0, 0], 1.0, 1),
+                 Sprocket([4, 1, 1], [0, 1, 0], 1.0, 1)]
     
-    sprockets = [Sprocket([0, 0, 0, 0, 0, 1], 1.0, True),
-                 Sprocket([4, 0, 0, 0, 0, -1], 1.5, True)]
+    #sprockets = [Sprocket([0, 0, 0], [0, 0, 1], 1.0, True),
+    #             Sprocket([4, 0, 0], [0, 0, 1], 1.5, True)]
 
     belt = Belt(True)
     for sp in sprockets:
@@ -333,7 +404,7 @@ if (__name__ == "__main__"):
             [x[i], y[i], z[i]] = sp.rotateVector(v, az[i]) + sp.pos
         axis.plot(x, y, z, color = "black")
 
-    if 1:
+    if 0:
         for sp in sprockets:
             axis.scatter([sp.pos[0] + sp.enter_vec[0]],
                          [sp.pos[1] + sp.enter_vec[1]],
@@ -356,6 +427,7 @@ if (__name__ == "__main__"):
 
     if 1:
         vlen = 0.25
+        #d = numpy.linspace(0, 20.0 + belt.getLength(), 40) - 10.0
         d = numpy.linspace(0, belt.getLength(), 40)
         for i in range(d.size):
             [x, y, z, rx, ry, rz] = belt.getCoords(d[i])
