@@ -15,7 +15,7 @@ import lcadTypes
 
 class CurveFunction(functions.LCadFunction):
     """
-    The functions chain(), curve() and spring() all return the function
+    The functions chain(), curve() and spring() all return this function
     so that they can be used interchangeably.
     """
     def __init__(self, curve, name):
