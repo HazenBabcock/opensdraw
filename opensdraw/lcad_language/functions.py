@@ -21,8 +21,6 @@ import lcadExceptions as lce
 import lexerParser
 import parts
 
-# Keeps track of all the built in functions.
-builtin_functions = {}
 
 def isTrue(val):
     if (val is interp.lcad_t):
