@@ -59,6 +59,7 @@ def parseArgs(val):
                 raise lce.WrongTypeException("number", type(elt))
         return val[0:3]
 
+    raise lce.WrongTypeException("list, vector", type(val))
 
 def translationMatrix(tx, ty, tz):
     m = numpy.identity(4)
