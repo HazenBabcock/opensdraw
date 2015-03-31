@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <modules>
+  <module>opensdraw.lcad_language.belt</module>
   <module>opensdraw.lcad_language.chain</module>
   <module>opensdraw.lcad_language.comparisonFunctions</module>
   <module>opensdraw.lcad_language.coreFunctions</module>
