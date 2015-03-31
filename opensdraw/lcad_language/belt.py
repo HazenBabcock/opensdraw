@@ -48,7 +48,8 @@ class LCadBelt(functions.LCadFunction):
     belt at distance *d*. The angle *rx*, *ry* and *rz* will rotate the
     coordinate system such that z-axis is pointing along the belt, the
     y-axis is in the plane of the belt and the x-axis is perpendicular
-    to the plane of the belt.
+    to the plane of the belt, pointing in the direction of the pulley /
+    sprocket perpendicular vector.
 
     If you call the created belt function with the argument **t** it will return the 
     length of the belt.
@@ -76,8 +77,8 @@ class LCadBelt(functions.LCadFunction):
 
     def __init__(self):
         functions.LCadFunction.__init__(self, "belt")
-        self.setSignature([[numbers.Number], [numbers.Number], [numbers.Number], [numbers.Number],
-                           ["optional", [numbers.Number]]])
+        self.setSignature([[list], 
+                           ["keyword", {"continuous" : [[lcadTypes.LCadObject], interp.lcad_t]}]])
 
     def call(self, model, tree):
         [args, keywords] = self.getArgs(model, tree)
