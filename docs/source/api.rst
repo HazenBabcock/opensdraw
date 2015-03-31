@@ -57,6 +57,9 @@ Usage::
 Miscellaneous Functions
 -----------------------
 
+.. automodule:: opensdraw.lcad_language.belt
+   :members: LCadBelt
+
 .. automodule:: opensdraw.lcad_language.chain
    :members: LCadChain
 

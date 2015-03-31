@@ -55,4 +55,5 @@ Create a movie. I find `ImageJ <http://fiji.sc/Fiji>`_ be a handy tool for this.
 See Also
 --------
 
-The chain.lcad example, which demonstrates animating a chain and sprocket system.
+The belt.lcad example, which demonstrates animating a 3D chain and sprocket system.
+The chain.lcad example, which demonstrates animating a 2D chain and sprocket system.
