@@ -1,0 +1,79 @@
+;
+; Belt function & animation demo.
+;
+; Hazen 03/15
+;
+
+(import locate :local)
+
+;; Sprockets.
+(def sprocket-24 ()
+ (block
+
+  ; Axle 4
+  (tb 0 0 0.5 0 90 0 "3705" "Black")
+
+  ; Gear 24 Tooth with Single Axle Hole
+  (tb 0 0 0 0 0 0 "3648b" "Dark_Gray")
+  
+  ))
+
+(def sprocket-40 ()
+ (block
+
+  ; Axle 4
+  (tb 0 0 -0.5 0 90 0 "3705" "Black")
+
+  ; Gear 40 Tooth
+  (tb 0 0 0 0 0 0 "3649" "Light_Gray")
+
+  ))
+
+(def angle1 (* time-index -2) angle2 (/ angle1 (/ -40 24)))
+
+; sprocket-24 at 0, 0, 0
+(translate (list 0 0 0)
+ (rotate (list 0 0 (+ angle1 4))
+  (sprocket-24)))
+
+; sprocket-40 at 11, -1.5, 2.5
+(translate (list (bw 11) (bw -1.5) (bw 2.5))
+ (rotate (list -90 0 0)
+  (rotate (list 0 0 (+ angle2 2))
+   (sprocket-40))))
+
+; sprocket-24 at 13.5, 0, 13.5
+(translate (list (bw 13.5) 0 (bw 13.5))
+ (rotate (list 0 90 0)
+  (rotate (list 0 0 (+ angle1 3))
+   (sprocket-24))))
+
+; sprocket-40 at 11, 1.5, 2.5
+(translate (list (bw 11) (bw 1.5) (bw 2.5))
+ (rotate (list 90 0 0)
+  (rotate (list 0 0 (+ angle2 2))
+   (sprocket-40))))
+
+
+;; A chain that goes around the sprockets
+
+; Create the belt function.
+(def a-belt (belt (list (list (list 0 0 0) (list 0 0 1) (bw 1.5) 1)
+			(list (list (bw 11) (bw -1.5) (bw 2.5)) (list 0 -1 0) (bw 2.5) 1)
+			(list (list (bw 13.5) 0 (bw 13.5)) (list -1 0 0) (bw 1.5) 1)
+			(list (list (bw 11) (bw 1.5) (bw 2.5)) (list 0 1 0) (bw 2.5) 1))))
+
+; A chain link adjusted so that it's origin is the center of the link.
+; This is necessary so that the links will appear to be hooked to each
+; other in the final chain.
+(def chain-link ()
+ (translate (list 0 0 -9)
+  ; Chain Link
+  (part "3711" "Black")))
+
+(def belt1 (offset)
+ (for (i 79)
+  (transform (matrix (a-belt (+ (* 15.5 i) offset)))
+   (chain-link))))
+
+(belt1 (/ (* pi (bw 1.5) angle1) 180.0))
