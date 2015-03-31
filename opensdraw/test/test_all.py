@@ -410,6 +410,13 @@ def test_py_math_4():
 
 ## Miscellaneous Functions.
 
+# belt
+def test_belt_1():
+    assert exe("(belt (list (list (list 0 0 0) (list 0 0 1) 1.0 1) (list (list 4 0 0) (list 0 0 1) 1.5 1))) 1") == 1
+
+def test_belt_2():
+    assert exe("(belt (list (list (list 0 0 0) (list 0 0 1) 1.0 1) (list (list 4 0 0) (list 0 0 1) 1.5 1)) :continuous nil) 1") == 1
+
 # chain
 def test_chain_1():
     assert exe("(chain (list (list -4 0 1 1) (list 4 0 1 1))) 1") == 1
