@@ -11,6 +11,7 @@ import subprocess
 
 
 examples = ["auto-step.lcad",
+            "belt.lcad",
             "chain.lcad",
             "curve.lcad",
             "dumper-truck.lcad",
