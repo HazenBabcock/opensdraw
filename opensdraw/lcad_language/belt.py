@@ -37,10 +37,10 @@ class LCadBelt(functions.LCadFunction):
     *(position orientation radius winding-direction)* where position and
     orientation are 3 element lists specifying the location and the 
     vector perpendicular to the pulley / sprocket respectively. 
-    winding-direction specifies which way belt goes around the pulley 
+    Winding-direction specifies which way belt goes around the pulley 
     / sprocket (1 = counter-clockwise, -1 = clockwise). The belt goes 
     around the pulleys / sprockets in the order in which they are 
-    specified, and when *:continuous* is t returns from the last pulley 
+    specified, and when *:continuous* is **t** returns from the last pulley 
     / sprocket to the first to close the loop.
 
     When you call the created belt function you will get a 6 element list
