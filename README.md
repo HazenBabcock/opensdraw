@@ -7,7 +7,7 @@ The documentation is [here](http://HazenBabcock.github.io/opensdraw).
 ### Getting Started ###
 You will need to add this directory to your Python path. One way to do this is to copy the openldraw.pth file into your Python dist-packages directory, then edit it to have the correct path.
 
-I use partviewer.py to find LDraw part information, emacs to edit the .lcad files and [LDView](http://ldview.sourceforge.net/) for rendering. I configure LDView to poll for changes to the .dat file so that when I press "F5" in emacs (in lcad minor mode), the updated .dat file is displayed almost immediately.
+I use partviewer.py to find LDraw part information, emacs to edit the .lcad files and [LDView](http://ldview.sourceforge.net/) for rendering. I configure LDView to poll for changes to the .mpd file so that when I press "F5" in emacs (in lcad minor mode), the updated .mpd file is displayed almost immediately.
 
 ### Directory Layout ###
 * docs - Sphinx documentation.
