@@ -235,7 +235,7 @@ class Sprocket(object):
 
     def calcTangent(self, next_sp):
         """
-        Calculate the tangle line between the current and the next sprocket.
+        Calculate the tangent line between the current and the next sprocket.
         """
 
         # Starting points for enter & exit angles.
