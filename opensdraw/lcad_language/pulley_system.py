@@ -103,73 +103,137 @@ class Drum(belt.Sprocket):
         # string_length is the amount of string that is wound around the drum.
         self.sp_length = string_length
 
-        # Calculate how many layers of string.
-        turns_per_layer = int(round(drum_width/string_gauge))
-        temp_r = radius
-        temp_l = string_length
-        self.layers = 0
-        while (temp_l > 0):
-            dr = 2.0 * math.pi * temp_r * turns_per_layer
-            dl = turns_per_layer * string_gauge
-            temp_l -= math.sqrt(dr*dr + dl*dl)
-            temp_r += string_gauge
-            self.layers += 1
-
-
         # Calculate how to wind the string.
+        turns_per_layer = int(round(drum_width/string_gauge))
 
         #
-        # This parameterizes the helical winding, it is a list of lists where
-        # each sub-list is [segment end length, segment start angle, d_angle
-        # in the segment, d_pos (along the helix), d_rad (outward from the
-        # helix)].
+        # This array parameterizes the helical winding, it is a list of lists 
+        # where each sub-list describes a segment, and contains [length of the
+        # string at the segmend end-point, segment start angle, segment start
+        # position, segment start radius, d_angle, d_position (along the helix), 
+        # d_radius (outward from the helix).
         #
         self.winding_fn = []  
 
-        temp_r = radius
-        temp_l = string_length
-        angle = 0
+        layer = 0
         length = 0
-        index = 0
         start = True
+        s_angle = 0
+        s_radius = radius
         while (length < string_length):
 
-            # Initial half-turn.
-            if start:
-                d_angle = math.pi
-                length += math.pi * radius
-                self.winding_fn.append([length, 0, d_angle/length, 0, 0])
-                angle += d_angle
-                start = False
+            # Figure out which end we are starting from.
+            if ((layer % 2) == 0):
+                s_pos = 0
             else:
-                d_angle = math.pi
-                d_length = 0.5 * math.pi * (2.0 * temp_r - string_gauge)
-                length += d_length
-                self.winding_fn.append([length, angle, d_angle/length, 0, string_gauge / d_length])
-                angle += d_angle
-                
-            # Remaining turns.
-            dl = turns_per_layer * string_gauge
-            if ((index % 2) != 0):
-                dl = -dl
-            d_angle = 2.0 * math.pi * turns_per_layer
-            dr = d_angle * temp_r
-            d_length = math.sqrt(dl*dl + dr*dr)
-            length += d_length
-            self.winding_fn.append([length, angle, d_angle/length, dl / d_length, 0])
-            angle += d_angle
+                s_pos = string_gauge * turns_per_layer
 
-            temp_r += string_gauge
-            index += 1
+            d_pos = 0.0
+            # Initial quarter-turn.
+            if start:
+                s_length = 0.5 * math.pi * radius
+                d_angle = 0.5 * math.pi / s_length
+                d_radius = 0.0
+                start = False
+            # Initial half-turn.
+            else:
+                s_length = 0.5 * math.pi * (2 * radius + string_gauge)
+                d_angle = math.pi / s_length
+                d_radius = string_gauge / s_length
+
+            length += s_length
+            if not ccw:
+                d_angle = -d_angle
+            self.winding_fn.append([length, s_angle, s_pos, s_radius, d_angle, d_pos, d_radius])
+            s_angle += s_length * d_angle
+            s_radius += s_length * d_radius
+
+            if (length >= string_length):
+                continue
+
+            # Remaining turns.
+
+            dl = turns_per_layer * string_gauge
+            dr = turns_per_layer * 2.0 * math.pi * s_radius
+            s_length = math.sqrt(dl*dl + dr*dr)
+
+            d_angle = dr / (s_length * s_radius)
+            if not ccw:
+                d_angle = -d_angle
+            d_pos = dl / s_length
+            d_radius = 0.0
+
+            if ((layer % 2) != 0):
+                d_pos = -d_pos
+
+            length += s_length
+            self.winding_fn.append([length, s_angle, s_pos, s_radius, d_angle, d_pos, d_radius])
+            s_angle += s_length * d_angle
+
+            layer += 1
 
         self.winding_fn[-1][0] = string_length
 
-        # Calculate angle at which the string exits the drum.
+        # Calculate where the string leaves the drum.
         if (len(self.winding_fn) > 1):
-            diff = string_length - self.winding_fn[-2][0]
+            s_length = string_length - self.winding_fn[-2][0]
         else:
-            diff = string_length
-        self.exit_angle = self.winding_fn[-1][1] + diff * self.winding_fn[-1][2]
+            s_length = string_length
+        self.exit_angle = self.winding_fn[-1][1] + s_length * self.winding_fn[-1][4]
+        self.exit_pos = self.winding_fn[-1][2] + s_length * self.winding_fn[-1][5]
+        self.exit_radius = self.winding_fn[-1][3] + s_length * self.winding_fn[-1][6]
+
+    def getCoords(self, distance):
+        
+        # On the drum.
+        if (distance < self.sp_length):
+
+            last_len = 0
+            for seg in self.winding_fn:
+                if (distance < seg[0]):
+                    ds = distance - last_len
+                    angle = seg[1] + ds * seg[4]
+                    pos = seg[2] + ds * seg[5]
+                    radius = seg[3] + ds * seg[6]
+                    return [math.cos(angle) * radius,
+                            math.sin(angle) * radius,
+                            pos]
+                last_len = seg[0]
+
+
+#
+# Testing
+#
+
+if (__name__ == "__main__"):
+    import matplotlib as mpl
+    from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.pyplot as plt
+    
+    string_l = 250.0
+    drum = Drum([0, 0, 0], [0, 0, 1], 5.0, 1, 5.0, 1.0, string_l)
+
+    #print drum.winding_fn
+
+    fig = plt.figure()
+    axis = fig.gca(projection='3d')
+    MAX = 6
+    for direction in (-1, 1):
+        for point in numpy.diag(direction * MAX * numpy.array([1,1,1])):
+            axis.plot([point[0]], [point[1]], [point[2]], 'w')
+
+    d = numpy.linspace(0, string_l - 1.0e-3, int(string_l))
+    x = numpy.zeros(d.size)
+    y = numpy.zeros(d.size)
+    z = numpy.zeros(d.size)
+    for i in range(d.size):
+        x[i], y[i], z[i] = drum.getCoords(d[i])
+        print x[i], y[i], z[i]
+        
+    axis.plot(x, y, z, color = "black")
+    axis.scatter(x, y, z, color = "blue")
+
+    plt.show()
 
 #
 # The MIT License
