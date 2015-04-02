@@ -30,7 +30,8 @@ class LCadPulleySystem(functions.LCadFunction):
     pulley-system making it easier to add pulleys and string to a MOC.
     The function is very similar to belt(), except that the first
     element specifies a drum on which the string is wound and the
-    last specifies the end point of the string. All units are LDU.
+    last specifies either the end point of the string, or the direction
+    that string goes after the last sprocket. All units are LDU.
 
     A pulley-system must have at least two elements (including the initial
     drum and the final end point). Like belt, the pulleys are specified by 
@@ -46,7 +47,9 @@ class LCadPulleySystem(functions.LCadFunction):
     string-length)* where string-length is the amount of string
     would around the drum, **not** the total string length.
 
-    The final end point is specified by a 3 element position list.
+    The final end point is specified by a 2 element position list,
+    *(position/direction type)* where position/direction is a 3 element
+    list and type is either "point" or "tangent".
 
     When you call the created pulley-system function you will get a 6 
     element list *(x y z rx ry rz)* where *x*, *y*, and *z* specify the 
@@ -101,27 +104,82 @@ class LCadPulleySystem(functions.LCadFunction):
 lcad_functions["pulley-system"] = LCadPulleySystem()
 
 
-class EndPoint(object):
+class EndSprocket(belt.Sprocket):
     """
-    The end point of the string. This pretends to be a Sprocket so that
-    it works properly as part of a belt.
+    The last sprocket in the pulley system.
     """
-    def __init__(self, pos):        
-        self.pos = pos
+    def __init__(self, pos, z_vec, radius, ccw, pd_vec, pd_type):
+        belt.Sprocket.__init__(self, pos, z_vec, radius, ccw)
 
-        # Dummy variables so that this will behave like a Sprocket.
-        self.ccw = True
-        self.enter_angle = None
-        self.radius = 0.0
+        self.pd_type = pd_type
+        self.pd_vec = numpy.array(pd_vec)
 
     def adjustAngles(self):
-        pass
+        belt.Sprocket.adjustAngles(self)
+
+        # Subtract contribution of unit length tangent 
+        # vector in case of derivative.
+        if not (self.pd_type == "point"):
+            self.length = self.sp_length
 
     def nextSprocket(self, next_sp):
-        pass
 
-    def rotateVector(self, vector, az):
-        return numpy.zeros(3)
+        # Calculate sprocket coordinate system.
+        if (self.pd_type == "point"):
+            self.n_vec = self.pd_vec - self.pos
+        else:
+            self.n_vec = self.pd_vec
+
+        self.n_vec = self.n_vec/numpy.linalg.norm(self.n_vec)
+
+        print self.n_vec, self.z_vec, self.pd_vec, self.pos
+
+        self.x_vec = numpy.cross(self.n_vec, self.z_vec)
+        self.x_vec = self.x_vec/numpy.linalg.norm(self.x_vec)
+
+        self.y_vec = numpy.cross(self.z_vec, self.x_vec)
+
+        self.matrix[:,0] = self.x_vec
+        self.matrix[:,1] = self.y_vec
+        self.matrix[:,2] = self.z_vec
+
+        #
+        # Calculate tangent.
+        #
+        if self.ccw:
+            self.leave_angle = 0
+        else:
+            self.leave_angle = math.pi
+            
+        # Point.
+        if (self.pd_type == "point"):
+                
+            # Refine angle.
+            for i in range(5):
+                leave_vec = self.rotateVector(numpy.array([self.radius, 0, 0]), self.leave_angle)
+                t_vec = self.pd_vec - (self.pos + leave_vec)
+                t_vec = t_vec/numpy.linalg.norm(t_vec)
+            
+                d_leave = math.acos(numpy.dot(t_vec, leave_vec)/numpy.linalg.norm(leave_vec)) - 0.5 * math.pi
+
+                if (abs(d_leave) < 1.0e-3):
+                    break
+
+                if self.ccw:
+                    self.leave_angle += d_leave
+                else:
+                    self.leave_angle -= d_leave
+
+            # Tangent vector.
+            self.leave_vec = self.rotateVector(numpy.array([self.radius, 0, 0]), self.leave_angle)
+            self.t_vec = self.pd_vec - (self.pos + self.leave_vec)
+
+        # Direction.
+        else:
+            self.leave_vec = self.rotateVector(numpy.array([self.radius, 0, 0]), self.leave_angle)
+            self.t_vec = self.pd_vec/numpy.linalg.norm(self.pd_vec)
+
+        self.t_twist = 0
 
 
 class Drum(belt.Sprocket):
@@ -276,6 +334,23 @@ class Drum(belt.Sprocket):
             return [pos[0], pos[1], pos[2], rx, ry, rz + math.degrees(twist)]
 
 
+class EndDrum(Drum):
+    """
+    If there is only a drum and nothing else.
+    """
+    def __init__(self, pos, z_vec, radius, ccw, drum_width, string_gauge, string_length, pd_vec, pd_type):
+        Drum.__init__(self, pos, z_vec, radius, ccw, drum_width, string_gauge, string_length)
+
+        self.pd_type = pd_type
+        self.pd_vec = pd_vec
+
+    def adjustAngles(self):
+        EndSprocket.adjustAngles(self)
+
+    def nextSprocket(self, next_sp):
+        EndSprocket.nextSprocket(self, next_sp)
+
+
 #
 # Testing
 #
@@ -284,9 +359,14 @@ if (__name__ == "__main__"):
     import matplotlib as mpl
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
-    
-    drum = Drum([0, 0, 0], [0, 1, 0], 1.0, -1, 1.0, 0.1, 100.0)
-    sprockets = [belt.Sprocket([4, 0, 1.0], [0, 0, 1], 1.0, 1)]
+  
+    if 0:
+        drum = Drum([0, 0, 0], [0, 0, 1], 1.0, -1, 1.0, 0.1, 100.0)
+        sprockets = [EndSprocket([4, 0, 1.0], [0, 0, 1], 1.0, 1, [0, -6, 0], "point")]
+
+    else:
+        drum = EndDrum([0, 0, 0], [0, 0, 1], 1.0, -1, 1.0, 0.1, 100.0, [1, 0, 0], "tangent")
+        sprockets = []
     
     a_belt = belt.Belt(False)
     a_belt.addSprocket(drum)
@@ -314,7 +394,7 @@ if (__name__ == "__main__"):
 
     # Draw string.
     if 1:
-        d = numpy.linspace(0, a_belt.getLength(), 500)
+        d = numpy.linspace(0, a_belt.getLength() + 10, 500)
         x = numpy.zeros(d.size)
         y = numpy.zeros(d.size)
         z = numpy.zeros(d.size)
