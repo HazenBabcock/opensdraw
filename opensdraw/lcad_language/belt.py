@@ -21,6 +21,32 @@ import lcadTypes
 lcad_functions = {}
 
 
+def parsePulley(pulley):
+    if not isinstance(pulley, list):
+        raise lcadExceptions.WrongTypeException("list", type(pulley))
+
+    if (len(pulley) != 4):
+        raise PulleyException(len(pulley))
+
+    # Position vector.
+    pos = geometryFunctions.parseArgs(pulley[0])
+
+    # Orientation vector.
+    z_vec = geometryFunctions.parseArgs(pulley[1])
+
+    # Radius
+    radius = pulley[2]
+    if not isinstance(radius, numbers.Number):
+        raise lcadExceptions.WrongTypeException("number", type(radius))
+
+    # Winding.
+    winding = pulley[3]
+    if not isinstance(winding, numbers.Number):
+        raise lcadExceptions.WrongTypeException("number", type(winding))
+
+    return [pos, z_vec, radius, winding]
+
+
 #
 # These classes create a belt function that can be used in opensdraw.
 #
@@ -94,31 +120,8 @@ class LCadBelt(functions.LCadFunction):
         # Create belt.
         belt = Belt(continuous)
         for pulley in pulley_list:
-        
-            if not isinstance(pulley, list):
-                raise lcadExceptions.WrongTypeException("list", type(pulley))
-
-            if (len(pulley) != 4):
-                raise PulleyException(len(pulley))
-
-            # Position vector.
-            pos = geometryFunctions.parseArgs(pulley[0])
-
-            # Orientation vector.
-            z_vec = geometryFunctions.parseArgs(pulley[1])
-
-            # Radius
-            radius = pulley[2]
-            if not isinstance(radius, numbers.Number):
-                raise lcadExceptions.WrongTypeException("number", type(radius))
-
-            # Winding.
-            winding = pulley[3]
-            if not isinstance(winding, numbers.Number):
-                raise lcadExceptions.WrongTypeException("number", type(winding))
-
-            belt.addSprocket(Sprocket(pos, z_vec, radius, winding))
-
+            belt.addSprocket(Sprocket(*parsePulley(pulley)))
+            
         belt.finalize()
 
         # Return belt function.
