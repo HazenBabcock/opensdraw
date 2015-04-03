@@ -3,6 +3,7 @@ This folder contains the modules that define the lcad language. This is a [prefi
 
 ### Files ###
 * angles.py - Geometry utility functions.
+* belt.py - A function for creating belts.
 * chain.py - A function for creating chains, tracks, ..
 * comparisonFunctions.py - >, <, = , ..
 * coreFunctions.py - The basic functions in OpenLDraw.
@@ -18,6 +19,7 @@ This folder contains the modules that define the lcad language. This is a [prefi
 * mathFunctions.py - /, *, +, -, ..
 * modules.xml - The standard modules that opensdraw will load.
 * partFunctions.py - LDraw parts and primitives (line, triangle, ..).
+* pulleySystem - A function for creating pulley and string systems.
 * parts.py - The Part object.
 * randomNumberFunctions.py - Random number generating functions.
 
