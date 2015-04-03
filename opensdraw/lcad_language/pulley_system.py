@@ -132,8 +132,6 @@ class EndSprocket(belt.Sprocket):
 
         self.n_vec = self.n_vec/numpy.linalg.norm(self.n_vec)
 
-        print self.n_vec, self.z_vec, self.pd_vec, self.pos
-
         self.x_vec = numpy.cross(self.n_vec, self.z_vec)
         self.x_vec = self.x_vec/numpy.linalg.norm(self.x_vec)
 
@@ -182,15 +180,14 @@ class EndSprocket(belt.Sprocket):
         self.t_twist = 0
 
 
-class Drum(belt.Sprocket):
+class Drum(object):
     """
     The initial drum on which the string is wound.
     """
     def __init__(self, pos, z_vec, radius, ccw, drum_width, string_gauge, string_length):
-        belt.Sprocket.__init__(self, pos, z_vec, radius, ccw)
 
         # string_length is the amount of string that is wound around the drum.
-        self.sp_length = string_length
+        self.sprocket.sp_length = string_length
 
         # Calculate how to wind the string.
         turns_per_layer = int(round(drum_width/string_gauge))
@@ -231,7 +228,7 @@ class Drum(belt.Sprocket):
                 d_radius = string_gauge / s_length
 
             length += s_length
-            if self.ccw:
+            if not self.sprocket.ccw:
                 d_angle = -d_angle
             self.winding_fn.append([length, s_angle, s_pos, s_radius, d_angle, d_pos, d_radius])
             s_angle += s_length * d_angle
@@ -247,7 +244,7 @@ class Drum(belt.Sprocket):
             s_length = math.sqrt(dl*dl + dr*dr)
 
             d_angle = dr / (s_length * s_radius)
-            if self.ccw:
+            if not self.sprocket.ccw:
                 d_angle = -d_angle
             d_pos = dl / s_length
             d_radius = 0.0
@@ -272,23 +269,26 @@ class Drum(belt.Sprocket):
         self.exit_pos = self.winding_fn[-1][2] + s_length * self.winding_fn[-1][5]
         self.exit_radius = self.winding_fn[-1][3] + s_length * self.winding_fn[-1][6]
 
+    def adjustAngles(self):
+        self.sprocket.adjustAngles()
+
     def calcTangent(self, next_sp):
-        belt.Sprocket.calcTangent(self, next_sp)
+        self.sprocket.calcTangent(next_sp)
 
         # Re-calculate exit and tangent vectors.
-        self.leave_vec = self.rotateVector(numpy.array([self.radius, 0, self.exit_pos]), self.leave_angle)
-        self.t_vec = (next_sp.pos + next_sp.enter_vec) - (self.pos + self.leave_vec)
+        self.sprocket.leave_vec = self.sprocket.rotateVector(numpy.array([self.exit_radius, 0, self.exit_pos]), self.sprocket.leave_angle)
+        self.sprocket.t_vec = (next_sp.pos + next_sp.enter_vec) - (self.sprocket.pos + self.sprocket.leave_vec)
 
     def getCoords(self, distance):
         
         # On the drum.
-        if (distance < self.sp_length):
+        if (distance < self.sprocket.sp_length):
 
             last_len = 0
             for seg in self.winding_fn:
                 if (distance < seg[0]):
                     ds = distance - last_len
-                    angle = seg[1] + ds * seg[4] - self.exit_angle + self.leave_angle
+                    angle = seg[1] + ds * seg[4] - self.exit_angle + self.sprocket.leave_angle
                     pos = seg[2] + ds * seg[5]
                     radius = seg[3] + ds * seg[6]
 
@@ -298,7 +298,7 @@ class Drum(belt.Sprocket):
                                          pos])
 
                     # Position in real space.
-                    p_vec = numpy.dot(self.matrix, p_vec) + self.pos
+                    p_vec = numpy.dot(self.sprocket.matrix, p_vec) + self.sprocket.pos
 
                     # Derivative in drum coordinate system.
                     z_vec = numpy.array([math.cos(angle) * seg[6] - math.sin(angle) * radius * seg[4],
@@ -306,10 +306,10 @@ class Drum(belt.Sprocket):
                                          seg[5]])
 
                     # Derivative in real space.
-                    z_vec = numpy.dot(self.matrix, z_vec)
+                    z_vec = numpy.dot(self.sprocket.matrix, z_vec)
                     z_vec = z_vec/numpy.linalg.norm(z_vec)
 
-                    y_vec = numpy.cross(z_vec, self.z_vec)
+                    y_vec = numpy.cross(z_vec, self.sprocket.z_vec)
                     y_vec = y_vec/numpy.linalg.norm(y_vec)
 
                     x_vec = numpy.cross(y_vec, z_vec)
@@ -321,17 +321,26 @@ class Drum(belt.Sprocket):
 
         # Between the drum and the next sprocket.
         else:
-            dist = (distance - self.sp_length)/numpy.linalg.norm(self.t_vec)            
-            pos = self.pos + self.leave_vec + dist * self.t_vec
-            twist = dist * self.t_twist
+            dist = (distance - self.sprocket.sp_length)/numpy.linalg.norm(self.sprocket.t_vec)
+            pos = self.sprocket.pos + self.sprocket.leave_vec + dist * self.sprocket.t_vec
+            twist = dist * self.sprocket.t_twist
 
-            z_vec = self.t_vec / numpy.linalg.norm(self.t_vec)
-            y_vec = numpy.cross(z_vec, self.z_vec)
+            z_vec = self.sprocket.t_vec / numpy.linalg.norm(self.sprocket.t_vec)
+            y_vec = numpy.cross(z_vec, self.sprocket.z_vec)
             y_vec = y_vec/numpy.linalg.norm(y_vec)
             x_vec = numpy.cross(y_vec, z_vec)
             [rx, ry, rz] = angles.vectorsToAngles(x_vec, y_vec, z_vec)
 
             return [pos[0], pos[1], pos[2], rx, ry, rz + math.degrees(twist)]
+
+    def getLength(self):
+        return self.sprocket.getLength()
+
+    def nextSprocket(self, next_sp):
+        self.sprocket.nextSprocket(next_sp)
+
+    def rotateVector(self, vector, az):
+        return self.sprocket.rotateVector(vector, az)
 
 
 class EndDrum(Drum):
@@ -339,16 +348,26 @@ class EndDrum(Drum):
     If there is only a drum and nothing else.
     """
     def __init__(self, pos, z_vec, radius, ccw, drum_width, string_gauge, string_length, pd_vec, pd_type):
+        self.sprocket = EndSprocket(pos, z_vec, radius, ccw, pd_vec, pd_type)
         Drum.__init__(self, pos, z_vec, radius, ccw, drum_width, string_gauge, string_length)
 
-        self.pd_type = pd_type
-        self.pd_vec = pd_vec
-
-    def adjustAngles(self):
-        EndSprocket.adjustAngles(self)
-
     def nextSprocket(self, next_sp):
-        EndSprocket.nextSprocket(self, next_sp)
+        print self, next_sp
+        self.sprocket.nextSprocket(next_sp)
+
+        # Re-calculate exit and tangent vectors.
+        self.sprocket.leave_vec = self.sprocket.rotateVector(numpy.array([self.exit_radius, 0, self.exit_pos]), self.sprocket.leave_angle)
+        if (self.sprocket.pd_type == "point"):
+            self.sprocket.t_vec = self.sprocket.pd_vec - (self.sprocket.pos + self.sprocket.leave_vec)
+
+
+class StdDrum(Drum):
+    """
+    If there are also other sprockets.
+    """
+    def __init__(self, pos, z_vec, radius, ccw, drum_width, string_gauge, string_length):
+        self.sprocket = belt.Sprocket(pos, z_vec, radius, ccw)
+        Drum.__init__(self, pos, z_vec, radius, ccw, drum_width, string_gauge, string_length)
 
 
 #
@@ -361,8 +380,9 @@ if (__name__ == "__main__"):
     import matplotlib.pyplot as plt
   
     if 0:
-        drum = Drum([0, 0, 0], [0, 0, 1], 1.0, -1, 1.0, 0.1, 100.0)
-        sprockets = [EndSprocket([4, 0, 1.0], [0, 0, 1], 1.0, 1, [0, -6, 0], "point")]
+        drum = StdDrum([0, 0, 0], [0, 0, 1], 1.0, -1, 1.0, 0.1, 100.0)
+        sprockets = [belt.Sprocket([4, 0, 1.0], [0, 0, 1], 1.0, 1),
+                     EndSprocket([4, 4, 1.0], [0, 0, 1], 1.0, 1, [-1, 0, 0], "tangent")]
 
     else:
         drum = EndDrum([0, 0, 0], [0, 0, 1], 1.0, -1, 1.0, 0.1, 100.0, [1, 0, 0], "tangent")
@@ -394,7 +414,7 @@ if (__name__ == "__main__"):
 
     # Draw string.
     if 1:
-        d = numpy.linspace(0, a_belt.getLength() + 10, 500)
+        d = numpy.linspace(0, a_belt.getLength() + 2, 500)
         x = numpy.zeros(d.size)
         y = numpy.zeros(d.size)
         z = numpy.zeros(d.size)
