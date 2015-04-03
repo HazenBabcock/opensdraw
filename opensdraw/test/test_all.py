@@ -434,6 +434,13 @@ def test_curve_2():
 def test_curve_3():
     assert exe("(curve (list (list (list 0 0 0) (list 1 1 0) (list 0 0 1)) (list (list 5 0 0) (list 1 0 0))) :auto-scale nil) 1") == 1
 
+# pulley system.
+def test_pulley_system_1():
+    assert exe("(pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50) (list (list 20 0 1) (list 0 0 1) 5.0 1) (list (list -1 0 0) \"tangent\"))) 1") == 1
+
+def test_pulley_system_2():
+    assert exe("(pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50) (list (list 20 0 0) \"point\"))) 1") == 1
+
 # Random Number Functions.
 def test_rand_seed_1():
     assert isinstance(exe("(rand-seed 10)"), numbers.Number)
