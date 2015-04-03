@@ -166,7 +166,7 @@ class Belt(object):
         # Adjust angles.
         for sp in self.sprockets:
             sp.adjustAngles()
-            self.length += sp.length
+            self.length += sp.getLength()
             self.dists.append(self.length)
 
     def getCoords(self, distance):
@@ -186,7 +186,10 @@ class Belt(object):
                 return self.sprockets[i].getCoords(distance - last_dist)
             last_dist = self.dists[i]
         
-        return self.sprockets[-1].getCoords(distance - self.dists[-2])
+        if (len(self.dists) > 1):
+            return self.sprockets[-1].getCoords(distance - self.dists[-2])
+        else:
+            return self.sprockets[-1].getCoords(distance)
 
     def getLength(self):
         return self.length
@@ -332,6 +335,9 @@ class Sprocket(object):
 
             return [pos[0], pos[1], pos[2], rx, ry, rz + math.degrees(twist)]
 
+    def getLength(self):
+        return self.length
+        
     def nextSprocket(self, next_sp):
         """
         Calculate sprocket coordinate system.
@@ -340,6 +346,7 @@ class Sprocket(object):
         y_vec is in the plane defined by z_vec and the centers of the current and the next sprocket.
         x_vec is perpendicular to y_vec and z_vec.
         """
+
         self.n_vec = next_sp.pos - self.pos
         self.n_vec = self.n_vec/numpy.linalg.norm(self.n_vec)
 
