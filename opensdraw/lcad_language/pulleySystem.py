@@ -92,10 +92,7 @@ class LCadPulleySystem(functions.LCadFunction):
         self.setSignature([[list]])
 
     def call(self, model, tree):
-        [args] = self.getArgs(model, tree)
-
-        # Get list of pulleys.
-        pulley_list = args[0]
+        [pulley_list] = self.getArgs(model, tree)
         if (len(pulley_list) < 2):
             raise NumberPulleysException(len(pulley_list))
 
@@ -129,7 +126,7 @@ class LCadPulleySystem(functions.LCadFunction):
             EndPointException(len(end_point))
 
         end_vec = geometryFunctions.parseArgs(end_point[0])
-        end_type = end_points[1]
+        end_type = end_point[1]
         if not isinstance(end_type, basestring):
             raise lcadExceptions.WrongTypeException("string", type(end_type))
 
@@ -146,11 +143,11 @@ class LCadPulleySystem(functions.LCadFunction):
 
             # Middle pulleys.
             for pulley in pulley_list[:-1]:
-                belt.addSprocket(*belt.parsePulley(pulley))
+                p_system.addSprocket(*belt.parsePulley(pulley))
 
             # End pulley
-            [end_pos, end_zvec, end_radius, end_winding] = belt.parsePulley(pulley[-1])
-            belt.addSprocket(EndSprocket(end_pos, end_zvec, end_radius, end_winding, end_vec, end_type))
+            [end_pos, end_zvec, end_radius, end_winding] = belt.parsePulley(pulley_list[-1])
+            p_system.addSprocket(EndSprocket(end_pos, end_zvec, end_radius, end_winding, end_vec, end_type))
 
         p_system.finalize()
 
@@ -424,7 +421,6 @@ class EndDrum(Drum):
         Drum.__init__(self, pos, z_vec, radius, ccw, drum_width, string_gauge, string_length)
 
     def nextSprocket(self, next_sp):
-        print self, next_sp
         self.sprocket.nextSprocket(next_sp)
 
         # Re-calculate exit and tangent vectors.
