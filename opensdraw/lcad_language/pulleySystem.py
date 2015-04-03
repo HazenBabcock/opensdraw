@@ -15,6 +15,7 @@ import angles
 import belt
 import curveFunctions
 import functions
+import geometryFunctions
 import interpreter as interp
 import lcadExceptions
 import lcadTypes
@@ -64,7 +65,26 @@ class LCadPulleySystem(functions.LCadFunction):
 
     Usage::
 
+     ; Drum at 0,0,0 rotating counter-clockwise in the x-y plane with radius
+     ; 5, width 50 and 50LDU of 1LDU diameter string. The string then goes
+     ; around a pulley 20,0,1 rotating counter-clockwise in the x-y plane
+     ; with radius 5. After passing the pulley the string continues in the
+     ; -x direction.
+     (def ps1 (pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50)
+                                   (list (list 20 0 1) (list 0 0 1) 5.0 1)
+                                   (list (list -1 0 0) "tangent"))))
 
+     ; Drum at 0,0,0 rotating counter-clockwise in the x-y plane with radius
+     ; 5, width 50 and 50LDU of 1LDU diameter string. The string then passes 
+     ; through the point 20,0,0.
+     (def ps2 (pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50)
+                                   (list (list 20 0 0) "point"))))
+
+     (def p1 (ps1 1))  ; p1 is the list (x y z rx ry rz).
+     (ps1 t)           ; Returns the length of pulley system ps1 including the 
+                       ;  string on the drum.
+     (ps2 t)           ; Returns the length of pulley system ps2 including the
+                       ;  string on the drum.
 
     """
     def __init__(self):
@@ -77,31 +97,83 @@ class LCadPulleySystem(functions.LCadFunction):
         # Get list of pulleys.
         pulley_list = args[0]
         if (len(pulley_list) < 2):
-            raise belt.NumberPulleysException(len(pulley_list))
+            raise NumberPulleysException(len(pulley_list))
 
-        # Create sprockets.
-        chain = belt.Belt(continuous)
-        for sprocket in sprocket_list:
-        
-            if not isinstance(sprocket, list):
-                raise lcadExceptions.WrongTypeException("list", type(sprocket))
+        # Create pulley-system.
+        p_system = belt.Belt(False)
 
-            if (len(sprocket) != 4):
-                raise belt.PulleyException(len(sprocket))
+        # Starting drum.
+        drum = pulley_list[0]
+        pulley_list = pulley_list[1:]
 
-            for elt in sprocket:
-                if not isinstance(elt, numbers.Number):
-                    raise lcadExceptions.WrongTypeException("number", type(elt))
+        if not isinstance(drum, list):
+            raise lcadExceptions.WrongTypeException("list", type(drum))
 
-            chain.addSprocket(belt.Sprocket([sprocket[0], sprocket[1], 0], [0, 0, 1],
-                                            sprocket[2], sprocket[3]))
+        if (len(drum) != 7):
+            DrumException(len(drum))
 
-        chain.finalize()
+        drum_pos = geometryFunctions.parseArgs(drum[0])
+        drum_zvec = geometryFunctions.parseArgs(drum[1])
+        for arg in drum[2:]:
+            if not isinstance(arg, numbers.Number):
+                raise lcadExceptions.WrongTypeException("number", type(arg))
+
+        # Ending point.
+        end_point = pulley_list[-1]
+        pulley_list = pulley_list[:-1]
+
+        if not isinstance(end_point, list):
+            raise lcadExceptions.WrongTypeException("list", type(end_point))
+
+        if (len(end_point) != 2):
+            EndPointException(len(end_point))
+
+        end_vec = geometryFunctions.parseArgs(end_point[0])
+        end_type = end_points[1]
+        if not isinstance(end_type, basestring):
+            raise lcadExceptions.WrongTypeException("string", type(end_type))
+
+        if not (end_type in ["point", "tangent"]):
+            raise EndPointTypeException(end_type)
+
+        # Drum only pulley system.
+        if (len(pulley_list) == 0):
+            p_system.addSprocket(EndDrum(drum_pos, drum_zvec, drum[2], drum[3], drum[4], drum[5], drum[6], end_vec, end_type))
+
+        # "Standard" pulley system.
+        else:
+            p_system.addSprocket(StdDrum(drum_pos, drum_zvec, drum[2], drum[3], drum[4], drum[5], drum[6]))
+
+            # Middle pulleys.
+            for pulley in pulley_list[:-1]:
+                belt.addSprocket(*belt.parsePulley(pulley))
+
+            # End pulley
+            [end_pos, end_zvec, end_radius, end_winding] = belt.parsePulley(pulley[-1])
+            belt.addSprocket(EndSprocket(end_pos, end_zvec, end_radius, end_winding, end_vec, end_type))
+
+        p_system.finalize()
 
         # Return chain function.
-        return curveFunctions.CurveFunction(chain, "user created chain function.")
+        return curveFunctions.CurveFunction(p_system, "user created pulley system.")
 
 lcad_functions["pulley-system"] = LCadPulleySystem()
+
+class EndPointException(lcadExceptions.LCadException):
+    def __init__(self, got):
+        lcadExceptions.LCadException.__init__(self, "A pulley system end point must have 2 arguments, got " + str(got))
+
+class EndPointTypeException(lcadExceptions.LCadException):
+    def __init__(self, got):
+        lcadExceptions.LCadException.__init__(self, "End point type must be either 'point' or 'tangent', got '" + got + "'")
+
+class DrumException(lcadExceptions.LCadException):
+    def __init__(self, got):
+        lcadExceptions.LCadException.__init__(self, "A drum must have 7 arguments, got " + str(got))
+
+class NumberPulleysException(lcadExceptions.LCadException):
+    def __init__(self, got):
+        lcadExceptions.LCadException.__init__(self, "A pulley-system must have at least a drum and an end-point, got " + str(got) + " arguments")
 
 
 class EndSprocket(belt.Sprocket):
