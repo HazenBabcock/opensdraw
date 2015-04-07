@@ -66,7 +66,7 @@ class Stepper(object):
     def __init__(self, curve, start, stop):
         self.curve = curve
         self.pos = start
-        self.step = 16
+        self.step = 1.0
         self.stop = stop
 
         self.pos_ori = curve.getPosOrientation(start)
@@ -87,34 +87,20 @@ class Stepper(object):
         return self.pos
 
     def nextPos(self):
-        cur = self.pos + self.step
-        new_pos_ori = self.curve.getPosOrientation(cur)
-        if self.anglesDiffer(new_pos_ori):
-            while (self.step > 1) and self.anglesDiffer(new_pos_ori):
-                self.step = self.step/2
-                cur = self.pos + self.step
-                new_pos_ori = self.curve.getPosOrientation(cur)
-            self.pos = cur
-            self.pos_ori = new_pos_ori
-            return self.pos
+        cur = self.pos
+        new_pos_ori = self.pos_ori
+        while (cur < self.stop) and not self.anglesDiffer(new_pos_ori):
+            cur += self.step
+            new_pos_ori = self.curve.getPosOrientation(cur)
+        if (cur > self.stop):
+            self.pos = self.stop
         else:
-            while (cur < self.stop) and not self.anglesDiffer(new_pos_ori):
-                if (self.step < 32):
-                    self.step = self.step * 2
-                cur += self.step
-                new_pos_ori = self.curve.getPosOrientation(cur)
-            if (cur > self.stop):
-                self.pos = self.stop
-                self.pos_ori = self.curve.getPosOrientation(self.pos)
-                return self.pos
-            elif (self.anglesDiffer(new_pos_ori)):
+            if ((cur - self.step) > self.pos):
                 self.pos = cur - self.step
-                self.pos_ori = self.curve.getPosOrientation(self.pos)
-                return self.pos
             else:
-                self.pos = cur
-                self.pos_ori = new_pos_ori
-                return self.pos
+                self.pos += self.step
+        self.pos_ori = self.curve.getPosOrientation(self.pos)
+        return self.pos
 
     def posOri(self):
         return self.pos_ori
