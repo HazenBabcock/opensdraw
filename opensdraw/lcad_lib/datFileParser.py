@@ -43,6 +43,9 @@ def findPartFile(filename):
         full_path = part_dir + filename
         if os.path.exists(full_path):
             return full_path
+        full_path = part_dir + filename.lower()
+        if os.path.exists(full_path):
+            return full_path
     raise IOError("Could not find file " + filename)
 
 ## getPartDirectories
