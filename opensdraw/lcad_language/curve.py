@@ -174,18 +174,8 @@ class TangentException(lcadExceptions.LCadException):
 # curve and x/y vectors are perpendicular to the curve.
 #
 
-def crossProduct(u, v):
-    cp = numpy.zeros(3)
-    cp[0] = u[1]*v[2] - u[2]*v[1]
-    cp[1] = u[2]*v[0] - u[0]*v[2]
-    cp[2] = u[0]*v[1] - u[1]*v[0]
-    return cp
-
-def dotpVector(v1, v2):
-    return numpy.sum(v1 * v2)
-
 def normVector(vector):
-    return vector/numpy.sqrt(numpy.sum(vector * vector))
+    return vector/numpy.linalg.norm(vector)
 
 # Return the projection of vector1 onto vector2.
 def projVector(v1, v2):
@@ -200,13 +190,13 @@ class ControlPoint(object):
         self.raw_z_vec = numpy.array([dx, dy, dz])
         self.x_vec = numpy.array([px, py, pz])
 
-        if (dotpVector(self.raw_z_vec, self.raw_z_vec) == 0.0):
+        if (numpy.linalg.norm(self.raw_z_vec) == 0.0):
             raise TangentException
 
         self.z_vec = normVector(self.raw_z_vec)
 
         # Only the first point has a perpendicular vector.
-        if (dotpVector(self.x_vec, self.x_vec) > 0.1):
+        if (numpy.linalg.norm(self.x_vec) > 0.01):
 
             # Normalize perpendicular vector.
             self.x_vec = normVector(self.x_vec)
@@ -216,7 +206,7 @@ class ControlPoint(object):
             self.x_vec = normVector(self.x_vec - projVector(self.z_vec, self.x_vec))
 
             # Compute cross-product of z_vec and x_vec to create y vector.
-            self.y_vec = crossProduct(self.z_vec, self.x_vec)
+            self.y_vec = numpy.cross(self.z_vec, self.x_vec)
 
         else:
             self.x_vec = None
@@ -438,7 +428,7 @@ class Segment(object):
         x_vec = normVector(x_vec - proj)
 
         # Calculate y vector
-        y_vec = crossProduct(z_vec, x_vec)
+        y_vec = numpy.cross(z_vec, x_vec)
 
         return angles.vectorsToAngles(x_vec, y_vec, z_vec)        
 
