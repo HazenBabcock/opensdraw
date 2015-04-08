@@ -77,12 +77,15 @@ class SBKnot(object):
         self.curve1 = KnotCurve(c1_fname, cpts1)
         self.curve1_stop = self.curve1.getLength() * self.scale
 
-        # Straight segment 1.
         self.seg1_stop = self.curve1_stop + 0.5 * self.loop_size - self.scale * math.sqrt(2*2 + 2*2)
         self.seg1_x_start = 2 * self.scale
         self.seg1_z_start = 6 * self.scale
         self.seg1_dx = 1.0/math.sqrt(2)
         self.seg1_dz = 1.0/math.sqrt(2)
+
+        # This (sort of) handles small loops.
+        if (self.seg1_stop < self.curve1_stop):
+            self.curve1_stop = self.seg1_stop
 
         # Loop.
         self.loop_stop = self.seg1_stop + 0.75 * math.pi * self.loop_size
@@ -219,11 +222,11 @@ if (__name__ == "__main__"):
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
 
-    knot = SBKnot(1, 10)
+    knot = SBKnot(1, 2)
 
     fig = plt.figure()
     axis = fig.gca(projection='3d')
-    MAX = 20
+    MAX = 10
     for direction in (-1, 1):
         for point in numpy.diag(direction * MAX * numpy.array([1,1,1])):
             axis.plot([point[0]], [point[1]], [point[2]], 'w')
