@@ -8,7 +8,7 @@ This folder contains the modules that define the lcad language. This is a [prefi
 * comparisonFunctions.py - >, <, = , ..
 * coreFunctions.py - The basic functions in OpenLDraw.
 * curve.py - A function for creating curves (cubic splines).
-* curveFunctions.py - The function returned by curve, chain.
+* curveFunctions.py - The LCadFunction returned by belt, curve, chain, spring, ..
 * functions.py - The LCadFunction and UserFunction classes.
 * geometryFunctions.py - Rotate, Translate, ..
 * interpreter.py - The lcad language interpreter.
@@ -22,6 +22,7 @@ This folder contains the modules that define the lcad language. This is a [prefi
 * pulleySystem - A function for creating pulley and string systems.
 * parts.py - The Part object.
 * randomNumberFunctions.py - Random number generating functions.
+* spring.py - A function for creating springs.
 
 ### Directories ###
 * test - Nose tests.
