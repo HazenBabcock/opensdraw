@@ -1,6 +1,8 @@
 
 Current:
 
+2015-04-08: Add knots(), specifically a sheet bend knot.
+
 2015-04-03: Add pulley-system() module for 3D pulley / string creation.
 
 2015-03-31: Add belt() module for 3D belt / chain creation.
