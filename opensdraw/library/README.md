@@ -8,6 +8,8 @@ This directory also includes Python modules that are not loaded automatically by
 
 * flexible-axle.lcad - A function for creating flexible axles.
 * flexible-hose.lcad - A function for creating flexible hoses.
+* flexible-rod.lcad - A function for creating flexible rods.
+* knots.py - Function for creating a knot.
 * ldu.lcad - Functions for converting from ldu (LDraw Units) to standard brick sizes.
 * locate.lcad - Functions for placing bricks.
 * ribbed-hose.lcad - A function for creating ribbed hoses.
