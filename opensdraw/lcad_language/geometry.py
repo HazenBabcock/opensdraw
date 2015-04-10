@@ -50,7 +50,7 @@ def listToMatrix(a_list):
         vecs = []
         for elt in a_list:
             if isinstance(elt, lcadTypes.LCadVector):
-                vecs.append(elt[:3])
+                vecs.append(elt[:3].copy())
                 continue
 
             if isinstance(elt, list):
