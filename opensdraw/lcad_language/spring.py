@@ -10,9 +10,9 @@ import math
 import numbers
 import numpy
 
-import angles
 import curveFunctions
 import functions
+import geometry
 import interpreter as interp
 import lcadExceptions
 import lcadTypes
@@ -105,9 +105,12 @@ class Spring(object):
 
         self.length = d2 + 2*d1
 
-    def getCoords(self, distance):
+    def getLength(self):
+        return self.length
+
+    def getMatrix(self, distance):
         """
-        Return the position and orientation for a segment at distance along the spring.
+        Return the 4 x 4 transform matrix for a segment at distance along the spring.
         The z-axis points along the spring. The x-axis is the radial direction.
         """
 
@@ -135,40 +138,6 @@ class Spring(object):
                 x_vec = x_vec / numpy.linalg.norm(x_vec)
                 z_vec = z_vec / numpy.linalg.norm(z_vec)
                 y_vec = numpy.cross(z_vec, x_vec)
-                [rx, ry, rz] = angles.vectorsToAngles(x_vec, y_vec, z_vec)
 
-                return [x, y, z, rx, ry, rz]
+                return geometry.vectorsToMatrix([x, y, z], x_vec, y_vec, z_vec)
 
-    def getLength(self):
-        return self.length
-
-
-#
-# Testing
-#
-if (__name__ == "__main__"):
-    import matplotlib as mpl
-    from mpl_toolkits.mplot3d import Axes3D
-    import matplotlib.pyplot as plt
-
-    spring = Spring(10, 5, 0.1, 4, 0)
-    print spring.getLength()
-    for fz in spring.fz:
-        print fz
-
-    #d = numpy.linspace(0, spring.fz[1][0], 10)
-    d = numpy.linspace(0, spring.getLength(), 100)
-    plt.figaspect(1.0)
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    x = numpy.zeros(d.size)
-    y = numpy.zeros(d.size)
-    z = numpy.zeros(d.size)
-    for i in range(d.size):
-        [x[i], y[i], z[i]] = spring.getCoords(d[i])[:3]
-
-    mpl.rcParams['legend.fontsize'] = 10
-    ax.plot(x, y, z, label = 'spring')
-    ax.legend()
-        
-    plt.show()

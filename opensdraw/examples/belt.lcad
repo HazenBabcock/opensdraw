@@ -73,7 +73,7 @@
 
 (def belt1 (offset)
  (for (i 79)
-  (transform (matrix (a-belt (+ (* 15.5 i) offset)))
+  (transform (a-belt (+ (* 15.5 i) offset))
    (chain-link))))
 
 (belt1 (/ (* pi (bw 1.5) angle1) 180.0))

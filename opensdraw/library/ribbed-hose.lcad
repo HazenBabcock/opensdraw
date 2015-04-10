@@ -38,11 +38,11 @@
   (def d-inc 3.1)
 
   ; Start segment.
-  (transform (matrix (a-curve dist))
+  (transform (a-curve dist)
    (part "ribbed-hose-end" 16))
   (set dist (+ dist 2.5))
 
-  (transform (matrix (a-curve dist))
+  (transform (a-curve dist)
    (part "ribbed-hose-inner" 16)
    (part "ribbed-hose-outer" 16))
   (ribbed-hose-ring a-curve (- dist 2.5) (- dist 1.0) dist t)
@@ -53,7 +53,7 @@
   ; Middle segments.
   (for (i (- segments 1))
    (set dist (+ dist d-inc))
-   (transform (matrix (a-curve dist))
+   (transform  (a-curve dist)
     (part "ribbed-hose-cylinder" 16))
 
    (set dist (+ dist d-inc))
@@ -62,13 +62,13 @@
    (ribbed-hose-ring a-curve (+ dist d-inc) (+ dist 1.0) dist nil)
    (ribbed-hose-ring a-curve (+ dist d-inc) (+ dist 1.5) dist t)
 
-   (transform (matrix (a-curve dist))
+   (transform (a-curve dist)
     (part "ribbed-hose-inner" 16)
     (part "ribbed-hose-outer" 16)))
 
   ; End piece.
   (set dist (+ dist 2.5))
-  (transform (matrix (a-curve dist))
+  (transform (a-curve dist)
    (rotate (list 0 180 0)
     (part "ribbed-hose-end" 16)))
 

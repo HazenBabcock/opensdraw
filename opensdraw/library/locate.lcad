@@ -16,7 +16,7 @@
 ; az - rotation angle around z axis (degrees).
 ; fn - a function.
 (def trf (x y z ax ay az fn)
- (transform (matrix (list x y z ax ay az))
+ (transform (list x y z ax ay az)
   (fn)))
 
 ; Combine translation and rotation in a single function for standard bricks.

@@ -11,10 +11,10 @@ import numbers
 import numpy
 import os
 
-import opensdraw.lcad_language.angles as angles
 import opensdraw.lcad_language.curve as curve
 import opensdraw.lcad_language.curveFunctions as curveFunctions
 import opensdraw.lcad_language.functions as functions
+import opensdraw.lcad_language.geometry as geometry
 import opensdraw.lcad_language.interpreter as interpreter
 
 lcad_functions = {}
@@ -27,10 +27,10 @@ class SheetBendKnot(functions.LCadFunction):
     This creates and returns a function that parametrizes a sheet bend knot. All
     units are LDU.
 
-    When you call the created function you will get the 6 element list *(x y z rx ry rz)*
-    where x, y, z are the location along the knot and rx, ry, rz are the angles that
-    will rotate from the current coordinate system to the knot coordinate system. In the
-    knot coordinate system z is along the knot, x is in the plane of the knot and y is
+    When you call the created knot function you will get a 4 x 4 transform
+    matrix which will translate to the requested position on the knot and
+    orient to a coordinate system where the z-axis is pointing along the 
+    knot, the x-axis is in the plane of the knot and the y-axis is 
     perpendicular to the plane of the knot.
 
     :param diameter: The diameter of the string.
@@ -119,21 +119,24 @@ class SBKnot(object):
         self.curve2_stop = self.seg2_stop + self.curve2.getLength() * self.scale
 
         self.length = self.curve2_stop
+
+    def getLength(self):
+        return self.length
         
-    def getCoords(self, dist):
+    def getMatrix(self, dist):
         if (dist < self.curve1_stop):
-            [x, y, z, rx, ry, rz] = self.curve1.getCoords(dist / self.scale)
-            return [x * self.scale, y * self.scale, z * self.scale, rx, ry, rz]
+            m = self.curve1.getMatrix(dist / self.scale)
+            m[:3,3] = m[:3,3] * self.scale
+            return m
 
         if (dist < self.seg1_stop):
             dist -= self.curve1_stop
             x = self.seg1_x_start + self.seg1_dx * dist
             z = self.seg1_z_start + self.seg1_dz * dist
-            y_vec = [0, 0, 1]
+            y_vec = [0, 1, 0]
             z_vec = [self.seg1_dx, 0, self.seg1_dz]
             x_vec = numpy.cross(y_vec, z_vec)
-            [rx, ry, rz] = angles.vectorsToAngles(x_vec, y_vec, z_vec)
-            return [x, 0, z, rx, ry, rz]
+            return geometry.vectorsToMatrix([x, 0, z], x_vec, y_vec, z_vec)
 
         if (dist < self.loop_stop):
             dist -= self.seg1_stop
@@ -142,28 +145,24 @@ class SBKnot(object):
             z = self.loop_cz + 0.5 * self.loop_size * math.cos(angle)
             dx = math.cos(angle)
             dz = -math.sin(angle)
-            y_vec = [0, 0, 1]
+            y_vec = [0, 1, 0]
             z_vec = [-dx, 0, -dz]
             x_vec = numpy.cross(y_vec, z_vec)
-            [rx, ry, rz] = angles.vectorsToAngles(x_vec, y_vec, z_vec)
-            return [x, 0, z, rx, ry, rz]
+            return geometry.vectorsToMatrix([x, 0, z], x_vec, y_vec, z_vec)
 
         if (dist < self.seg2_stop):
             dist -= self.loop_stop
             x = self.seg2_x_start + self.seg2_dx * dist
             z = self.seg2_z_start + self.seg2_dz * dist
-            y_vec = [0, 0, 1]
+            y_vec = [0, 1, 0]
             z_vec = [self.seg2_dx, 0, self.seg2_dz]
             x_vec = numpy.cross(y_vec, z_vec)
-            [rx, ry, rz] = angles.vectorsToAngles(x_vec, y_vec, z_vec)
-            return [x, 0, z, rx, ry, rz]
+            return geometry.vectorsToMatrix([x, 0, z], x_vec, y_vec, z_vec)
 
         dist -= self.seg2_stop
-        [x, y, z, rx, ry, rz] = self.curve2.getCoords(dist / self.scale)
-        return [x * self.scale, y * self.scale, z * self.scale, rx, ry, rz]
-
-    def getLength(self):
-        return self.length
+        m = self.curve2.getMatrix(dist / self.scale)
+        m[:3,3] = m[:3,3] * self.scale
+        return m
 
 
 def saveControlPoint(fp, cp):
@@ -222,7 +221,7 @@ if (__name__ == "__main__"):
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
 
-    knot = SBKnot(1, 2)
+    knot = SBKnot(1, 10)
 
     fig = plt.figure()
     axis = fig.gca(projection='3d')
@@ -242,20 +241,22 @@ if (__name__ == "__main__"):
         #axis.scatter(x, y, z)
 
     if 1:
-        vlen = 0.25
+        vlen = 0.5
         #d = numpy.linspace(0, 20.0 + belt.getLength(), 40) - 10.0
-        d = numpy.linspace(0, knot.getLength(), 200)
+        d = numpy.linspace(0, knot.getLength(), 100)
         for i in range(d.size):
-            [x, y, z, rx, ry, rz] = knot.getCoords(d[i])
-            m = angles.rotationMatrix(rx, ry, rz)
+            m = knot.getMatrix(d[i])
+            x = m[0,3]
+            y = m[1,3]
+            z = m[2,3]
             vx = numpy.dot(m, numpy.array([vlen, 0, 0, 1]))
             vy = numpy.dot(m, numpy.array([0, vlen, 0, 1]))
             vz = numpy.dot(m, numpy.array([0, 0, vlen, 1]))
 
             for elt in [[vx, "red"], [vy, "green"], [vz, "blue"]]:
-                axis.plot([x, x + elt[0][0]],
-                          [y, y + elt[0][1]],
-                          [z, z + elt[0][2]],
+                axis.plot([x, elt[0][0]],
+                          [y, elt[0][1]],
+                          [z, elt[0][2]],
                           color = elt[1])
 
     plt.show()

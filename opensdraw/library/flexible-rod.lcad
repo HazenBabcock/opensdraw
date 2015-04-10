@@ -32,7 +32,7 @@
   (def radius (/ diameter 2.0))
 
   ; Start element.
-  (transform (matrix (a-curve start))
+  (transform (a-curve start)
    (rotate (vector 90 0 0)
     (scale (vector radius 1 radius)
      (part "4-4edge" 16)
@@ -41,7 +41,7 @@
   (rod a-curve start stop radius)
 
   ; End element.
-  (transform (matrix (a-curve stop))
+  (transform (a-curve stop)
    (rotate (vector -90 0 0)
     (scale (vector radius 1 radius)
      (part "4-4edge" 16)

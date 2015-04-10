@@ -33,10 +33,10 @@ class CurveFunction(functions.LCadFunction):
             else:
                 return interp.lcad_nil
 
-        # Return position and orientation.
-        return self.curve.getCoords(arg)
+        # Return transform matrix.
+        return self.curve.getMatrix(arg)
 
     # This is to make it easier to call directly from other Python modules.
-    def getPosOrientation(self, pos):
-        return self.curve.getCoords(pos)
+    def getMatrix(self, pos):
+        return self.curve.getMatrix(pos)
 

@@ -65,7 +65,7 @@
 
 (def chain1 (offset)
  (for (i 29)
-  (transform (matrix (a-chain (- (* 15.5 i) offset)))
+  (transform (a-chain (- (* 15.5 i) offset))
    (chain-link))))
 
 (chain1 (/ (* pi (bw 1.05) angle1) 180.0))

@@ -12,9 +12,9 @@ import numbers
 import numpy
 from scipy.optimize import minimize
 
-import angles
 import curveFunctions
 import functions
+import geometry
 import interpreter as interp
 import lcadExceptions
 import lcadTypes
@@ -34,13 +34,11 @@ class LCadCurve(functions.LCadFunction):
     additionally you must provide a (approximately) perpendicular vector to the
     derivate *((xp yp zp) (dx dy dz) (px py pz))* for the first control point.
 
-    When you call the created curve function you will get the 6 element list *(x y z rx ry rz)* 
-    where x, y, z are the location of the curve and rx, ry, rz are the angles that will rotate
-    from the current coordinate system to the curve coordinate system. In the curve
-    coordinate system z is along the curve and x is perpendicular to the coordinate system
-    as defined by the perpendicular vector provided for the 1st control point. The distance
-    argument to the created curve function will be adjusted to be in the range 0 - curve
-    length if the argument falls outside of this range.
+    When you call the created curve function you will get a 4 x 4 transform matrix
+    which will translate to the requested position on the curve and orient to a
+    coordinate system where z is along the curve and x is perpendicular to the 
+    coordinate system as defined by the perpendicular vector provided for the 1st 
+    control point.
 
     If you call the created curve function with the argument **t** it will return the length
     of the curve.
@@ -67,8 +65,8 @@ class LCadCurve(functions.LCadFunction):
                                                                               ; not specify :auto-scale nil, the derivative will
                                                                               ; be scaled to create a hopefully pleasing curve.
 
-     (def p1 (my-curve 1))                                                    ; p1 is the list (x y z rx ry rz) which defines the
-                                                                              ; curve at distance one along the curve.
+     (def m (my-curve 1))                                                     ; m is a 4 x 4 transform matrix for the
+                                                                              ; curve at distance 1 along the curve.
      (my-curve t)                                                             ; Returns the length of the curve.
 
     """
@@ -287,7 +285,10 @@ class Curve(object):
         self.length += segment.length
         self.segments.append(segment)
 
-    def getCoords(self, dist):
+    def getLength(self):
+        return self.length
+
+    def getMatrix(self, dist):
 
         if not self.extrapolate:
             while (dist < 0):
@@ -304,16 +305,13 @@ class Curve(object):
                 if (dist >= seg.dist_lut[0][1]) and (dist <= seg.dist_lut[-1][1]):
                     a_seg = seg
                     break
-            
-        # Get position and angles.
-        [x, y, z, rx, ry, rz] = a_seg.getCoords(dist)
 
-        # Add twist to the z angle.
-        rz += self.total_twist * (dist / self.length)
-        return [x, y, z, rx, ry, rz]
-
-    def getLength(self):
-        return self.length
+        m = a_seg.getMatrix(dist)
+        if (self.total_twist == 0.0):
+            return m
+        else:
+            twist = self.total_twist * (dist / self.length)
+            return numpy.dot(m, geometry.rotationMatrixZ(twist)).view(lcadTypes.LCadMatrix)
                 
 
 class Segment(object):
@@ -414,25 +412,7 @@ class Segment(object):
                             numpy.sum(self.y_coeff * p_vec),
                             numpy.sum(self.z_coeff * p_vec)])
 
-    #
-    # This is the same approach that is used in ldraw_to_lcad.py to 
-    # extract the rotation angles from the rotation matrix.
-    #
-    def getAngles(self, p, x_vec):
-
-        # Calculate z vector.
-        z_vec = normVector(self.d_xyz(p))
-    
-        # Calculate x vector.
-        proj = projVector(x_vec, z_vec)
-        x_vec = normVector(x_vec - proj)
-
-        # Calculate y vector
-        y_vec = numpy.cross(z_vec, x_vec)
-
-        return angles.vectorsToAngles(x_vec, y_vec, z_vec)        
-
-    def getCoords(self, distance):
+    def getMatrix(self, distance):
 
         # Extrapolate from curve start.
         if (distance <= 0):
@@ -471,8 +451,21 @@ class Segment(object):
             a_xyz = self.xyz(p)
 
         # Get angles
-        [rx, ry, rz] = self.getAngles(p, self.xvec_lut[start,:])
-        return [a_xyz[0], a_xyz[1], a_xyz[2], rx, ry, rz]
+        return geometry.vectorsToMatrix(a_xyz, *self.getVectors(p, self.xvec_lut[start,:]))
+
+    def getVectors(self, p, x_vec):
+
+        # Calculate z vector.
+        z_vec = normVector(self.d_xyz(p))
+    
+        # Calculate x vector.
+        proj = projVector(x_vec, z_vec)
+        x_vec = normVector(x_vec - proj)
+
+        # Calculate y vector
+        y_vec = numpy.cross(z_vec, x_vec)
+
+        return [x_vec, y_vec, z_vec]
 
     def maxCurvature(self):
         p = numpy.arange(0, 1.0, 0.01)
@@ -491,43 +484,6 @@ class Segment(object):
         return numpy.array([numpy.sum(self.x_coeff * p_vec),
                             numpy.sum(self.y_coeff * p_vec),
                             numpy.sum(self.z_coeff * p_vec)])
-
-
-#
-# Testing
-#
-if (__name__ == "__main__"):
-
-    cp1 = ControlPoint(0, 0, 0, 1, 0, 0, 0, 1.0, 0)
-    cp2 = ControlPoint(20, 0, 0, 1, 0, 0)
-    cp3 = ControlPoint(120, 20, 0, 0, -1, 0)
-    cp4 = ControlPoint(120, 0, 0, 0, -1, 0)
-
-    curve = Curve(True, True, 1.0, 0)
-    curve.addSegment(cp1, cp2)
-    curve.addSegment(cp2, cp3)
-    curve.addSegment(cp3, cp4)
-
-    #print curve.segments[2].dist_lut
-    #exit()
-
-    #print curve.segments[0].maxCurvature()
-
-    x = numpy.arange(-10, curve.length + 5, 5)
-    xf = numpy.zeros(x.size)
-    yf = numpy.zeros(x.size)
-    for i in range(x.size):
-        #print curve.getCoords(x[i])
-        [cx, cy, cz, rx, ry, rz] = curve.getCoords(x[i])
-        xf[i] = cx
-        yf[i] = cy
-
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    ax = fig.add_subplot(1,1,1, aspect = 1.0)
-    #ax.plot(xf, yf)
-    ax.scatter(xf, yf)
-    plt.show()
 
 
 #

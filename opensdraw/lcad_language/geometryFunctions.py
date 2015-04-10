@@ -11,63 +11,13 @@ import math
 import numbers
 import numpy
 
-import angles
 import functions
+import geometry
 import interpreter as interp
 import lcadExceptions as lce
 import lcadTypes
 
 lcad_functions = {}
-
-
-mapping = [[0, (0,3)], [1, (1,3)], [2, (2,3)],
-           [3, (0,0)], [ 4, (0,1)], [ 5, (0,2)],
-           [6, (1,0)], [ 7, (1,1)], [ 8, (1,2)],
-           [9, (2,0)], [10, (2,1)], [11, (2,2)]]
-
-def ldrawCoeffsToMatrix(model, coeffs):
-
-    m = numpy.identity(4)
-    for x in mapping:
-        val = interp.getv(interp.interpret(model, coeffs[x[0]]))
-        if not isinstance(val, numbers.Number):
-            raise lce.WrongTypeException("number", type(val))
-        m[x[1]] = val
-    return m
-
-
-def parseArgs(val):
-    """
-    This is used by most of the geometry and part functions to parse list or vectors.
-    The list / vector is truncated to 3 elements, as this is what they all use.
-    """
-
-    # Numpy array.
-    if isinstance(val, numpy.ndarray):
-        if (len(val.shape) != 1):
-            raise lce.LCadException("Expected a 1D vector, got a " + str(len(val.shape)) + "D matrix.")
-        if (val.size < 3):
-            raise lce.LCadException("Expected a vector with 3+ members, got " + str(val.size))
-        return val.tolist()[0:3]
-
-    # LCad list.
-    if isinstance(val, list):
-        if (len(val) < 3):
-            raise lce.LCadException("Expected a list with 3+ members, got " + str(val.size))
-        for elt in val:
-            if not isinstance(elt, numbers.Number):
-                raise lce.WrongTypeException("number", type(elt))
-        return val[0:3]
-
-    raise lce.WrongTypeException("list, vector", type(val))
-
-def translationMatrix(tx, ty, tz):
-    m = numpy.identity(4)
-    m[0,3] = tx
-    m[1,3] = ty
-    m[2,3] = tz
-
-    return m
 
 
 class GeometryFunction(functions.LCadFunction):
@@ -142,9 +92,9 @@ class Matrix(GeometryFunction):
     """
     **matrix** - Return a 4 x 4 transform matrix. 
 
-    The matrix is a numpy array. The arguments are (list x y z a b c d e f g h i) as defined here:
+    The matrix is a numpy array. There are 3 different ways to call this function:
 
-    http://www.ldraw.org/article/218.html#lt1
+    1) With *(list x y z a b c d e f g h i)* as defined here: http://www.ldraw.org/article/218.html#lt1
 
     :param x: translation in x in LDU.
     :param y: translation in y in LDU.
@@ -159,46 +109,40 @@ class Matrix(GeometryFunction):
     :param h: m(2,1)
     :param i: m(2,2)
 
-    Alternatively, you can provide the list (x y z ax ay ax).
+    2) With *(list x y z rx ry rz)*
 
     :param x: translation in x in LDU.
     :param y: translation in y in LDU.
     :param z: translation in z in LDU.
-    :param ax: rotation angle around x axis (degrees).
-    :param ay: rotation angle around y axis (degrees).
-    :param az: rotation angle around z axis (degrees).
+    :param rx: rotation around the x-axis in degrees.
+    :param ry: rotation around the y-axis in degrees.
+    :param rz: rotation around the z-axis in degrees.
+
+    3) With another matrix, in which case a copy will be made.
+
+    :param m: 4 x 4 transformation matrix.
 
     Usage::
 
-     (def m (matrix (list x y z a b c d e f g h i))) ; Supply all the coefficients.
-     (def m (matrix (list x y z ax ay az)))          ; Supply translation & rotation values.
+     (def m1 (matrix (list x y z a b c d e f g h i))) ; All the coefficients.
+     (def m2 (matrix (list x y z rx ry rz))           ; Translation & rotation values.
+     (def m3 (matrix m1))                             ; Another matrix.
 
     """
     def __init__(self):
         GeometryFunction.__init__(self, "matrix")
-        self.setSignature([[list]])
+        self.setSignature([[list, lcadTypes.LCadMatrix]])
 
     def call(self, model, tree):
         vals = self.getArg(model, tree, 0)
+        
+        # Transform matrix.
+        if isinstance(vals, lcadTypes.LCadMatrix):
+            return vals.copy()
 
-        # Check that the elements have the right type.
-        for elt in vals:
-            if not isinstance(elt, numbers.Number):
-                raise lce.WrongTypeException("number", type(elt))
-
-        # 12 elements.
-        if (len(vals) == 12):
-            m = numpy.identity(4)
-            for i in range(12):
-                m[mapping[i][1]] = vals[i]
-            return m.view(lcadTypes.LCadMatrix)
-
-        # 6 elements.
-        elif (len(vals) == 6):
-            return numpy.dot(translationMatrix(*vals[0:3]), angles.rotationMatrix(*vals[3:6])).view(lcadTypes.LCadMatrix)
-
-        else:
-            raise lce.LCadException("Expected a list with 6 or 12 members, got " + str(len(vals)))
+        # List.
+        if isinstance(vals, list):
+            return geometry.listToMatrix(vals)
 
 lcad_functions["matrix"] = Matrix()
 
@@ -224,7 +168,7 @@ class Mirror(GeometryFunction):
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
-            [mx, my, mz] = parseArgs(self.getArg(model, tree, 0))
+            [mx, my, mz] = geometry.parseArgs(self.getArg(model, tree, 0))
 
             m = numpy.identity(4)
             if (mx == 1):
@@ -271,7 +215,7 @@ class Rotate(GeometryFunction):
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
-            m = angles.rotationMatrix(*parseArgs(self.getArg(model, tree, 0)))
+            m = geometry.rotationMatrix(*geometry.parseArgs(self.getArg(model, tree, 0)))
             cur_matrix = model.curGroup().matrix().copy()
             model.curGroup().setMatrix(numpy.dot(cur_matrix, m))
             val = interp.interpret(model, tree.value[2:])
@@ -308,7 +252,7 @@ class Scale(GeometryFunction):
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
-            [sx, sy, sz] = parseArgs(self.getArg(model, tree, 0))
+            [sx, sy, sz] = geometry.parseArgs(self.getArg(model, tree, 0))
 
             m = numpy.identity(4)
             m[0,0] = sx
@@ -330,31 +274,16 @@ class Transform(GeometryFunction):
     """
     **transform** - Transform child elements.
 
-    Sometimes it is just easier to enter the transform 
-    matrix in LDraw form i.e. (list x y z a b c d e f g h i) as defined here:
-
-    http://www.ldraw.org/article/218.html#lt1
-
-    :param x: translation in x in LDU.
-    :param y: translation in y in LDU.
-    :param z: translation in z in LDU.
-    :param a: m(0,0)
-    :param b: m(0,1)
-    :param c: m(0,2)
-    :param d: m(1,0)
-    :param e: m(1,1)
-    :param f: m(1,2)
-    :param g: m(2,0)
-    :param h: m(2,1)
-    :param i: m(2,2)
-
-    Alternatively, you can provide a previously created 4x4 transform matrix.
+    Transform child elements with a 4 x 4 transform matrix. This function is called
+    in exactly the same way as the *matrix()* function.
 
     Usage::
 
-     (transform (list x y z a b c d e f g h i) ; Supply all the coefficients.
+     (transform (list x y z a b c d e f g h i) ; All the coefficients.
       ..)
-     (transform mat                            ; Supply a standard 4x4 transform matrix.
+     (transform (list x y z rx ry rz)          ; Translate to x, y, z and rotate by rx, ry, rz.
+      ..)
+     (transform m                              ; m is a 4x4 transform matrix.
       ..)
     """
     def __init__(self):
@@ -363,25 +292,16 @@ class Transform(GeometryFunction):
 
     def call(self, model, tree):
         if (self.numberArgs(tree) > 1):
-            
-            val = self.getArg(model, tree, 0)
+            vals = self.getArg(model, tree, 0)
 
             # Transform matrix.
-            if isinstance(val, numpy.ndarray):
-                if (len(val.shape) != 2):
-                    raise lce.LCadException("Expected a 2D matrix, got a " + str(len(val.shape)) + "D matrix.")
-                m = val
+            if isinstance(vals, lcadTypes.LCadMatrix):
+                m = vals
 
-            # LCad list.
-            elif isinstance(val, list):
-                if not (len(val) == 12):
-                    raise lce.LCadException("Expected a list with 12 members, got " + str(len(val)))
-                m = numpy.identity(4)
-                for i in range(len(val)):
-                    if not isinstance(val[i], numbers.Number):
-                        raise lce.WrongTypeException("number", type(val[i]))
-                    m[mapping[i][1]] = val[i]
-
+            # List.
+            if isinstance(vals, list):
+                m = geometry.listToMatrix(vals)
+            
             cur_matrix = model.curGroup().matrix().copy()
             model.curGroup().setMatrix(numpy.dot(cur_matrix, m))
             val = interp.interpret(model, tree.value[2:])
@@ -418,7 +338,7 @@ class Translate(GeometryFunction):
     def call(self, model, tree):
 
         if (self.numberArgs(tree) > 1):
-            m = translationMatrix(*parseArgs(self.getArg(model, tree, 0)))
+            m = geometry.translationMatrix(*geometry.parseArgs(self.getArg(model, tree, 0)))
 
             cur_matrix = model.curGroup().matrix().copy()
             model.curGroup().setMatrix(numpy.dot(cur_matrix, m))

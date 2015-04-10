@@ -11,7 +11,7 @@ import numbers
 import numpy
 
 import functions
-import geometryFunctions
+import geometry
 import interpreter as interp
 import lcadExceptions as lce
 import parts
@@ -49,7 +49,7 @@ class PrimitiveFunction(PartFunction):
 
         # Get coordinates.
         for vertex in args:
-            coords.extend(geometryFunctions.parseArgs(vertex))
+            coords.extend(geometry.parseArgs(vertex))
 
         group = model.curGroup()
         group.addPart(self.parts_fn(group.matrix(), coords, color), True)

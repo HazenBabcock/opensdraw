@@ -11,11 +11,10 @@ import math
 import numbers
 import numpy
 
-import angles
 import belt
 import curveFunctions
 import functions
-import geometryFunctions
+import geometry
 import interpreter as interp
 import lcadExceptions
 import lcadTypes
@@ -52,13 +51,12 @@ class LCadPulleySystem(functions.LCadFunction):
     *(position/direction type)* where position/direction is a 3 element
     list and type is either "point" or "tangent".
 
-    When you call the created pulley-system function you will get a 6 
-    element list *(x y z rx ry rz)* where *x*, *y*, and *z* specify the 
-    position of the string at distance *d*. The angle *rx*, *ry* and *rz* 
-    will rotate the coordinate system such that z-axis is pointing along 
-    the string, the y-axis is in the plane of the string and the x-axis 
-    is perpendicular to the plane of the string, pointing in the direction 
-    of the pulley perpendicular vector.
+    When you call the created pulley-system function you will get a 4 x 4 
+    transform matrix which will translate to the requested position on the 
+    string and orient to a coordinate system where the z-axis is pointing 
+    along the string, the y-axis is in the plane of the string and the 
+    x-axis is perpendicular to the plane of the string, pointing in the 
+    direction of the pulley perpendicular vector.
 
     If you call the created pulley-system function with the argument 
     **t** it will return the length of the string.
@@ -80,7 +78,7 @@ class LCadPulleySystem(functions.LCadFunction):
      (def ps2 (pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50)
                                    (list (list 20 0 0) "point"))))
 
-     (def p1 (ps1 1))  ; p1 is the list (x y z rx ry rz).
+     (def m (ps1 1))   ; m is a 4 x 4 transform matrix.
      (ps1 t)           ; Returns the length of pulley system ps1 including the 
                        ;  string on the drum.
      (ps2 t)           ; Returns the length of pulley system ps2 including the
@@ -109,8 +107,8 @@ class LCadPulleySystem(functions.LCadFunction):
         if (len(drum) != 7):
             DrumException(len(drum))
 
-        drum_pos = geometryFunctions.parseArgs(drum[0])
-        drum_zvec = geometryFunctions.parseArgs(drum[1])
+        drum_pos = geometry.parseArgs(drum[0])
+        drum_zvec = geometry.parseArgs(drum[1])
         for arg in drum[2:]:
             if not isinstance(arg, numbers.Number):
                 raise lcadExceptions.WrongTypeException("number", type(arg))
@@ -125,7 +123,7 @@ class LCadPulleySystem(functions.LCadFunction):
         if (len(end_point) != 2):
             EndPointException(len(end_point))
 
-        end_vec = geometryFunctions.parseArgs(end_point[0])
+        end_vec = geometry.parseArgs(end_point[0])
         end_type = end_point[1]
         if not isinstance(end_type, basestring):
             raise lcadExceptions.WrongTypeException("string", type(end_type))
@@ -348,8 +346,11 @@ class Drum(object):
         self.sprocket.leave_vec = self.sprocket.rotateVector(numpy.array([self.exit_radius, 0, self.exit_pos]), self.sprocket.leave_angle)
         self.sprocket.t_vec = (next_sp.pos + next_sp.enter_vec) - (self.sprocket.pos + self.sprocket.leave_vec)
 
-    def getCoords(self, distance):
-        
+    def getLength(self):
+        return self.sprocket.getLength()
+
+    def getMatrix(self, distance):
+
         # On the drum.
         if (distance < self.sprocket.sp_length):
 
@@ -382,9 +383,8 @@ class Drum(object):
                     y_vec = y_vec/numpy.linalg.norm(y_vec)
 
                     x_vec = numpy.cross(y_vec, z_vec)
-                    [rx, ry, rz] = angles.vectorsToAngles(x_vec, y_vec, z_vec)
 
-                    return [p_vec[0], p_vec[1], p_vec[2], rx, ry, rz]
+                    return geometry.vectorsToMatrix(p_vec, x_vec, y_vec, z_vec)
 
                 last_len = seg[0]
 
@@ -398,12 +398,12 @@ class Drum(object):
             y_vec = numpy.cross(z_vec, self.sprocket.z_vec)
             y_vec = y_vec/numpy.linalg.norm(y_vec)
             x_vec = numpy.cross(y_vec, z_vec)
-            [rx, ry, rz] = angles.vectorsToAngles(x_vec, y_vec, z_vec)
 
-            return [pos[0], pos[1], pos[2], rx, ry, rz + math.degrees(twist)]
-
-    def getLength(self):
-        return self.sprocket.getLength()
+            m = geometry.vectorsToMatrix(pos, x_vec, y_vec, z_vec)
+            if (twist == 0):
+                return m
+            else:
+                return numpy.dot(m, geometry.rotationMatrixZ(twist)).view(lcadTypes.LCadMatrix)
 
     def nextSprocket(self, next_sp):
         self.sprocket.nextSprocket(next_sp)
@@ -437,79 +437,6 @@ class StdDrum(Drum):
         self.sprocket = belt.Sprocket(pos, z_vec, radius, ccw)
         Drum.__init__(self, pos, z_vec, radius, ccw, drum_width, string_gauge, string_length)
 
-
-#
-# Testing
-#
-
-if (__name__ == "__main__"):
-    import matplotlib as mpl
-    from mpl_toolkits.mplot3d import Axes3D
-    import matplotlib.pyplot as plt
-  
-    if 0:
-        drum = StdDrum([0, 0, 0], [0, 0, 1], 1.0, -1, 1.0, 0.1, 100.0)
-        sprockets = [belt.Sprocket([4, 0, 1.0], [0, 0, 1], 1.0, 1),
-                     EndSprocket([4, 4, 1.0], [0, 0, 1], 1.0, 1, [-1, 0, 0], "tangent")]
-
-    else:
-        drum = EndDrum([0, 0, 0], [0, 0, 1], 1.0, -1, 1.0, 0.1, 100.0, [1, 0, 0], "tangent")
-        sprockets = []
-    
-    a_belt = belt.Belt(False)
-    a_belt.addSprocket(drum)
-    for sp in sprockets:
-        a_belt.addSprocket(sp)
-    a_belt.finalize()
-
-    fig = plt.figure()
-    axis = fig.gca(projection='3d')
-    MAX = 6
-    for direction in (-1, 1):
-        for point in numpy.diag(direction * MAX * numpy.array([1,1,1])):
-            axis.plot([point[0]], [point[1]], [point[2]], 'w')
-
-    # Draw sprockets.
-    az = numpy.linspace(0, 2.0 * math.pi, 40)
-    for sp in sprockets:
-        x = numpy.zeros(az.size)
-        y = numpy.zeros(az.size)
-        z = numpy.zeros(az.size)
-        v = numpy.array([sp.radius, 0, 0])
-        for i in range(az.size):
-            [x[i], y[i], z[i]] = sp.rotateVector(v, az[i]) + sp.pos
-        axis.plot(x, y, z, color = "black")
-
-    # Draw string.
-    if 1:
-        d = numpy.linspace(0, a_belt.getLength() + 2, 500)
-        x = numpy.zeros(d.size)
-        y = numpy.zeros(d.size)
-        z = numpy.zeros(d.size)
-        for i in range(d.size):
-            x[i], y[i], z[i] = a_belt.getCoords(d[i])[0:3]
-        
-        axis.plot(x, y, z, color = "black")
-        #axis.scatter(x, y, z, color = "blue")
-
-    # Draw coordinate system vectors.
-    if 0:
-        vlen = 0.25
-        d = numpy.linspace(150, string_l - 1.0e-3, 200)
-        for i in range(d.size):
-            [x, y, z, rx, ry, rz] = drum.getCoords(d[i])
-            m = angles.rotationMatrix(rx, ry, rz)
-            vx = numpy.dot(m, numpy.array([vlen, 0, 0, 1]))
-            vy = numpy.dot(m, numpy.array([0, vlen, 0, 1]))
-            vz = numpy.dot(m, numpy.array([0, 0, vlen, 1]))
-
-            for elt in [[vx, "red"], [vy, "green"], [vz, "blue"]]:
-                axis.plot([x, x + elt[0][0]],
-                          [y, y + elt[0][1]],
-                          [z, z + elt[0][2]],
-                          color = elt[1])
-
-    plt.show()
 
 #
 # The MIT License

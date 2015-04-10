@@ -36,11 +36,11 @@ class LCadChain(functions.LCadFunction):
     in the order in which they are specified, and when *:continuous* is **t**
     returns from the last sprocket to the first sprocket to close the loop.
 
-    When you call the created chain function you will get a 6 element list 
-    *(x y z rx ry rz)*. Since (currently) the chain is in the x-y plane, z will 
-    always be zero. The angles rx, ry and rz will rotate the coordinate system
-    such that the z-axis is pointing along the chain the y-axis is in the plane
-    of the chain and the x-axis is perpendicular to the plane of the chain.
+    When you call the created chain function you will get a 4 x 4 transform
+    matrix which will translate to the requested position on the chain and
+    orient to a coordinate system where the z-axis is pointing along the 
+    chain, the y-axis is in the plane of the chain and the x-axis is 
+    perpendicular to the plane of the chain.
 
     If you call the created chain function with the argument **t** it will return the 
     length of the chain.
@@ -57,7 +57,7 @@ class LCadChain(functions.LCadFunction):
      (def a-chain (chain (list (list -4 0 1 1)    ; Create a chain with two sprockets, the 1st at (-4,0) and
                                (list 4 0 1 1))))  ; the second at (4,0). Both sprockets have radius 1 and a
                                                   ; counter-clockwise winding direction.
-     (def c1 (a-chain 1))                         ; c1 is the list (x y z rx ry rz).
+     (def m (a-chain 1))                          ; m is a 4 x 4 transform matrix.
      (a-chain t)                                  ; Returns the length of the chain.
 
     """
@@ -110,10 +110,11 @@ class SprocketException(lcadExceptions.LCadException):
     def __init__(self, got):
         lcadExceptions.LCadException.__init__(self, "A sprocket must have 4 arguments, got " + str(got))
 
+
 #
 # The MIT License
 #
-# Copyright (c) 2014 Hazen Babcock
+# Copyright (c) 2015 Hazen Babcock
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal

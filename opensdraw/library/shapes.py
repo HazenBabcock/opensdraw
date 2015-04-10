@@ -10,10 +10,9 @@ import math
 import numbers
 import numpy
 
-import opensdraw.lcad_language.angles as angles
 import opensdraw.lcad_language.curveFunctions as curveFunctions
 import opensdraw.lcad_language.functions as functions
-import opensdraw.lcad_language.geometryFunctions as geometryFunctions
+import opensdraw.lcad_language.geometry as geometry
 import opensdraw.lcad_language.parts as parts
 import opensdraw.lcad_language.lcadTypes as lcadTypes
 
@@ -50,9 +49,9 @@ def rotationMatrices():
         angle += d_angle
     return matrices
 
-def transformMatrix(posori):
-    return numpy.dot(geometryFunctions.translationMatrix(*posori[0:3]),
-                     angles.rotationMatrix(*posori[3:6]))
+#def transformMatrix(posori):
+#    return numpy.dot(geometryFunctions.translationMatrix(*posori[0:3]),
+#                     angles.rotationMatrix(*posori[3:6]))
 
 
 #
@@ -69,29 +68,27 @@ class Stepper(object):
         self.step = 1.0
         self.stop = stop
 
-        self.pos_ori = curve.getPosOrientation(start)
+        self.mm = curve.getMatrix(start)
 
-    def anglesDiffer(self, new_pos_ori):
-        diff = 0
-        for i in range(3,6):
-            diff += abs(self.pos_ori[i] - new_pos_ori[i])
-        if (diff > 6):
+    def anglesDiffer(self, new_mm):
+        diff = 0.0
+        for i in range(3):
+            diff += numpy.dot(self.mm[:3,i], new_mm[:3,i])
+        diff = 3.0 - diff
+        if (diff > 1.0e-2):
             return True
         else:
             return False
 
-    # For testing.
-    def _nextPos(self):
-        self.pos += 4
-        self.pos_ori = self.curve.getPosOrientation(self.pos)
-        return self.pos
+    def getMatrix(self):
+        return self.mm
 
     def nextPos(self):
         cur = self.pos
-        new_pos_ori = self.pos_ori
-        while (cur < self.stop) and not self.anglesDiffer(new_pos_ori):
+        new_mm = self.mm
+        while (cur < self.stop) and not self.anglesDiffer(new_mm):
             cur += self.step
-            new_pos_ori = self.curve.getPosOrientation(cur)
+            new_mm = self.curve.getMatrix(cur)
         if (cur > self.stop):
             self.pos = self.stop
         else:
@@ -99,11 +96,9 @@ class Stepper(object):
                 self.pos = cur - self.step
             else:
                 self.pos += self.step
-        self.pos_ori = self.curve.getPosOrientation(self.pos)
+        self.mm = self.curve.getMatrix(self.pos)
         return self.pos
 
-    def posOri(self):
-        return self.pos_ori
 
 
 #
@@ -157,13 +152,13 @@ class Axle(functions.LCadFunction):
         matrix = group.matrix()
         stepper = Stepper(curve, start, stop)
 
-        cm = numpy.dot(matrix, transformMatrix(stepper.posOri()))
+        cm = numpy.dot(matrix, stepper.getMatrix())
         lastv = createRing(cm, self.vectors)
         n_vert = len(lastv) - 1
 
         pos = stepper.nextPos()
         while (pos < stop):
-            cm = numpy.dot(matrix, transformMatrix(stepper.posOri()))
+            cm = numpy.dot(matrix, stepper.getMatrix())
             curv = createRing(cm, self.vectors)
             for i in range(n_vert):
                 group.addPart(parts.Line(None, numpy.append(lastv[i], curv[i]), 16), True)
@@ -173,7 +168,7 @@ class Axle(functions.LCadFunction):
             pos = stepper.nextPos()
             lastv = curv
 
-        cm = numpy.dot(matrix, transformMatrix(curve.getPosOrientation(stop)))
+        cm = numpy.dot(matrix, curve.getMatrix(stop))
         curv = createRing(cm, self.vectors)
         for i in range(n_vert):
             group.addPart(parts.Line(None, numpy.append(lastv[i], curv[i]), 16), True)
@@ -278,13 +273,13 @@ class Rod(functions.LCadFunction):
         vectors = createVectors(self.matrices, numpy.array([radius, 0, 0, 1]))
         
         # Starting ring.
-        cm = numpy.dot(matrix, transformMatrix(stepper.posOri()))
+        cm = numpy.dot(matrix, stepper.getMatrix())
         last_v = createRing(cm, vectors)
 
         n_vert = len(last_v) - 1
         pos = stepper.nextPos()
         while (pos < stop):
-            cm = numpy.dot(matrix, transformMatrix(stepper.posOri()))
+            cm = numpy.dot(matrix, stepper.getMatrix())
             cur_v = createRing(cm, vectors)
 
             for i in range(n_vert):
@@ -295,7 +290,7 @@ class Rod(functions.LCadFunction):
             pos = stepper.nextPos()
             last_v = cur_v
 
-        cm = numpy.dot(matrix, transformMatrix(curve.getPosOrientation(stop)))
+        cm = numpy.dot(matrix, curve.getMatrix(stop))
         cur_v = createRing(cm, vectors)
 
         for i in range(n_vert):
@@ -346,14 +341,14 @@ class Tube(functions.LCadFunction):
         outer_vecs = createVectors(self.matrices, numpy.array([outer_radius, 0, 0, 1]))
         
         # Starting ring.
-        cm = numpy.dot(matrix, transformMatrix(stepper.posOri()))
+        cm = numpy.dot(matrix, stepper.getMatrix())
         last_inner = createRing(cm, inner_vecs)
         last_outer = createRing(cm, outer_vecs)
 
         n_vert = len(last_inner) - 1
         pos = stepper.nextPos()
         while (pos < stop):
-            cm = numpy.dot(matrix, transformMatrix(stepper.posOri()))
+            cm = numpy.dot(matrix, stepper.getMatrix())
             cur_inner = createRing(cm, inner_vecs)
             cur_outer = createRing(cm, outer_vecs)
 
@@ -372,7 +367,7 @@ class Tube(functions.LCadFunction):
             last_inner = cur_inner
             last_outer = cur_outer
 
-        cm = numpy.dot(matrix, transformMatrix(curve.getPosOrientation(stop)))
+        cm = numpy.dot(matrix, curve.getMatrix(stop))
         cur_inner = createRing(cm, inner_vecs)
         cur_outer = createRing(cm, outer_vecs)
 

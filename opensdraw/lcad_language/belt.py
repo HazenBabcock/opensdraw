@@ -10,10 +10,9 @@ import math
 import numbers
 import numpy
 
-import angles
 import curveFunctions
 import functions
-import geometryFunctions
+import geometry
 import interpreter as interp
 import lcadExceptions
 import lcadTypes
@@ -29,10 +28,10 @@ def parsePulley(pulley):
         raise PulleyException(len(pulley))
 
     # Position vector.
-    pos = geometryFunctions.parseArgs(pulley[0])
+    pos = geometry.parseArgs(pulley[0])
 
     # Orientation vector.
-    z_vec = geometryFunctions.parseArgs(pulley[1])
+    z_vec = geometry.parseArgs(pulley[1])
 
     # Radius
     radius = pulley[2]
@@ -69,13 +68,12 @@ class LCadBelt(functions.LCadFunction):
     specified, and when *:continuous* is **t** returns from the last pulley 
     / sprocket to the first to close the loop.
 
-    When you call the created belt function you will get a 6 element list
-    *(x y z rx ry rz)* where *x*, *y*, and *z* specify the position of the
-    belt at distance *d*. The angle *rx*, *ry* and *rz* will rotate the
-    coordinate system such that z-axis is pointing along the belt, the
-    y-axis is in the plane of the belt and the x-axis is perpendicular
-    to the plane of the belt, pointing in the direction of the pulley /
-    sprocket perpendicular vector.
+    When you call the created belt function you will get a 4 x 4 transform
+    matrix which will translate to the requested position on the belt and
+    orient to a coordinate system where the z-axis is pointing along the 
+    belt, the y-axis is in the plane of the belt and the x-axis is 
+    perpendicular to the plane of the belt, pointing in the direction 
+    of the pulley / sprocket perpendicular vector.
 
     If you call the created belt function with the argument **t** it will return the 
     length of the belt.
@@ -96,7 +94,7 @@ class LCadBelt(functions.LCadFunction):
                                    (list 0 0 1) ; Pulley two is at 4,0,0 with radius 1.5.
                                    1.5 1))))  
 
-     (def b1 (a-belt 1))                        ; b1 is the list (x y z rx ry rz).
+     (def m (a-belt 1))                         ; m is a 4 x 4 transform matrix.
      (a-belt t)                                 ; Returns the length of the belt.
 
     """
@@ -172,7 +170,10 @@ class Belt(object):
             self.length += sp.getLength()
             self.dists.append(self.length)
 
-    def getCoords(self, distance):
+    def getLength(self):
+        return self.length
+
+    def getMatrix(self, distance):
         """
         Return the position and orientation for a segment at distance along the spring.
         The z-axis points along the spring. The x-axis is the radial direction.
@@ -186,16 +187,14 @@ class Belt(object):
         last_dist = 0
         for i in range(len(self.dists)):
             if (distance < self.dists[i]):
-                return self.sprockets[i].getCoords(distance - last_dist)
+                return self.sprockets[i].getMatrix(distance - last_dist)
             last_dist = self.dists[i]
         
         if (len(self.dists) > 1):
-            return self.sprockets[-1].getCoords(distance - self.dists[-2])
+            return self.sprockets[-1].getMatrix(distance - self.dists[-2])
         else:
-            return self.sprockets[-1].getCoords(distance)
+            return self.sprockets[-1].getMatrix(distance)
 
-    def getLength(self):
-        return self.length
 
 
 class Sprocket(object):
@@ -299,7 +298,10 @@ class Sprocket(object):
 
         self.t_twist = math.atan2(numpy.dot(l_vec, x_vec), numpy.dot(l_vec, y_vec))
 
-    def getCoords(self, distance):
+    def getLength(self):
+        return self.length
+
+    def getMatrix(self, distance):
 
         # On the sprocket.
         if (distance < self.sp_length) or (self.t_vec is None):
@@ -320,9 +322,7 @@ class Sprocket(object):
 
             z_vec = numpy.cross(self.z_vec, y_vec)
             x_vec = numpy.cross(y_vec, z_vec)
-            [rx, ry, rz] = angles.vectorsToAngles(x_vec, y_vec, z_vec)
-
-            return [pos[0], pos[1], pos[2], rx, ry, rz]
+            return geometry.vectorsToMatrix(pos, x_vec, y_vec, z_vec)
 
         # Between this sprocket and the next sprocket.
         else:
@@ -334,13 +334,13 @@ class Sprocket(object):
             y_vec = numpy.cross(z_vec, self.z_vec)
             y_vec = y_vec/numpy.linalg.norm(y_vec)
             x_vec = numpy.cross(y_vec, z_vec)
-            [rx, ry, rz] = angles.vectorsToAngles(x_vec, y_vec, z_vec)
 
-            return [pos[0], pos[1], pos[2], rx, ry, rz + math.degrees(twist)]
+            m = geometry.vectorsToMatrix(pos, x_vec, y_vec, z_vec)
+            if (twist == 0.0):
+                return m
+            else:
+                return numpy.dot(m, geometry.rotationMatrixZ(twist)).view(lcadTypes.LCadMatrix)
 
-    def getLength(self):
-        return self.length
-        
     def nextSprocket(self, next_sp):
         """
         Calculate sprocket coordinate system.
@@ -375,94 +375,3 @@ class Sprocket(object):
         return numpy.dot(self.matrix, numpy.dot(rz, vector))
 
 
-#
-# Testing
-#
-if (__name__ == "__main__"):
-    import matplotlib as mpl
-    from mpl_toolkits.mplot3d import Axes3D
-    import matplotlib.pyplot as plt
-
-    sprockets = [Sprocket([0, 0, 0], [0, 0, 1], 1.0, 1),
-                 Sprocket([4, -1, 1], [0, -1, 0], 1.0, 1),
-                 Sprocket([5, 0, 5], [-1, 0, 0], 1.0, 1),
-                 Sprocket([4, 1, 1], [0, 1, 0], 1.0, 1)]
-    
-    #sprockets = [Sprocket([0, 0, 0], [0, 0, 1], 1.0, True),
-    #             Sprocket([4, 0, 0], [0, 0, 1], 1.5, True)]
-
-    belt = Belt(True)
-    for sp in sprockets:
-        belt.addSprocket(sp)
-    belt.finalize()
-
-    fig = plt.figure()
-    axis = fig.gca(projection='3d')
-    MAX = 6
-    for direction in (-1, 1):
-        for point in numpy.diag(direction * MAX * numpy.array([1,1,1])):
-            axis.plot([point[0]], [point[1]], [point[2]], 'w')
-
-    #mpl.rcParams['legend.fontsize'] = 10
-
-    az = numpy.linspace(0, 2.0 * math.pi, 40)
-    for sp in sprockets:
-        x = numpy.zeros(az.size)
-        y = numpy.zeros(az.size)
-        z = numpy.zeros(az.size)
-        v = numpy.array([sp.radius, 0, 0])
-        for i in range(az.size):
-            [x[i], y[i], z[i]] = sp.rotateVector(v, az[i]) + sp.pos
-        axis.plot(x, y, z, color = "black")
-
-    if 0:
-        for sp in sprockets:
-            axis.scatter([sp.pos[0] + sp.enter_vec[0]],
-                         [sp.pos[1] + sp.enter_vec[1]],
-                         [sp.pos[2] + sp.enter_vec[2]],
-                         color = "purple")
-
-            axis.scatter([sp.pos[0] + sp.leave_vec[0]],
-                         [sp.pos[1] + sp.leave_vec[1]],
-                         [sp.pos[2] + sp.leave_vec[2]],
-                         color = "black")
-
-    if 0:
-        d = numpy.linspace(0, belt.getLength(), 10)
-        x = numpy.zeros(d.size)
-        y = numpy.zeros(d.size)
-        z = numpy.zeros(d.size)
-        for i in range(d.size):
-            x[i], y[i], z[i] = belt.getCoords(d[i])[:3]
-        axis.scatter(x, y, z)
-
-    if 1:
-        vlen = 0.25
-        #d = numpy.linspace(0, 20.0 + belt.getLength(), 40) - 10.0
-        d = numpy.linspace(0, belt.getLength(), 40)
-        for i in range(d.size):
-            [x, y, z, rx, ry, rz] = belt.getCoords(d[i])
-            m = angles.rotationMatrix(rx, ry, rz)
-            vx = numpy.dot(m, numpy.array([vlen, 0, 0, 1]))
-            vy = numpy.dot(m, numpy.array([0, vlen, 0, 1]))
-            vz = numpy.dot(m, numpy.array([0, 0, vlen, 1]))
-
-            for elt in [[vx, "red"], [vy, "green"], [vz, "blue"]]:
-                axis.plot([x, x + elt[0][0]],
-                          [y, y + elt[0][1]],
-                          [z, z + elt[0][2]],
-                          color = elt[1])
-
-    #for ps in [[s1, s2], [s2, s3], [s3, s4], [s4, s1]]:
-    #for ps in [[s1, s2]]:
-    #    ps0 = ps[0]
-    #    ps1 = ps[1]
-    #    leave_vec = ps0.rotateVector(numpy.array([ps0.radius, 0, 0]), ps0.leave_angle)
-    #    enter_vec = ps1.rotateVector(numpy.array([ps1.radius, 0, 0]), ps1.enter_angle) 
-    #    axis.plot([ps0.pos[0] + leave_vec[0], ps1.pos[0] + enter_vec[0]],
-    #              [ps0.pos[1] + leave_vec[1], ps1.pos[1] + enter_vec[1]],
-    #              [ps0.pos[2] + leave_vec[2], ps1.pos[2] + enter_vec[2]])
-
-    #axis.legend()
-
-    plt.show()
