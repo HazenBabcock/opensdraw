@@ -11,6 +11,7 @@ import math
 import numbers
 import numpy
 
+import functions
 import interpreter as interp
 import lcadExceptions as lce
 import lcadTypes
@@ -45,7 +46,27 @@ def listToMatrix(a_list):
     if (len(a_list) == 6):
         return numpy.dot(translationMatrix(*a_list[:3]), rotationMatrix(*a_list[3:])).view(lcadTypes.LCadMatrix)
 
-    raise lce.LCadException("Expected a list with 6 or 12 members, got " + str(len(a_list)))
+    if (len(a_list) == 4):
+        vecs = []
+        for elt in a_list:
+            if isinstance(elt, lcadTypes.LCadVector):
+                vecs.append(elt[:3])
+                continue
+
+            if isinstance(elt, list):
+                if (len(elt) != 3):
+                    raise lce.LCadException("Expected a list with 3 members, got " + str(len(elt)))
+                vecs.append(numpy.array(elt[:3]))
+                continue
+
+            raise lce.WrongTypeException("list, vector", functions.typeToString(type(elt)))
+
+        for i in range(3):
+            vecs[i+1] = vecs[i+1]/numpy.linalg.norm(vecs[i+1])
+
+        return vectorsToMatrix(*vecs)
+
+    raise lce.LCadException("Expected a list with 4, 6 or 12 members, got " + str(len(a_list)))
 
 
 def parseArgs(val):
@@ -55,17 +76,13 @@ def parseArgs(val):
     """
 
     # Numpy array.
-    if isinstance(val, numpy.ndarray):
-        if (len(val.shape) != 1):
-            raise lce.LCadException("Expected a 1D vector, got a " + str(len(val.shape)) + "D matrix.")
-        if (val.size < 3):
-            raise lce.LCadException("Expected a vector with 3+ members, got " + str(val.size))
+    if isinstance(val, lcadTypes.LCadVector):
         return val.tolist()[0:3]
 
     # LCad list.
     if isinstance(val, list):
         if (len(val) < 3):
-            raise lce.LCadException("Expected a list with 3+ members, got " + str(val.size))
+            raise lce.LCadException("Expected a list with 3+ members, got " + str(len(val)))
         for elt in val:
             if not isinstance(elt, numbers.Number):
                 raise lce.WrongTypeException("number", type(elt))
