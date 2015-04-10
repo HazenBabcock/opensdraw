@@ -1,6 +1,10 @@
 
 Current:
 
+2015-04-10: Change all the curve functions to return a 4 x 4 transform matrix 
+	    instead of the list (x y z rx ry rz). Change the transform()
+	    function to take the same arguments as matrix().
+
 2015-04-08: Add knots(), specifically a sheet bend knot.
 
 2015-04-03: Add pulley-system() module for 3D pulley / string creation.
