@@ -92,7 +92,7 @@ class Matrix(GeometryFunction):
     """
     **matrix** - Return a 4 x 4 transform matrix. 
 
-    The matrix is a numpy array. There are 3 different ways to call this function:
+    The matrix is a numpy array. There are 4 different ways to call this function:
 
     1) With *(list x y z a b c d e f g h i)* as defined here: http://www.ldraw.org/article/218.html#lt1
 
@@ -118,7 +118,16 @@ class Matrix(GeometryFunction):
     :param ry: rotation around the y-axis in degrees.
     :param rz: rotation around the z-axis in degrees.
 
-    3) With another matrix, in which case a copy will be made.
+    3) With *(list p-vec x-vec y-vec z-vec)*
+
+    :param p-vec: translation vector in LDU.
+    :param x-vec: x vector of the coordinate system.
+    :param y-vec: y vector of the coordinate system.
+    :param z-vec: z vector of the coordinate system.
+    
+    The vectors x-vec, y-vec, z-vec should be orthogonal to each other. They will be normalized to length 1.
+
+    4) With another matrix, in which case a copy will be made.
 
     :param m: 4 x 4 transformation matrix.
 
@@ -126,7 +135,11 @@ class Matrix(GeometryFunction):
 
      (def m1 (matrix (list x y z a b c d e f g h i))) ; All the coefficients.
      (def m2 (matrix (list x y z rx ry rz))           ; Translation & rotation values.
-     (def m3 (matrix m1))                             ; Another matrix.
+     (def m3 (matrix (list (list 0 0 10)              ; 4 lists or vectors.
+                           (list 1 0 0) 
+                           (list 0 1 0) 
+                           (list 0 0 1))))
+     (def m4 (matrix m1))                             ; Another matrix.
 
     """
     def __init__(self):
