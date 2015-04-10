@@ -111,7 +111,8 @@ class Multiply(MathFunction):
     """
     ***** - Multiply two or more numbers, vectors or matrices. If the first 
     number is a matrix, then multiplication will be done using matrix 
-    multiplication, i.e. (* mat vec) will return a vector.
+    multiplication, i.e. (* mat vec) will return a vector and (* mat mat)
+    will return a matrix.
 
     Usage::
 
@@ -129,7 +130,11 @@ class Multiply(MathFunction):
         total = 1.0
         for arg in args:
             if isinstance(total, lcadTypes.LCadMatrix):
-                total = numpy.dot(total, arg).view(lcadTypes.LCadMatrix)
+                total = numpy.dot(total, arg)
+                if (len(total.shape) == 2):
+                    total = total.view(lcadTypes.LCadMatrix)
+                else:
+                    total = total.view(lcadTypes.LCadVector)
             else:
                 total = total * arg
         return total
