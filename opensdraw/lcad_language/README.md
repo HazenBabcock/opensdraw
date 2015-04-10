@@ -2,7 +2,6 @@
 This folder contains the modules that define the lcad language. This is a [prefix](http://en.wikipedia.org/wiki/Polish_notation) notation language similar to [Scheme](http://en.wikipedia.org/wiki/Scheme_%28programming_language%29).
 
 ### Files ###
-* angles.py - Geometry utility functions.
 * belt.py - A function for creating belts.
 * chain.py - A function for creating chains, tracks, ..
 * comparisonFunctions.py - >, <, = , ..
@@ -10,6 +9,7 @@ This folder contains the modules that define the lcad language. This is a [prefi
 * curve.py - A function for creating curves (cubic splines).
 * curveFunctions.py - The LCadFunction returned by belt, curve, chain, spring, ..
 * functions.py - The LCadFunction and UserFunction classes.
+* geometry.py - Geometry utility functions.
 * geometryFunctions.py - Rotate, Translate, ..
 * interpreter.py - The lcad language interpreter.
 * lcadExceptions.py - Lcad language specific exceptions.
