@@ -289,6 +289,9 @@ def test_matrix_2():
     assert isinstance(exe("(matrix (list 1 2 3 1 2 3))"), lcadTypes.LCadMatrix)
 
 def test_matrix_3():
+    assert isinstance(exe("(matrix (list (list 1 2 3) (list 1 2 3) (list 1 2 3) (list 1 2 3)))"), lcadTypes.LCadMatrix)
+
+def test_matrix_4():
     assert isinstance(exe("(matrix (matrix (list 1 2 3 1 2 3 1 2 3 1 2 3)))"), lcadTypes.LCadMatrix)
 
 # mirror
@@ -383,18 +386,24 @@ def test_math_6():
     assert exe("(* (matrix (list 1 1 1 3 0 0 0 3 0 0 0 3)) (vector 1 2 3 1))")[1] == 7
 
 def test_math_7():
-    assert exe("(* (vector 1 2 3) (vector 1 2 3))")[1] == 4
+    assert isinstance(exe("(* (matrix (list 1 1 1 3 0 0 0 3 0 0 0 3)) (vector 1 2 3 1))"), lcadTypes.LCadVector)
 
 def test_math_8():
-    assert exe("(/ (vector 1 2 3) (vector 1 2 3))")[1] == 1
+    assert isinstance(exe("(* (matrix (list 1 2 3 1 2 3)) (matrix (list 1 2 3 1 2 3)))"), lcadTypes.LCadMatrix)
 
 def test_math_9():
-    assert exe("(+ (vector 1 2 3) (vector 1 2 3))")[1] == 4
+    assert exe("(* (vector 1 2 3) (vector 1 2 3))")[1] == 4
 
 def test_math_10():
-    assert exe("(- (vector 1 2 3) (vector 1 2 3))")[1] == 0
+    assert exe("(/ (vector 1 2 3) (vector 1 2 3))")[1] == 1
 
 def test_math_11():
+    assert exe("(+ (vector 1 2 3) (vector 1 2 3))")[1] == 4
+
+def test_math_12():
+    assert exe("(- (vector 1 2 3) (vector 1 2 3))")[1] == 0
+
+def test_math_13():
     assert exe("(- 1)") == -1
 
 # python math module
