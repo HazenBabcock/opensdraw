@@ -1,24 +1,24 @@
 #!/usr/bin/env python
-#
-# Generates a .lcad file from a LDraw format .dat, .ldr or .mpd file.
-# Depending on the LDraw file the conversion may not be that pretty.
-# In particular matrices that include a scale term are going to play
-# havoc with angle extraction.
-#
-# Since opensdraw does not handle primitives, subfiles that contain
-# primitives are broken out into separate files.
-#
-# In "standard" mode it will use the sbs() function for brick placement,
-# and in "technic" mode it use the tbs() function.
-#
-# This assumes that the path to the ldraw parts directory in the 
-# parts.xml file is correct.
-#
-# Refs:
-#  1. http://nghiaho.com/?page_id=846
-#
-# Hazen 02/15
-#
+"""
+Generates a .lcad file from a LDraw format .dat, .ldr or .mpd file.
+Depending on the LDraw file the conversion may not be that pretty.
+In particular matrices that include a scale term are going to play
+havoc with angle extraction.
+
+Since opensdraw does not handle primitives, subfiles that contain
+primitives are broken out into separate files.
+
+In "standard" mode it will use the sbs() function for brick placement,
+and in "technic" mode it use the tbs() function.
+
+This assumes that the path to the ldraw parts directory in the 
+parts.xml file is correct.
+
+Refs:
+  1. http://nghiaho.com/?page_id=846     (matrix to rotation angles).
+
+Hazen 04/15
+"""
 
 import math
 import numpy
