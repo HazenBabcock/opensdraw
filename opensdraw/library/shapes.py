@@ -75,7 +75,7 @@ class Stepper(object):
         for i in range(3):
             diff += numpy.dot(self.mm[:3,i], new_mm[:3,i])
         diff = 3.0 - diff
-        if (diff > 1.0e-2):
+        if (diff > 1.0e-4):
             return True
         else:
             return False
