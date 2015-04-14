@@ -141,7 +141,7 @@ class LCadPulleySystem(functions.LCadFunction):
 
             # Middle pulleys.
             for pulley in pulley_list[:-1]:
-                p_system.addSprocket(*belt.parsePulley(pulley))
+                p_system.addSprocket(belt.Sprocket(*belt.parsePulley(pulley)))
 
             # End pulley
             [end_pos, end_zvec, end_radius, end_winding] = belt.parsePulley(pulley_list[-1])
@@ -273,7 +273,7 @@ class Drum(object):
         start = True
         s_angle = 0
         s_radius = radius
-        while (length < string_length):
+        while (length <= string_length):
 
             # Figure out which end we are starting from.
             if ((layer % 2) == 0):
