@@ -1,0 +1,329 @@
+;
+; Artic truck (42038) crane. Demos pulley-system and knots.
+;
+; Hazen 4/15
+;
+
+(import flexible-rod :local)
+(import locate :local)
+(import triangles :local)
+
+; Knot.
+
+; Pulley-system.
+
+(def actuator (ext)
+ (block
+
+  ; 19 turns to advance 3 bricks.
+  (def angle (- (* 360 19 (/ ext 3))))
+
+  ; Linear Actuator Small Axle Actuator
+  (tb 0 0 1.5 0 0 angle "92695" 25)
+
+  ; Linear Actuator Small Body Assembly
+  (tb 0 0 0 0 0 90 "92693c01" 71)
+
+  ; Linear Actuator Small Piston
+  (tb 0 0 (+ 6 ext) 0 0 90 "92696" 72)
+
+  ))
+
+; Crane base.
+(def base ()
+ (block
+
+  ; Axle 4
+  (tb 2 0 1 0 0 90 "3705" 0)
+  (tb -2 0 1 0 0 90 "3705" 0)
+
+  ; Beam 3 x 5 Bent 90
+  (tb 2 1 1 0 90 0 "32526" 0)
+  (tb 2 -1 1 0 90 0 "32526" 0)
+
+  ; Beam 5
+  (tb -2 0 3 0 0 0 "32316" 0)
+
+  ; Beam 5 x 3 x 0.5 Liftarm Triangle Type 2
+  (tb 0 -1.75 1 0 0 0 "99773" 71)
+  (tb 0 1.75 1 0 0 0 "99773" 71)
+
+  ; Pin 3/4
+  (tb 0 1.5 1 0 0 90 "32002" 19)
+  (tb 0 -1.5 1 0 0 -90 "32002" 19)
+
+  ; Pin 1/2
+  (tb 0 2 2 0 0 90 "4274" 71)
+  (tb 0 -2 2 0 0 -90 "4274" 71)
+
+  ; Pin Long with Friction and Slot
+  (tb 1 0 1 0 0 90 "6558" 1)
+  (tb -1 0 1 0 0 90 "6558" 1)
+  (tb -2 0 2 0 0 90 "6558" 1)
+  (tb -2 0 3 0 0 90 "6558" 1)
+  (tb -2 0 5 0 0 90 "6558" 1)
+
+  ; Turntable 28 Tooth Bottom.
+  (tb 0 0 0 90 0 0 "99009" 71)
+
+  ; Turntable 28 Tooth Top.
+  (tb 0 0 0 90 0 0 "99010" 0)
+  ))
+
+(def drum ()
+ (block
+
+  ; Cylinder 2 x 4 x 4
+  (tb 0 0 3.68 90 0 0 "6218" 72)
+  (tb 0 0 3.68 90 180 0 "6218" 72)
+
+  ; Plate 4 x 4 Round with Hole and Snapstud.
+  (tb 0 0 8.45 90 0 0 "60474" 72)
+
+  ; Hook with Towball.
+  (tb 0 0 0.2 90 90 0 "30395" 72)
+
+  ; Tile 2 x 2 Round with Technic Half Beam.
+  (tb 0 0 3.3 90 0 0 "74698" 0)
+
+  ))
+
+(def inner-arm ()
+ (block
+
+  ; Axle 3
+  (tb 0 0 16 0 0 90 "4519" 71)
+  (tb 0 0 13 0 0 90 "4519" 71)
+
+  ; Axle 5 with Stop
+  (tb 0 0.1 2 0 0 90 "15462" 28)
+
+  ; Axle Pin with Friction
+  (tb 0 1.5 3 0 0 90 "43093" 1)
+
+  ; Beam 2 x 4 Liftarm Bent 90
+  (tb 0 -1 13 0 0 0 "32140" 15)
+  (tb 0 1 13 0 0 0 "32140" 15)
+
+  ; Beam 5.
+  (tb 0 0 13 0 0 0 "32316" 15)
+
+  ; Beam 13.
+  (tb 0 -1 6 0 0 0 "41239" 15)
+  (tb 0 1 6 0 0 0 "41239" 15)
+
+  ; Cross Block 1 x 2 (Axle Pin)
+  (tb 0 0 16 0 0 90 "6536" 71)
+
+  ; Gear 8 Tooth Reinforced
+  (tb 0 2 2 90 0 0 "10928" 72)
+  (tb 0 2 3 90 0 0 "10928" 72)
+
+  ; Gear 12 Tooth Double Bevel
+  (tb 0 -2 2 90 0 0 "32270" 0)
+
+  ; Pin Long
+  (tb 0 0 7 0 0 90 "32556" 19)
+
+  ; Pin Long with Friction and Slot
+  (tb 0 0 11 0 0 90 "6558" 1)
+  (tb 0 0 12 0 0 90 "6558" 1)
+  (tb 0 0 15 0 0 90 "6558" 1)
+  (tb 1 0 16 0 0 90 "6558" 1)
+
+  ; Reel 2 x 1
+  (tb 0 0 2 0 0 90 "61510" 71)
+
+  ))
+
+(def linkage ()
+ (block
+
+  ; Axle 4 with Stop
+  (tb 0 0.5 0 0 0 -90 "87083" 72)
+
+  ; Beam 2 x 4 Liftarm Bent 90
+  (tb 0 0 0 0 0 180 "32140" 15)
+
+  ; Connector (Axle) with Axle 1.5
+  (tb 0 2 0 -90 90 0 "6553" 72)
+
+  ; Pin with Friction and Slots
+  (tb -1 0.5 3 0 0 90 "2780" 0)
+
+  ))
+
+(def outer-arm ()
+ (block
+
+  ; Axle Pin with Friction
+  (tb 0 0.5 9 0 0 -90 "43093" 1)
+
+  ; Beam 3
+  (tb 0 1 8 0 0 0 "32523" 15)
+
+  ; Beam 9
+  (tb 0 0 4 0 0 0 "40490" 15)
+
+  ; Cross Block 1 x 2 (Axle Pin)
+  (tb 0 0 9 0 0 90 "6536" 71)
+
+  ; Pin
+  (tb 0 0.5 3 0 0 90 "3673" 71)
+
+  ; Pin with Friction and Slots
+  (tb 0 0.5 7 0 0 90 "2780" 0)
+  (tb 0 0.5 8 0 0 90 "2780" 0)
+
+  ))
+
+;
+; Parameters:
+;  ext - The extension of the power functions actuator.
+;  angle - The angle of the lever that moves the outer arm.
+;  length - The length of the string from the end of the outer arm to the hook.
+;
+; Units for ext and length are in brick widths.
+;
+(def crane (ext angle length)
+ (block
+
+  ; range checking.
+
+  ; ext: 0 - 2.5 (brick widths).
+  (cond 
+   ((< ext 0) (set ext 0))
+   ((> ext 2.5) (set ext 2.5)))
+
+  ; angle: 35 - 143
+  (cond 
+   ((< angle 35) (set angle 35))
+   ((> angle 143) (set angle 143)))
+
+  ; length: 0 - 30 (brick widths).
+  (def max-len 30)
+  (cond 
+   ((< length 0) (set length 0))
+   ((> length max-len) (set length max-len)))
+
+  ; Calculate angle of outer arm.
+  (def a1 (- angle 8.13 18.43) s1 (sqrt 50) s2 (sqrt 10))
+  (def s3 (l-o-c-side s1 s2 a1))
+  (def a3 (l-o-c-angle 3 s3 6))
+  (def a4 (l-o-s-angle s3 a1 s2))
+  (def outer-angle (- 270.0 a3 a4 (degrees (atan2 7 1))))
+  
+  ; Calculate angle of inner arm.
+  (def s5 (+ ext 6) s6 (sqrt 13))
+  (def a5 (l-o-c-angle s6 7 s5))
+  (def inner-angle (- 180 (degrees (atan2 2 3)) a5))
+
+  ; Calculate transform matrices.
+  (def m-inner (matrix (list (bw -2) 0 (bw 5) 0 (- inner-angle) 0)))
+  (def m-outer (matrix (list (bw 1) 0 (bw 16) 0 (- outer-angle) 0)))
+
+  ;;
+  ;; Base, Inner and Outer arms.
+  ;;
+
+  ; base.
+  (base)
+
+  ; actuator
+  (def v1 (vector 0 0 (bw 2)))
+  (def v2 (* m-inner (vector 0 0 (bw 7))))
+  (def act-z (- v2 v1))
+  (def act-y (vector 0 1 0))
+  (def act-x (cross-product act-y act-z))
+  (transform (list v1 act-x act-y act-z)
+   (actuator ext))
+
+  ; inner-arm.
+  (transform m-inner
+   (inner-arm)
+
+   ; linkage
+   (def m-linkage (matrix (list 0 0 (bw 9) 0 (- angle) 0)))
+   (transform m-linkage
+    (linkage))
+   (def v3 (* m-linkage (vector (bw -1) 0 (bw 3))))
+   (def v4 (* m-outer (vector 0 0 (bw 3))))
+   (def beam-z (- v4 v3))
+   (def beam-y (vector 0 1 0))
+   (def beam-x (cross-product beam-y beam-z))
+   (transform (list v3 beam-x beam-y beam-z)
+
+    ; Beam 7
+    (tb 0 1 3 0 0 0 "32524" 15))
+
+   ; outer-arm
+   (transform m-outer
+    (outer-arm)))
+
+  ;;
+  ;; Pulley-system.
+  ;;
+  (def l1 (- (bw max-len) (bw length)))
+
+  ; Location of the drum.
+  (def drum-pos (* m-inner (vector 0 (bw -0.4) (bw 2))))
+
+  ; First guide.
+  (def p1-pos (* m-inner (vector (bw -0.65) 0 (bw 16.4))))
+
+  ; Possible bend around junction of inner and outer arm.
+  (def p2-pos (* m-inner (vector (bw 1) 0 (bw 16))))
+
+  ; Possible second guides.
+  (def p3-pos (* m-inner m-outer (vector (bw -0.65) 0 (bw 9.4))))
+  (def p4-pos (* m-inner m-outer (vector (bw -1.35) 0 (bw 9.4))))
+
+  ; Pulley tangent vector.
+  (def y-vec (vector 0 1 0))
+
+  ; Create list of pulleys.
+  ;
+  ; Use slightly undersize diameter for the string (1.8 vs 2.0) so that
+  ; the string will appear to be wound more tightly on the drum.
+  ;
+  (def pulleys (list (list drum-pos y-vec (bw 0.5) 1 (bw 0.8) 1.8 l1)
+		     (list p1-pos y-vec 2 1)))
+
+  ; If the angle between the inner and outer arms is large
+  ; then the string will run on the inner end of the outer arm.
+  (if (> outer-angle 90)
+    (append pulleys (list p2-pos y-vec (bw 0.5) 1)))
+
+  ; Depending on the orientation of the final arm, the string
+  ; will either run on the inside of the end guide, go straight through
+  ; the end guide or run on the outside of the end guide.
+  (def angle-sum (+ inner-angle outer-angle))
+  (cond
+   ; String runs on the inside of the end guide.
+   ((< angle-sum 181.5)
+    (block
+     (append pulleys (list p3-pos y-vec 2 1))
+     (append pulleys (list (list 0 0 -1) "tangent"))))
+   ; String does not touch the end guide.
+   ((< angle-sum 184)
+    (append pulleys (list (list 0 0 -1) "tangent")))
+   ; String runs on the outside of the end guide.
+   (t
+    (block
+     (append pulleys (list p4-pos y-vec 2 -1))
+     (append pulleys (list (list 0 0 -1) "tangent")))))
+
+  ; Create pulley system.
+  (def ps (pulley-system pulleys))
+
+  ; Render pulley-system.
+  (group "pulley-system.ldr"
+   (header "!LDRAW_ORG Unofficial_part")
+   (header "BFC CERTIFY CCW")
+   (flexible-rod 0 (+ (ps t) (bw length)) 2 ps))
+
+  (part "pulley-system.ldr" 0)
+  ))
+
+(crane 1 120 15)
+
