@@ -52,6 +52,7 @@ Usage::
 
   (cos x)
   (sin x)
+  (degrees (atan2 2 3))
   ...
 
 Miscellaneous Functions
