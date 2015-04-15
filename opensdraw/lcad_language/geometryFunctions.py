@@ -66,24 +66,33 @@ class DotProduct(GeometryFunction):
 
     :param v1: The first vector.
     :param v2: The second vector.
+    :param normalize: t/nil (Optional) Normalize the result vector, default is t.
 
     Usage::
 
-     (dot-product (vector 1 0 0) (vector 1 0 0))  ; Returns 1.
-     (dot-product (vector 1 0 0) (vector 0 1 0))  ; Returns 0.
+     (dot-product (vector 1 0 0) (vector 1 0 0))     ; Returns 1.
+     (dot-product (vector 1 0 0) (vector 0 1 0))     ; Returns 0.
+     (dot-product (vector 2 0 0) (vector 1 0 0) nil) ; Returns 2.
 
     """
     def __init__(self):
         GeometryFunction.__init__(self, "dot-product")
-        self.setSignature([[lcadTypes.LCadVector], [lcadTypes.LCadVector]])
+        self.setSignature([[lcadTypes.LCadVector], [lcadTypes.LCadVector], ["optional", [lcadTypes.LCadObject]]])
 
     def call(self, model, tree):
-        [v1, v2] = self.getArgs(model, tree)
+        args = self.getArgs(model, tree)
+
+        normalize = True
+        if (len(args) == 3):
+            normalize = True if functions.isTrue(args[2]) else False
 
         # Ignore 4th element.
-        v1 = v1[0:3]
-        v2 = v2[0:3]
-        return numpy.dot(v1, v2) / (numpy.linalg.norm(v1) * numpy.linalg.norm(v2))
+        v1 = args[0][0:3]
+        v2 = args[1][0:3]
+        if normalize:
+            return numpy.dot(v1, v2) / (numpy.linalg.norm(v1) * numpy.linalg.norm(v2))
+        else:
+            return numpy.dot(v1, v2)
 
 lcad_functions["dot-product"] = DotProduct()
 
