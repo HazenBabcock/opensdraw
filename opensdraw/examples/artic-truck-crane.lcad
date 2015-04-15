@@ -1,14 +1,15 @@
 ;
-; Artic truck (42038) crane. Demos pulley-system and knots.
+; Artic truck (42038) crane, demonstrates pulley-system and knots.
 ;
 ; Hazen 4/15
 ;
+
+(pyimport opensdraw.library.knots)
 
 (import flexible-rod :local)
 (import locate :local)
 (import triangles :local)
 
-; Knot.
 
 ; Pulley-system.
 
@@ -88,7 +89,7 @@
 
   ))
 
-(def inner-arm ()
+(def inner-arm (angle)
  (block
 
   ; Axle 3
@@ -96,10 +97,10 @@
   (tb 0 0 13 0 0 90 "4519" 71)
 
   ; Axle 5 with Stop
-  (tb 0 0.1 2 0 0 90 "15462" 28)
+  (tb 0 0.1 2 0 angle 90 "15462" 28)
 
   ; Axle Pin with Friction
-  (tb 0 1.5 3 0 0 90 "43093" 1)
+  (tb 0 1.5 3 0 (- 22.5 angle) 90 "43093" 1)
 
   ; Beam 2 x 4 Liftarm Bent 90
   (tb 0 -1 13 0 0 0 "32140" 15)
@@ -116,11 +117,11 @@
   (tb 0 0 16 0 0 90 "6536" 71)
 
   ; Gear 8 Tooth Reinforced
-  (tb 0 2 2 90 0 0 "10928" 72)
-  (tb 0 2 3 90 0 0 "10928" 72)
+  (tb 0 2 2 90 0 angle "10928" 72)
+  (tb 0 2 3 90 0 (- 22.5 angle) "10928" 72)
 
   ; Gear 12 Tooth Double Bevel
-  (tb 0 -2 2 90 0 0 "32270" 0)
+  (tb 0 -2 2 90 0 angle "32270" 0)
 
   ; Pin Long
   (tb 0 0 7 0 0 90 "32556" 19)
@@ -132,7 +133,7 @@
   (tb 1 0 16 0 0 90 "6558" 1)
 
   ; Reel 2 x 1
-  (tb 0 0 2 0 0 90 "61510" 71)
+  (tb 0 0 2 0 angle 90 "61510" 71)
 
   ))
 
@@ -200,10 +201,10 @@
    ((< angle 35) (set angle 35))
    ((> angle 143) (set angle 143)))
 
-  ; length: 0 - 30 (brick widths).
+  ; length: 0.1 - 30 (brick widths).
   (def max-len 30)
   (cond 
-   ((< length 0) (set length 0))
+   ((< length 0.1) (set length 0.1))
    ((> length max-len) (set length max-len)))
 
   ; Calculate angle of outer arm.
@@ -221,6 +222,9 @@
   ; Calculate transform matrices.
   (def m-inner (matrix (list (bw -2) 0 (bw 5) 0 (- inner-angle) 0)))
   (def m-outer (matrix (list (bw 1) 0 (bw 16) 0 (- outer-angle) 0)))
+
+  ; Calculate length of string on the drum.
+  (def on-drum-length (- (bw max-len) (bw length)))
 
   ;;
   ;; Base, Inner and Outer arms.
@@ -240,7 +244,7 @@
 
   ; inner-arm.
   (transform m-inner
-   (inner-arm)
+   (inner-arm (degrees (/ on-drum-length (* pi (bw 1.2)))))
 
    ; linkage
    (def m-linkage (matrix (list 0 0 (bw 9) 0 (- angle) 0)))
@@ -263,7 +267,6 @@
   ;;
   ;; Pulley-system.
   ;;
-  (def l1 (- (bw max-len) (bw length)))
 
   ; Location of the drum.
   (def drum-pos (* m-inner (vector 0 (bw -0.4) (bw 2))))
@@ -286,12 +289,12 @@
   ; Use slightly undersize diameter for the string (1.8 vs 2.0) so that
   ; the string will appear to be wound more tightly on the drum.
   ;
-  (def pulleys (list (list drum-pos y-vec (bw 0.5) 1 (bw 0.8) 1.8 l1)
+  (def pulleys (list (list drum-pos y-vec (bw 0.5) 1 (bw 0.8) 1.8 on-drum-length)
 		     (list p1-pos y-vec 2 1)))
 
   ; If the angle between the inner and outer arms is large
   ; then the string will run on the inner end of the outer arm.
-  (if (> outer-angle 90)
+  (if (> outer-angle 92)
     (append pulleys (list p2-pos y-vec (bw 0.5) 1)))
 
   ; Depending on the orientation of the final arm, the string
@@ -316,14 +319,51 @@
   ; Create pulley system.
   (def ps (pulley-system pulleys))
 
+  ;
+  ; When the string does not touch the end guide the length of the pulley 
+  ; system will be quite a bit shorter (since it only includes the length 
+  ; of the string to the first guide), so we have to adjust for this. This
+  ; is done by adding the distance between the end of the pulley system
+  ; and the last guide to the length of the pulley system.
+  ;
+  (def ps-length (ps t))
+  (if (< (- ps-length on-drum-length) 450.0)
+    (block
+     (def p5 (* (ps (ps t)) (vector 0 0 0)))
+     (def p6 (- p3-pos p5))
+     (set ps-length (+ ps-length (sqrt (dot-product p6 p6 nil))))))
+
   ; Render pulley-system.
   (group "pulley-system.ldr"
    (header "!LDRAW_ORG Unofficial_part")
    (header "BFC CERTIFY CCW")
-   (flexible-rod 0 (+ (ps t) (bw length)) 2 ps))
+   (flexible-rod 0 (+ ps-length (bw length)) 2 ps))
 
   (part "pulley-system.ldr" 0)
+
+  ;;
+  ;; Knot and drum.
+  ;;
+
+  (group "knot.ldr"
+   (header "!LDRAW_ORG Unofficial_part")
+   (header "BFC CERTIFY CCW")
+   (def sbk (sheet-bend-knot 2 6))
+   (flexible-rod 0 (sbk t) 2 sbk))
+
+  (transform (ps (+ ps-length (bw length) (- 1)))
+   (part "knot.ldr" 0)
+   (translate (list 0 0 15)
+    (drum)))
+
   ))
 
-(crane 1 120 15)
+; Create crane
+;(crane 1 110 0)
 
+; For animation
+(def max-frames 200)
+(def d-ext (/ 2.5 max-frames) d-angle (/ (- 143.0 35.0) max-frames) d-length (/ 29.9 max-frames))
+(crane (* time-index d-ext)
+       (- 143.0 (* time-index d-angle))
+       (- 30.0 (* time-index d-length)))
