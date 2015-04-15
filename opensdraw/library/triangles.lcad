@@ -6,32 +6,32 @@
 
 ; law of cosines to determine angle.
 ;
-; a,b are the lengths of the neighboring sides, c is the 
+; a,b are the lengths of the neighboring sides, side is the 
 ; length of the opposite side.
 ;
-(def l-o-c-angle (a b c)
-  (degrees (acos (/ (+ (* a a) (* b b) (- (* c c ))) (* 2.0 a b)))))
+(def l-o-c-angle (a b side)
+  (degrees (acos (/ (+ (* a a) (* b b) (- (* side side ))) (* 2.0 a b)))))
 
 ; law of cosines to determine side length.
 ;
-; a,b are the lengths of the neighboring sides, angle-c is the
+; a,b are the lengths of the neighboring sides, angle is the
 ; angle between sides a and b.
 ; 
-(def l-o-c-side (a b angle-c)
- (sqrt (+ (* a a) (* b b) (- (* 2.0 a b (cos (radians angle-c)))))))
+(def l-o-c-side (a b angle)
+ (sqrt (+ (* a a) (* b b) (- (* 2.0 a b (cos (radians angle)))))))
 
 ; law of sines to determine angle.
 ;
-; a, angle-a are an angle and the length of opposite side. b is
-; the length of the side opposite the angle of interest.
+; a, angle-a are an angle and the length of opposite side and side 
+; is the length of the side opposite the angle of interest.
 ;
-(def l-o-s-angle (a angle-a b)
- (degrees (asin (* b (/ (sin (radians angle-a)) a)))))
+(def l-o-s-angle (a angle-a side)
+ (degrees (asin (* side (/ (sin (radians angle-a)) a)))))
 
 ; law of sines to determine side.
 ;
-; a, angle-a are an angle and the length of opposite side. angle-b
+; a, angle-a are an angle and the length of opposite side and angle
 ; is the angle opposite to the side of interest.
 ;
-(def l-o-s-side (a angle-a angle-b)
- (/ (* a (sin (radians angle-b))) (sin (radians angle-a))))
+(def l-o-s-side (a angle-a angle)
+ (/ (* a (sin (radians angle))) (sin (radians angle-a))))
