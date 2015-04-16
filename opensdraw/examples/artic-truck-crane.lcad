@@ -244,7 +244,7 @@
 
   ; inner-arm.
   (transform m-inner
-   (inner-arm (degrees (/ on-drum-length (* pi (bw 1.2)))))
+   (inner-arm (degrees (/ (* on-drum-length 2) (bw 1.2))))
 
    ; linkage
    (def m-linkage (matrix (list 0 0 (bw 9) 0 (- angle) 0)))
@@ -269,7 +269,7 @@
   ;;
 
   ; Location of the drum.
-  (def drum-pos (* m-inner (vector 0 (bw -0.4) (bw 2))))
+  (def drum-pos (* m-inner (vector 0 (bw -0.375) (bw 2))))
 
   ; First guide.
   (def p1-pos (* m-inner (vector (bw -0.65) 0 (bw 16.4))))
@@ -289,7 +289,7 @@
   ; Use slightly undersize diameter for the string (1.8 vs 2.0) so that
   ; the string will appear to be wound more tightly on the drum.
   ;
-  (def pulleys (list (list drum-pos y-vec (bw 0.5) 1 (bw 0.8) 1.8 on-drum-length)
+  (def pulleys (list (list drum-pos y-vec (bw 0.5) 1 (bw 0.75) 1.8 on-drum-length)
 		     (list p1-pos y-vec 2 1)))
 
   ; If the angle between the inner and outer arms is large
@@ -363,7 +363,8 @@
 
 ; For animation
 (def max-frames 200)
-(def d-ext (/ 2.5 max-frames) d-angle (/ (- 143.0 35.0) max-frames) d-length (/ 29.9 max-frames))
-(crane (* time-index d-ext)
-       (- 143.0 (* time-index d-angle))
-       (- 30.0 (* time-index d-length)))
+(def d-rz (/ -90.0 max-frames) d-ext (/ 2.5 max-frames) d-angle (/ (- 143.0 35.0) max-frames) d-length (/ 29.9 max-frames))
+(rotate (list 0 0 (* time-index d-rz))
+ (crane (* time-index d-ext)
+	(- 143.0 (* time-index d-angle))
+	(- 30.0 (* time-index d-length))))
