@@ -1,0 +1,186 @@
+;
+; Suspension, similar to that of the 8880 Super Car, demonstrates spring.
+;
+; Hazen 4/15
+;
+
+(import flexible-rod :local)
+(import locate :local)
+(import triangles :local)
+
+(def drive-axle ()
+ (block
+
+  ; Axle 2 Notched
+  (tb 0 -3.5 0 0 0 90 "32062" 4)
+
+  ; Axle 3
+  (tb 0 -1 0 0 0 90 "4519" 7)
+
+  ; Axle Joiner
+  (tb 0 -2.5 0 90 0 0 "6538a" 7)
+
+  ; Ball with Grooves
+  (tb 0 0 0 0 0 0 "2907" 7)
+
+  ; Bush with Two Flanges
+  (tb 0 -1 0 -90 0 0 "3713" 7)
+
+  ; Universal Joint End
+  (tb 0 -4 0 -90 0 0 "3712" 7)
+
+  ))
+
+(def shock-absorbers (extension)
+ (block
+  
+  ;(tb 0 0 2 0 0 0 "75348" 8)
+  ; Axle 5
+  (tb -1 (- -6 extension) 0 0 90 0 "32073" 7)
+
+  ; Bush 1/2 Smooth with Axle Hole Semi-Reduced
+  (tb -1 (- -6 extension) -1.25 0 0 0 "32123b" 7)
+  (tb -1 (- -6 extension) 1.25 0 0 0 "32123b" 7)
+
+  ; Shock Absorber 9.5L Cylinder
+  (tb 0 (- -4 extension) -2 0 0 0 "2909" 8)
+  (tb 0 (- -4 extension) 2 0 0 0 "2909" 8)
+
+  ; Shock Absorber 9.5L Piston Rod
+  (tb 0 0 -2 0 0 0 "2910" 8)
+  (tb 0 0 2 0 0 0 "2910" 8)
+
+  ; Spring
+  ; For debugging it is faster to not render this part.
+  (if nil
+    (block
+     (def a-spring (spring (bw (+ extension 3)) 22 2 10 2))
+
+     (group "spring.ldr"
+      (header "!LDRAW_ORG Unofficial_part")
+      (header "BFC CERTIFY CCW")
+      (flexible-rod 0 (a-spring t) 2 a-spring))
+
+     (tb 0 -1.5 -2 90 0 0 "spring.ldr" 15)
+     (tb 0 -1.5 2 90 0 0 "spring.ldr" 15)
+     ))
+
+  ))
+
+(def wheel ()
+ (block
+
+  ; Large Wheel Hub
+  (tb 0 0.8 0 0 0 0 "2999" 7)
+
+  ; Tyre 34/ 38 x 56 ZR
+  (tb 0 2 0 90 0 0 "2997" 256)
+
+  ; Wheel Rim 32 x 56 with Peghole and 6 Spokes with Pegholes
+  (tb 0 2 0 90 0 0 "2998" 15)
+  ))
+
+;
+; height - Ride height in brick widths.
+; ori - wheel / drive-shaft orientation (degrees).
+;
+(def wheel-assembly (height ori)
+ (block
+
+  ; Calculate angle of suspension arms.
+  (def a1 (degrees (asin (/ height 5.5))))
+
+  ; Calculate angle and extension of the shock absorbers.
+  (def s1 (sqrt (+ (* 6 6) 1)))
+  (def a2 (+ (degrees (atan2 6 1)) a1))
+  (def s2 (l-o-c-side s1 3 a2))
+  (def a3 (l-o-s-angle s2 a2 3))
+  (def a4 (- a3 (degrees (asin (/ 1.0 s2))) (degrees (atan2 1 6))))
+  (def s3 (sqrt (- (* s2 s2) 1)))
+
+  (set a1 (- a1))
+
+  ; Axle 4
+  (tb 0 0 -2 0 0 0 "3705" 0)
+  (tb 0 0 2 0 0 0 "3705" 0)
+
+  ; Pin
+  (tb -2.5 1 4 0 0 0 "3673" 7)
+  (tb 2.5 1 4 0 0 0 "3673" 7)
+
+  ; Universal Joint Centre Type 2
+  (rotate (list 90 0 ori)
+   (tb 0 0 0 0 (* a1 (sin (radians ori))) 0 "3326b" 7))
+
+  ; Universal Joint End
+  (tb 0 -1.5 0 90 0 (+ 90 ori) "3712" 7)
+
+  ; Steering Link 6L Type 1.
+  (translate (list 0 (bw -0.6) (bw 0.9))
+   (rotate (list a1 0 0)
+    (tb 3.5 0 0 -90 0 0 "2739a" 8)))
+  
+  ; Suspension Arm 2 x 6.5 Type 1.
+  (translate (list 0 0 (bw 2))
+   (rotate (list a1 0 0)
+    (tb 0 2.5 0 90 0 180 "2738" 1)))
+  (translate (list 0 0 (bw -2))
+   (rotate (list a1 0 0)
+    (tb 0 2.5 0 90 0 0 "2738" 1)))
+
+  ;; Shock absorbers.
+  (translate (list 0 (bw 1) (bw 4))
+   (rotate (list (+ 90 a4) 90 0)
+    (shock-absorbers (- s3 6))
+    ))
+
+  ;; Wheel assembly.
+  (rotate (list a1 0 0)
+   (translate (list 0 (bw 5.5) 0)
+    (rotate (list 0 ori 0)
+     (drive-axle))
+
+    (rotate (list (- a1) 0 0)
+
+     ; Pin Towball with Friction
+     (tb 3.5 -1.1 0.5 0 -90 0 "6628" 0)
+
+     ; Steering Arm Large with Peghole
+     (tb 0 0 0 90 0 0 "6540b" 15)
+
+     (rotate (list 0 ori 0)
+      (wheel))
+
+     )))
+  ))
+
+; A bumpy road..
+(def road ()
+ (block
+
+  ; Brick 2 x 6
+  (sb 0 0 1 0 90 90 "2456" 6)
+
+  ; Plate 6 x 16.
+  (sb 0 0 0 -90 0 0 "3027" 6)
+  ))
+
+
+(def dx (/ 14.0 30.0))
+(def d-ori (- (/ (* 2.0 dx) 10.2)))
+
+(def x (- 7 (* time-index dx)))
+(trf-tb x 7 -7.6 0 0 0 road)
+
+(def wheel-radius 5.1)
+(def dstepx (- (abs x) 1))
+(def dstepy (- wheel-radius 1.2))
+(def dist (sqrt (+ (* dstepx dstepx) (* dstepy dstepy))))
+
+(cond 
+ ((< (abs x) 1) (wheel-assembly 1.3 (degrees (* time-index d-ori))))
+ ((< dist wheel-radius)
+  (block
+   (def wh (+ (sqrt (- (* wheel-radius wheel-radius) (* dstepx dstepx))) 1.2))
+   (wheel-assembly (+ 2.5 (- wheel-radius wh)) (degrees (* time-index d-ori)))))
+ (t (wheel-assembly 2.5 (degrees (* time-index d-ori)))))
