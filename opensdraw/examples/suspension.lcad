@@ -52,7 +52,7 @@
 
   ; Spring
   ; For debugging it is faster to not render this part.
-  (if nil
+  (if t
     (block
      (def a-spring (spring (bw (+ extension 3)) 22 2 10 2))
 
@@ -166,7 +166,7 @@
   ))
 
 
-(def dx (/ 14.0 30.0))
+(def dx (/ 14.0 60.0))
 (def d-ori (- (/ (* 2.0 dx) 10.2)))
 
 (def x (- 7 (* time-index dx)))
