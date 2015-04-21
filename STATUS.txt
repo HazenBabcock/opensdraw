@@ -1,6 +1,10 @@
 
 Current:
 
+2015-04-18: Add suspension as an example of how to use spring().
+
+2015-04-15: Add artic truck crane as an example of how to use pulley-system().
+
 2015-04-10: Change all the curve functions to return a 4 x 4 transform matrix 
 	    instead of the list (x y z rx ry rz). Change the transform()
 	    function to take the same arguments as matrix().
