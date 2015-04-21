@@ -31,6 +31,7 @@
 				"list" 
 				"matrix" 
 				"mirror" 
+				"not"
 				"optional-line" 
 				"part" 
 				"print" 
