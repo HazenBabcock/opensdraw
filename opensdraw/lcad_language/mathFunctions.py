@@ -27,6 +27,26 @@ class MathFunction(functions.LCadFunction):
     pass
 
 
+class Absolute(MathFunction):
+    """
+    **abs** - Return the absolute value of a number.
+
+    Usage::
+
+     (abs 2)  ; 2
+     (abs -2) ; 2
+
+    """
+    def __init__(self, name):
+        MathFunction.__init__(self, name)
+        self.setSignature([[numbers.Number]]),
+
+    def call(self, model, tree):
+        return abs(self.getArgs(model, tree)[0])
+
+lcad_functions["abs"] = Absolute("abs")
+
+
 class Divide(MathFunction):
     """
     **/** - Divide the first number, vector or matrix by one or more additional 

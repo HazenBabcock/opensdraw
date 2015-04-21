@@ -406,6 +406,12 @@ def test_math_12():
 def test_math_13():
     assert exe("(- 1)") == -1
 
+def test_math_14():
+    assert exe("(abs 2)") == 2
+
+def test_math_15():
+    assert exe("(abs -2)") == 2
+
 # python math module
 def test_py_math_1():
     assert int(round(exe("(cos 0)"))) == 1
