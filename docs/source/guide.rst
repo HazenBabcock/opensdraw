@@ -5,9 +5,11 @@ Dependencies
 ------------
 
 * `LDraw <http://www.ldraw.org>`_
-* `Python <https://www.python.org>`_
+* `numpy <http://www.numpy.org>`_
+* `Python 2.7 <https://www.python.org>`_
 * `PyQt4 <http://www.riverbankcomputing.com/software/pyqt/intro>`_ (For the partviewer).
 * `rply <https://github.com/alex/rply>`_
+* `scipy <http://www.scipy.org>`_
 
 Setup
 -----
