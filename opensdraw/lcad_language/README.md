@@ -24,5 +24,3 @@ This folder contains the modules that define the lcad language. This is a [prefi
 * randomNumberFunctions.py - Random number generating functions.
 * spring.py - A function for creating springs.
 
-### Directories ###
-* test - Nose tests.
