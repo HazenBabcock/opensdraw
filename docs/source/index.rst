@@ -26,9 +26,10 @@ User's Guide
    interfacing.rst
    examples_list.rst
 
-API Documentation
------------------
+Language Documentation
+----------------------
 
 .. toctree::
    
-   api.rst
+   language.rst
+   library.rst
