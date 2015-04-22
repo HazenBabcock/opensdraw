@@ -1,5 +1,5 @@
-API
-===
+Language
+========
 
 Symbols
 -------
@@ -44,7 +44,7 @@ Math Functions
 --------------
 
 .. automodule:: opensdraw.lcad_language.mathFunctions
-   :members: Plus, Minus, Multiply, Divide, Modulo
+   :members: Absolute, Plus, Minus, Multiply, Divide, Modulo
 
 All the functions in the python math library are also available:
 
@@ -54,21 +54,6 @@ Usage::
   (sin x)
   (degrees (atan2 2 3))
   ...
-
-Miscellaneous Functions
------------------------
-
-.. automodule:: opensdraw.lcad_language.belt
-   :members: LCadBelt
-
-.. automodule:: opensdraw.lcad_language.chain
-   :members: LCadChain
-
-.. automodule:: opensdraw.lcad_language.curve
-   :members: LCadCurve
-
-.. automodule:: opensdraw.lcad_language.spring
-   :members: LCadSpring
 
 Random Number Functions
 -----------------------
