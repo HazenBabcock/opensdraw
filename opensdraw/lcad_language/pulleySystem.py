@@ -35,21 +35,32 @@ class LCadPulleySystem(functions.LCadFunction):
 
     A pulley-system must have at least two elements (including the initial
     drum and the final end point). Like belt, the pulleys are specified by 
-    a 4 element list consisting of *(position orientation radius winding-direction)* 
-    where position and orientation are 3 element lists specifying the 
-    location and the  vector perpendicular to the pulley respectively. 
-    Winding-direction specifies which way string goes around the pulley 
-    (1 = counter-clockwise, -1 = clockwise). The string goes around the 
-    pulleys in the order in which they are specified.
+    a 4 element list consisting of *(position orientation radius winding-direction)*.
+
+    :param position: A 3 element list specifying the location of the pulley.
+    :param orientation: A 3 element list specifying the vector perpendicular to the plane of the pulley.
+    :param radius: The radius of the pulley in LDU.
+    :param winding-direction: Which way the string goes around the pulley (1 = counter-clockwise, -1 = clockwise).
+ 
+    The string goes around the pulleys in the order in which they are specified.
 
     The initial drum is specified by the 7 element list *(position
     orientation radius winding-direction drum-width string-thickness
-    string-length)* where string-length is the amount of string
-    would around the drum, **not** the total string length.
+    string-length)*.
+
+    :param position: A 3 element list specifying the location of the drum.
+    :param orientation: A 3 element list specifying the vector perpendicular to the plane of the drum.
+    :param radius: The radius of the drum in LDU.
+    :param winding-direction: Which way the string goes around the drum (1 = counter-clockwise, -1 = clockwise).
+    :param drum-width: The width of the drum in LDU.
+    :param string-thickness: The diameter of the string.
+    :param string-length: The amount of string wound around the drum, **not** the total string length.
 
     The final end point is specified by a 2 element position list,
-    *(position/direction type)* where position/direction is a 3 element
-    list and type is either "point" or "tangent".
+    *(position/direction type)*.
+
+    :param position/direction: A 3 element list specifying the end point of the pulley system, or a tangent vector.
+    :param type: This is either the string "point" or "tangent".
 
     When you call the created pulley-system function you will get a 4 x 4 
     transform matrix which will translate to the requested position on the 
@@ -64,7 +75,7 @@ class LCadPulleySystem(functions.LCadFunction):
     Usage::
 
      ; Drum at 0,0,0 rotating counter-clockwise in the x-y plane with radius
-     ; 5, width 50 and 50LDU of 1LDU diameter string. The string then goes
+     ; 5, width 50 and 50 LDU of 1 LDU diameter string. The string then goes
      ; around a pulley 20,0,1 rotating counter-clockwise in the x-y plane
      ; with radius 5. After passing the pulley the string continues in the
      ; -x direction.
@@ -73,7 +84,7 @@ class LCadPulleySystem(functions.LCadFunction):
                                    (list (list -1 0 0) "tangent"))))
 
      ; Drum at 0,0,0 rotating counter-clockwise in the x-y plane with radius
-     ; 5, width 50 and 50LDU of 1LDU diameter string. The string then passes 
+     ; 5, width 50 and 50 LDU of 1 LDU diameter string. The string then passes 
      ; through the point 20,0,0.
      (def ps2 (pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50)
                                    (list (list 20 0 0) "point"))))

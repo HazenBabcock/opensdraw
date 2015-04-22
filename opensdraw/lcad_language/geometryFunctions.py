@@ -148,7 +148,7 @@ class Matrix(GeometryFunction):
                            (list 1 0 0) 
                            (list 0 1 0) 
                            (list 0 0 1))))
-     (def m4 (matrix m1))                             ; Another matrix.
+     (def m4 (matrix m1))                             ; m4 is a copy of m1.
 
     """
     def __init__(self):
@@ -173,7 +173,7 @@ class Mirror(GeometryFunction):
     """
     **mirror** - Mirror child elements on a plane through the origin.
 
-    The arguments are (list mx my mz), or (vector mx my mz).
+    The arguments are *(list mx my mz)*, or *(vector mx my mz)*.
 
     :param mx: mirror on x axis.
     :param my: mirror on y axis.
@@ -219,7 +219,7 @@ class Rotate(GeometryFunction):
     is done first around z, then y and then x. Parts added inside
     a rotate block have this transformation applied to them.
 
-    The arguments are (list ax ay az), or (vector ax ay az).
+    The arguments are *(list ax ay az)*, or *(vector ax ay az)*.
 
     :param ax: Amount to rotate around the x axis in degrees.
     :param ay: Amount to rotate around the y axis in degrees.
@@ -257,7 +257,7 @@ class Scale(GeometryFunction):
     block have this transformation applied to them. This is probably not a good
     idea for standard parts, but it seems to be used with some part primitives.
 
-    The arguments are (list sx sy sz), or (vector sx sy sz).
+    The arguments are *(list sx sy sz)*, or *(vector sx sy sz)*.
 
     :param sx: Scale in x.
     :param sy: Scale in y.
@@ -342,7 +342,7 @@ class Translate(GeometryFunction):
     Add a translation to the current transformation matrix. Parts inside a translate
     block have this transformation applied to them.
 
-    The arguments are (list dx dy dz), or (vector dx dy dz).
+    The arguments are *(list dx dy dz)*, or *(vector dx dy dz)*.
 
     :param dx: Displacement in x in LDU.
     :param dy: Displacement in y in LDU.

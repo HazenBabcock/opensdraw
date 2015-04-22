@@ -27,12 +27,21 @@ class LCadCurve(functions.LCadFunction):
     **curve** - Creates a curve function.
     
     This function creates and returns a function that parametrizes a curve, specifically
-    a cubic spline. All units are LDU. Each control point is specified by a list of lists
-    in the form *((xp yp zp) (dx dy dz))*, where xp, yp and zp specify the location of the
-    control point and dx, dy, dz specify the derivative (tangent) of the line as it 
-    passes through the control point. A curve must have at least two control points, and
-    additionally you must provide a (approximately) perpendicular vector to the
-    derivate *((xp yp zp) (dx dy dz) (px py pz))* for the first control point.
+    a cubic spline. All units are LDU. 
+
+    Control points are specified by a 2 member list consisting of *(position derivative)*.
+
+    :param position: A 3 element list specifying the location of the control point.
+    :param derivative: A 3 element list specifying the derivative (tangent) of the curve as it passes through the control point.
+
+    The first control point is specified by a 3 member list consisting of *(position
+    derivative perpendicular)*
+
+    :param position: A 3 element list specifying the location of the control point.
+    :param derivative: A 3 element list specifying the derivative (tangent) of the curve as it passes through the control point.
+    :param perpendicular: A 3 element list specifying an approximately perpendicular vector to the derivative.
+
+    A curve must have at least 2 control points.
 
     When you call the created curve function you will get a 4 x 4 transform matrix
     which will translate to the requested position on the curve and orient to a

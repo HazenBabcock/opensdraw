@@ -59,14 +59,16 @@ class LCadBelt(functions.LCadFunction):
     orientations of the pulleys / sprockets. All units are in LDU.
 
     Each pulley / sprocket is specified by a 4 member list consisting of
-    *(position orientation radius winding-direction)* where position and
-    orientation are 3 element lists specifying the location and the 
-    vector perpendicular to the pulley / sprocket respectively. 
-    Winding-direction specifies which way belt goes around the pulley 
-    / sprocket (1 = counter-clockwise, -1 = clockwise). The belt goes 
-    around the pulleys / sprockets in the order in which they are 
-    specified, and when *:continuous* is **t** returns from the last pulley 
-    / sprocket to the first to close the loop.
+    *(position orientation radius winding-direction)*.
+
+    :param position: A 3 element list specifying the location of the pulley / sprocket.
+    :param orientation: A 3 element list specifying the vector perpendicular to the plane of the pulley / sprocket.
+    :param radius: The radius of the pulley / sprocket in LDU.
+    :param winding-direction: Which way the belt goes around the pulley / sprocket (1 = counter-clockwise, -1 = clockwise).
+
+    The belt goes around the pulleys / sprockets in the order in which they 
+    are specified, and when *:continuous* is **t** returns from the last 
+    pulley / sprocket to the first to close the loop.
 
     When you call the created belt function you will get a 4 x 4 transform
     matrix which will translate to the requested position on the belt and

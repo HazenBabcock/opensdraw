@@ -30,11 +30,16 @@ class LCadChain(functions.LCadFunction):
     function that you want to use. All units are LDU.
     
     A chain must have at least two sprockets. Each sprocket is specified by 
-    a 4 member list consisting of *(x y radius winding-direction)*, where 
-    winding-direction specifies which way the chain goes around the sprocket 
-    (1 = counter-clockwise, -1 = clockwise). The chain goes around the sprockets
-    in the order in which they are specified, and when *:continuous* is **t**
-    returns from the last sprocket to the first sprocket to close the loop.
+    a 4 member list consisting of *(x y radius winding-direction)*.
+
+    :param x: The x location of the sprocket.
+    :param y: The y location of the sprocket.
+    :param radius: The radius of the sprocket.
+    :param winding-direction: Which way the belt goes around the sprocket (1 = counter-clockwise, -1 = clockwise).
+
+    The chain goes around the sprockets in the order in which they are specified, 
+    and when *:continuous* is **t** returns from the last sprocket to the first 
+    sprocket to close the loop.
 
     When you call the created chain function you will get a 4 x 4 transform
     matrix which will translate to the requested position on the chain and
