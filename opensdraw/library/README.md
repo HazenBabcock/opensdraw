@@ -15,3 +15,4 @@ This directory also includes Python modules that are not loaded automatically by
 * ribbed-hose.lcad - A function for creating ribbed hoses.
 * shapes.py - Functions for creating shapes (faster LDraw primitives).
 * string.lcad - A function for creating strings.
+* triangles.lcad - Functions for determining side lengths and angles of triangles.
