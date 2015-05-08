@@ -129,6 +129,7 @@
   "lcad-mode is a major mode for editing the lcad language."
   :syntax-table lcad-syntax-table
   (setq font-lock-defaults '(lcad-keywords))
+  (setq comment-indent-function (lambda () (current-indentation)))
 
   (set (make-local-variable 'lisp-indent-function) 'lcad-indent-function)
   (set (make-local-variable 'lisp-body-indent) 1)
