@@ -49,10 +49,6 @@ def rotationMatrices():
         angle += d_angle
     return matrices
 
-#def transformMatrix(posori):
-#    return numpy.dot(geometryFunctions.translationMatrix(*posori[0:3]),
-#                     angles.rotationMatrix(*posori[3:6]))
-
 
 #
 # Helper classes.
@@ -178,6 +174,145 @@ class Axle(functions.LCadFunction):
 lcad_functions["axle"] = Axle()
 
 
+class RibbonCable(functions.LCadFunction):
+    """
+    **ribbon-cable** - Draw a ribbon cable using LDraw primitives.
+
+    :param curve: The curve that the cable should follow.
+    :param start: The starting point on the curve.
+    :param stop: The stopping point on the curve.
+    :param strands: The number of strands in the cable.
+    :param radius: The radius of a single strand in the cable.
+
+    The ribbon cable will have the color 16.
+
+    Usage::
+
+     (ribbon-cable curve 0 10 4 1) ; Draw a 4 stranded ribbon cable with each strand
+                                   ; having a radius of 1 LDU.
+
+    """
+
+    def __init__(self):
+        functions.LCadFunction.__init__(self, "ribbon-cable")
+        
+        self.setSignature([[curveFunctions.CurveFunction],
+                           [numbers.Number],
+                           [numbers.Number],
+                           [numbers.Number],
+                           [numbers.Number]])
+
+    def call(self, model, tree):
+        [curve, start, stop, strands, radius] = self.getArgs(model, tree)
+
+        group = model.curGroup()
+        matrix = group.matrix()
+        stepper = Stepper(curve, start, stop)
+
+        # Create vectors for a single segment of the cable.
+        cable_width = radius * (strands - 1) * math.sqrt(2)
+        y_inc = cable_width/(strands - 1)
+        y_start = -0.5 * cable_width
+
+        print strands, cable_width, y_start
+        
+        cable_vecs = []
+        cur_y = y_start
+        i = 0
+
+        # Up one side.
+        while (i < strands):
+
+            # Create vectors for edge cables.
+            if (i == 0):
+                for j in range(6):
+                    angle = math.radians(180.0 - 22.5 * j)
+                    cable_vecs.append(numpy.array([radius * math.sin(angle),
+                                                   cur_y + radius * math.cos(angle),
+                                                   0,
+                                                   1.0]))
+            elif (i == (strands - 1)):
+                for j in range(6):
+                    angle = math.radians(135 - 22.5 * j)
+                    cable_vecs.append(numpy.array([radius * math.sin(angle),
+                                                   cur_y + radius * math.cos(angle),
+                                                   0,
+                                                   1.0]))
+                
+
+            # Create vectors for center cables.
+            else:
+                for j in range(4):
+                    angle = math.radians(135 - 22.5 * j)
+                    cable_vecs.append(numpy.array([radius * math.sin(angle),
+                                                   cur_y + radius * math.cos(angle),
+                                                   0,
+                                                   1.0]))
+
+            cur_y += y_inc
+            i += 1
+
+        # Down the other.
+        while (i > 0):
+            cur_y -= y_inc
+            i -= 1
+
+            # Create vectors for edge cables.
+            if (i == 0):
+                for j in range(7):
+                    angle = math.radians(-22.5 * j - 45.0)
+                    cable_vecs.append(numpy.array([radius * math.sin(angle),
+                                                   cur_y + radius * math.cos(angle),
+                                                   0,
+                                                   1.0]))
+            elif (i == (strands - 1)):
+                for j in range(6):
+                    angle = math.radians(-22.5 * j)
+                    cable_vecs.append(numpy.array([radius * math.sin(angle),
+                                                   cur_y + radius * math.cos(angle),
+                                                   0,
+                                                   1.0]))
+                
+
+            # Create vectors for center cables.
+            else:
+                for j in range(4):
+                    angle = math.radians(-22.5 * j - 45.0)
+                    cable_vecs.append(numpy.array([radius * math.sin(angle),
+                                                   cur_y + radius * math.cos(angle),
+                                                   0,
+                                                   1.0]))
+
+                    
+        # Draw the cable.
+        cm = numpy.dot(matrix, stepper.getMatrix())
+        last_v = createRing(cm, cable_vecs)
+
+        n_vert = len(last_v) - 1
+        pos = stepper.nextPos()
+        while (pos < stop):
+            cm = numpy.dot(matrix, stepper.getMatrix())
+            cur_v = createRing(cm, cable_vecs)
+
+            for i in range(n_vert):
+                #group.addPart(parts.Line(None, numpy.append(last_v[i], cur_v[i]), 16), True)
+                group.addPart(parts.Triangle(None, numpy.append(last_v[i], [last_v[i+1], cur_v[i]]), 16), True)
+                group.addPart(parts.Triangle(None, numpy.append(last_v[i+1], [cur_v[i+1], cur_v[i]]), 16), True)
+
+            pos = stepper.nextPos()
+            last_v = cur_v
+
+        cm = numpy.dot(matrix, curve.getMatrix(stop))
+        cur_v = createRing(cm, cable_vecs)
+
+        for i in range(n_vert):
+            #group.addPart(parts.Line(None, numpy.append(last_v[i], cur_v[i]), 16), True)
+            group.addPart(parts.Triangle(None, numpy.append(last_v[i], [last_v[i+1], cur_v[i]]), 16), True)
+            group.addPart(parts.Triangle(None, numpy.append(last_v[i+1], [cur_v[i+1], cur_v[i]]), 16), True)
+
+lcad_functions["ribbon-cable"] = RibbonCable()
+
+        
 class Ring(functions.LCadFunction):
     """
     **ring** - Draw a ring using LDraw primitives.

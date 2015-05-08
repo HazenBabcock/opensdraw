@@ -1,0 +1,32 @@
+;
+; Functions to make adding cables (such as Power Functions cords)
+; to a MOC easier.
+;
+; Hazen 05/15
+;
+
+(pyimport opensdraw.library.shapes)
+
+(import locate :local)
+
+;
+; Create a 4 wire PF cable of the specified length that goes along the
+; specified curve. The hose should be in a group so that you can specify
+; the color and back face culling.
+;
+; Example:
+;
+;  (group "my-pf-cable.ldr"
+;   (header "!LDRAW_ORG Unofficial_part")
+;   (header "BFC CERTIFY CCW")
+;   (pf-4-wire 0 20 my-curve))
+;  (part "my-pf-cable.ldr" 10)
+;
+; start - PF cable starting point on the curve.
+; stop - PF cable stopping point on the curve.
+; a-curve - The curve function that the PF cable should follow.
+;
+(def pf-4-wire (start stop a-curve)
+ (block
+  (ribbon-cable a-curve start stop 4 1.75)
+  ))
