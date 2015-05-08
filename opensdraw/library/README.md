@@ -6,6 +6,7 @@ This directory also includes Python modules that are not loaded automatically by
 
 ### Files ###
 
+* cables.lcad - Functions for creating cables.
 * flexible-axle.lcad - A function for creating flexible axles.
 * flexible-hose.lcad - A function for creating flexible hoses.
 * flexible-rod.lcad - A function for creating flexible rods.
