@@ -35,6 +35,32 @@ def createVectors(matrices, vector):
         vectors.append(numpy.dot(mm, vector))
     return vectors
 
+def renderShape(curve, group, matrix, vectors, stepper, stop):
+    cm = numpy.dot(matrix, stepper.getMatrix())
+    last_v = createRing(cm, vectors)
+
+    n_vert = len(last_v) - 1
+    pos = stepper.nextPos()
+    while (pos < stop):
+        cm = numpy.dot(matrix, stepper.getMatrix())
+        cur_v = createRing(cm, vectors)
+
+        for i in range(n_vert):
+            #group.addPart(parts.Line(None, numpy.append(last_v[i], cur_v[i]), 16), True)
+            group.addPart(parts.Triangle(None, numpy.append(last_v[i], [last_v[i+1], cur_v[i]]), 16), True)
+            group.addPart(parts.Triangle(None, numpy.append(last_v[i+1], [cur_v[i+1], cur_v[i]]), 16), True)
+
+        pos = stepper.nextPos()
+        last_v = cur_v
+
+    cm = numpy.dot(matrix, curve.getMatrix(stop))
+    cur_v = createRing(cm, vectors)
+
+    for i in range(n_vert):
+        #group.addPart(parts.Line(None, numpy.append(last_v[i], cur_v[i]), 16), True)
+        group.addPart(parts.Triangle(None, numpy.append(last_v[i], [last_v[i+1], cur_v[i]]), 16), True)
+        group.addPart(parts.Triangle(None, numpy.append(last_v[i+1], [cur_v[i+1], cur_v[i]]), 16), True)
+
 def rotationMatrices():
     matrices = []
     d_angle = math.radians(22.5)
@@ -174,6 +200,69 @@ class Axle(functions.LCadFunction):
 lcad_functions["axle"] = Axle()
 
 
+class FlatCable(functions.LCadFunction):
+    """
+    **flat-cable** - Draw a flat cable (i.e. EV3 or NXT style) using LDraw primitives.
+
+    :param curve: The curve that the cable should follow.
+    :param start: The starting point on the curve.
+    :param stop: The stopping point on the curve.
+    :param width: The width of the cable.
+    :param radius: The edge radius of the cable.
+
+    The flat cable will have the color 16.
+
+    Usage::
+
+     (flat-cable curve 0 10 4 1) ; Draw a 4 LDU wide flat cable with 1 LDU radius edges.
+
+    """
+
+    def __init__(self):
+        functions.LCadFunction.__init__(self, "flat-cable")
+        
+        self.setSignature([[curveFunctions.CurveFunction],
+                           [numbers.Number],
+                           [numbers.Number],
+                           [numbers.Number],
+                           [numbers.Number]])
+
+    def call(self, model, tree):
+        [curve, start, stop, width, radius] = self.getArgs(model, tree)
+
+        group = model.curGroup()
+        matrix = group.matrix()
+        stepper = Stepper(curve, start, stop)
+
+        # Create vectors for a single segment of the cable.
+        y_start = 0.5 * width
+        
+        cable_vecs = []
+
+        # First edge.
+        for i in range(9):
+            angle = math.radians(270 - 22.5 * i)
+            cable_vecs.append(numpy.array([radius * math.sin(angle),
+                                           radius * math.cos(angle) - y_start,
+                                           0,
+                                           1.0]))
+
+        # Second edge.
+        for i in range(9):
+            angle = math.radians(90 - 22.5 * i)
+            cable_vecs.append(numpy.array([radius * math.sin(angle),
+                                           radius * math.cos(angle) + y_start,
+                                           0,
+                                           1.0]))
+
+        cable_vecs.append(cable_vecs[0])
+        
+        # Draw the cable.
+        renderShape(curve, group, matrix, cable_vecs, stepper, stop)
+
+lcad_functions["flat-cable"] = FlatCable()
+
+    
 class RibbonCable(functions.LCadFunction):
     """
     **ribbon-cable** - Draw a ribbon cable using LDraw primitives.
@@ -214,8 +303,6 @@ class RibbonCable(functions.LCadFunction):
         y_inc = cable_width/(strands - 1)
         y_start = -0.5 * cable_width
 
-        print strands, cable_width, y_start
-        
         cable_vecs = []
         cur_y = y_start
         i = 0
@@ -285,30 +372,7 @@ class RibbonCable(functions.LCadFunction):
 
                     
         # Draw the cable.
-        cm = numpy.dot(matrix, stepper.getMatrix())
-        last_v = createRing(cm, cable_vecs)
-
-        n_vert = len(last_v) - 1
-        pos = stepper.nextPos()
-        while (pos < stop):
-            cm = numpy.dot(matrix, stepper.getMatrix())
-            cur_v = createRing(cm, cable_vecs)
-
-            for i in range(n_vert):
-                #group.addPart(parts.Line(None, numpy.append(last_v[i], cur_v[i]), 16), True)
-                group.addPart(parts.Triangle(None, numpy.append(last_v[i], [last_v[i+1], cur_v[i]]), 16), True)
-                group.addPart(parts.Triangle(None, numpy.append(last_v[i+1], [cur_v[i+1], cur_v[i]]), 16), True)
-
-            pos = stepper.nextPos()
-            last_v = cur_v
-
-        cm = numpy.dot(matrix, curve.getMatrix(stop))
-        cur_v = createRing(cm, cable_vecs)
-
-        for i in range(n_vert):
-            #group.addPart(parts.Line(None, numpy.append(last_v[i], cur_v[i]), 16), True)
-            group.addPart(parts.Triangle(None, numpy.append(last_v[i], [last_v[i+1], cur_v[i]]), 16), True)
-            group.addPart(parts.Triangle(None, numpy.append(last_v[i+1], [cur_v[i+1], cur_v[i]]), 16), True)
+        renderShape(curve, group, matrix, cable_vecs, stepper, stop)
 
 lcad_functions["ribbon-cable"] = RibbonCable()
 
@@ -406,33 +470,10 @@ class Rod(functions.LCadFunction):
 
         # Create vectors.
         vectors = createVectors(self.matrices, numpy.array([radius, 0, 0, 1]))
+
+        # Draw.
+        renderShape(curve, group, matrix, vectors, stepper, stop)
         
-        # Starting ring.
-        cm = numpy.dot(matrix, stepper.getMatrix())
-        last_v = createRing(cm, vectors)
-
-        n_vert = len(last_v) - 1
-        pos = stepper.nextPos()
-        while (pos < stop):
-            cm = numpy.dot(matrix, stepper.getMatrix())
-            cur_v = createRing(cm, vectors)
-
-            for i in range(n_vert):
-                group.addPart(parts.Line(None, numpy.append(last_v[i], cur_v[i]), 16), True)
-                group.addPart(parts.Triangle(None, numpy.append(last_v[i], [last_v[i+1], cur_v[i]]), 16), True)
-                group.addPart(parts.Triangle(None, numpy.append(last_v[i+1], [cur_v[i+1], cur_v[i]]), 16), True)
-
-            pos = stepper.nextPos()
-            last_v = cur_v
-
-        cm = numpy.dot(matrix, curve.getMatrix(stop))
-        cur_v = createRing(cm, vectors)
-
-        for i in range(n_vert):
-            group.addPart(parts.Line(None, numpy.append(last_v[i], cur_v[i]), 16), True)
-            group.addPart(parts.Triangle(None, numpy.append(last_v[i], [last_v[i+1], cur_v[i]]), 16), True)
-            group.addPart(parts.Triangle(None, numpy.append(last_v[i+1], [cur_v[i+1], cur_v[i]]), 16), True)
-
 lcad_functions["rod"] = Rod()
 
 
