@@ -1,0 +1,153 @@
+;
+; Demonstrates power functions 4 wire cable.
+;
+; Hazen 5/15
+;
+
+(import cables :local)
+(import locate :local)
+
+; Battery box.
+(def battery-box ()
+ (block
+
+  ; Power Functions 9V Battery Box Case
+  (tb 0 0 0 0 0 0 "919" 71)
+
+  ; Power Functions 9V Battery Box Lid
+  (tb 0.25 0 -2 0 0 0 "918" 72)
+  (tb -0.25 0 2 0 180 0 "918" 72)
+
+  ; Power Functions 9V Battery Box Switch
+  (tb 0.65 -3.5 -0.5 0 90 0 "920" 25)
+
+  ; Power Functions Connector with PF Bottom
+  (tb -2 -4.3 0 0 -90 0 "58124c01" 72)
+      
+  ))
+
+; Gear
+(def gear ()
+ (block
+
+  ; Axle 3
+  (tb 1 0 0 45 0 0 "4519" 71)
+  
+  ; Gear 24 Tooth with Single Axle Hole
+  (tb 0 0 0 45 90 0 "3648b" 72)
+
+  ; Pin
+  (tb -0.5 0.70 0 0 0 0 "3673" 19)
+  
+  ))
+
+(def worm ()
+ (block
+   ; Axle 5
+  (tb 0 0 0.5 0 90 0 "32073" 71)
+
+  ; Bush with Two Flanges
+;  (tb 0 0 1.5 0 180 0 "3713" 71)
+  (tb 0 0 -1.5 0 0 0 "3713" 71)
+  
+  ; Worm Gear
+  (tb 0 0 0 0 0 0 "4716" 71)
+  ))
+
+(def engine (angle)
+ (block
+
+  ; Beam 5
+  (tb 0 0 -0.5 0 90 90 "32316" 4)
+
+  ; Pin with Friction
+  (tb -1 0 0 0 90 0 "4459" 0)
+  (tb 1 0 0 0 90 0 "4459" 0)
+  
+  ; Power Functions Medium Motor
+  (tb 0 0 0 0 0 0 "58120" 71)
+
+  (trf-tb 0 0 -2 0 0 (* 24 (- angle 9)) worm)
+  
+  (trf-tb 0 2 -2 angle 0 0 gear)
+  
+  ))
+
+(def linkage (angle)
+ (translate (list 0 0 (bw -4))
+
+  ; Beam 5
+  (rotate (list angle 0 0)
+   (tb -1 0 2 0 0 90 "32316" 4))
+  (tb 0 0 0 90 0 90 "32316" 14)
+
+  ; Pin
+  (tb -0.5 0 0 0 0 0 "3673" 19)
+  ))
+
+; Engine assembly.
+;
+; Returns the displacement of the assembly from the zero position.
+;
+(def engine-assembly (angle)
+ (block
+
+  (def r-angle (radians angle))
+  (def dz (* -0.7 (sin r-angle)))
+  (def dy (* -0.7 (cos r-angle)))
+  (def dd (+ dz (- 4 (sqrt (+ (* dy dy) 16.0)))))
+   
+  (translate (list 0 (bw -2) (bw (+ 2 dd)))
+   (engine angle))
+
+  (linkage (degrees (asin (/ dy 4.0))))
+
+  dd
+  ))
+
+; Power cable.
+(def power-cable (dd)
+ (block
+
+  ;
+  ; Use a belt() to create a path for the power functions cable to follow.
+  ;
+  ; Sprocket positions are adjusted depending on the position of the
+  ; engine assembly.
+  ;
+  (def p-vec (vector 1 0 0))
+
+  ; Battery box connection.
+  (def s1-pos (vector 0 (bw -2.45) (bw 13.6)))
+  (def s2-pos (vector 0 (bw -2.25) (bw 13.5)))
+
+  ; Intermediate points.
+  (def s3-pos (vector 0 (bw 0) (bw (+ 12.0 (/ dd 4.0)))))
+  (def s4-pos (vector 0 (bw -4.5) (bw (+ 10.8 (/ (* 2.0 dd) 4.0)))))
+  (def s5-pos (vector 0 (bw 0) (bw (+ 9.5 (/ (* 3.0 dd) 4.0)))))
+		      
+  ; Motor connection.
+  (def s6-pos (vector 0 (bw -2.8) (bw (+ 8.49 dd))))
+  (def s7-pos (vector 0 (bw -2.6) (bw (+ 8.29 dd))))
+  
+  (def a-belt (belt (list (list s1-pos p-vec (bw 0.5) 1)
+			  (list s2-pos p-vec (bw 0.7) 1)
+			  (list s3-pos p-vec (bw 0.7) -1)
+			  (list s4-pos p-vec (bw 0.7) 1)
+			  (list s5-pos p-vec (bw 0.7) -1)
+			  (list s6-pos p-vec (bw 0.7) 1)
+			  (list s7-pos p-vec (bw 0.7) 1))
+		    :continuous nil))
+  
+  (group "power-cable.ldr"
+   (header "!LDRAW_ORG Unofficial_part")
+   (header "BFC CERTIFY CCW")
+   (pf-4-wire 0 (a-belt t) a-belt))
+
+  (part "power-cable.ldr" 0)))
+
+
+(trf-tb 2 1 15 0 0 0 battery-box)
+
+; Go through one complete cycle in 100 frames.
+(power-cable (engine-assembly (* 3.6 time-index)))
