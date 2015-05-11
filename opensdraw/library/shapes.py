@@ -235,23 +235,23 @@ class FlatCable(functions.LCadFunction):
         stepper = Stepper(curve, start, stop)
 
         # Create vectors for a single segment of the cable.
-        y_start = 0.5 * width
+        x_start = 0.5 * width
         
         cable_vecs = []
 
         # First edge.
         for i in range(9):
             angle = math.radians(270 - 22.5 * i)
-            cable_vecs.append(numpy.array([radius * math.sin(angle),
-                                           radius * math.cos(angle) - y_start,
+            cable_vecs.append(numpy.array([radius * math.cos(angle) - x_start,
+                                           radius * math.sin(angle),
                                            0,
                                            1.0]))
 
         # Second edge.
         for i in range(9):
             angle = math.radians(90 - 22.5 * i)
-            cable_vecs.append(numpy.array([radius * math.sin(angle),
-                                           radius * math.cos(angle) + y_start,
+            cable_vecs.append(numpy.array([radius * math.cos(angle) + x_start,
+                                           radius * math.sin(angle),                                           
                                            0,
                                            1.0]))
 
@@ -300,11 +300,11 @@ class RibbonCable(functions.LCadFunction):
 
         # Create vectors for a single segment of the cable.
         cable_width = radius * (strands - 1) * math.sqrt(2)
-        y_inc = cable_width/(strands - 1)
-        y_start = -0.5 * cable_width
+        x_inc = cable_width/(strands - 1)
+        x_start = -0.5 * cable_width
 
         cable_vecs = []
-        cur_y = y_start
+        cur_x = x_start
         i = 0
 
         # Up one side.
@@ -314,15 +314,15 @@ class RibbonCable(functions.LCadFunction):
             if (i == 0):
                 for j in range(6):
                     angle = math.radians(180.0 - 22.5 * j)
-                    cable_vecs.append(numpy.array([radius * math.sin(angle),
-                                                   cur_y + radius * math.cos(angle),
+                    cable_vecs.append(numpy.array([cur_x + radius * math.cos(angle),
+                                                   radius * math.sin(angle),
                                                    0,
                                                    1.0]))
             elif (i == (strands - 1)):
                 for j in range(6):
                     angle = math.radians(135 - 22.5 * j)
-                    cable_vecs.append(numpy.array([radius * math.sin(angle),
-                                                   cur_y + radius * math.cos(angle),
+                    cable_vecs.append(numpy.array([cur_x + radius * math.cos(angle),
+                                                   radius * math.sin(angle),
                                                    0,
                                                    1.0]))
                 
@@ -331,32 +331,32 @@ class RibbonCable(functions.LCadFunction):
             else:
                 for j in range(4):
                     angle = math.radians(135 - 22.5 * j)
-                    cable_vecs.append(numpy.array([radius * math.sin(angle),
-                                                   cur_y + radius * math.cos(angle),
+                    cable_vecs.append(numpy.array([cur_x + radius * math.cos(angle),
+                                                   radius * math.sin(angle),
                                                    0,
                                                    1.0]))
 
-            cur_y += y_inc
+            cur_x += x_inc
             i += 1
 
         # Down the other.
         while (i > 0):
-            cur_y -= y_inc
+            cur_x -= x_inc
             i -= 1
 
             # Create vectors for edge cables.
             if (i == 0):
                 for j in range(7):
                     angle = math.radians(-22.5 * j - 45.0)
-                    cable_vecs.append(numpy.array([radius * math.sin(angle),
-                                                   cur_y + radius * math.cos(angle),
+                    cable_vecs.append(numpy.array([cur_x + radius * math.cos(angle),
+                                                   radius * math.sin(angle),
                                                    0,
                                                    1.0]))
             elif (i == (strands - 1)):
                 for j in range(6):
                     angle = math.radians(-22.5 * j)
-                    cable_vecs.append(numpy.array([radius * math.sin(angle),
-                                                   cur_y + radius * math.cos(angle),
+                    cable_vecs.append(numpy.array([cur_x + radius * math.cos(angle),
+                                                   radius * math.sin(angle),
                                                    0,
                                                    1.0]))
                 
@@ -365,8 +365,8 @@ class RibbonCable(functions.LCadFunction):
             else:
                 for j in range(4):
                     angle = math.radians(-22.5 * j - 45.0)
-                    cable_vecs.append(numpy.array([radius * math.sin(angle),
-                                                   cur_y + radius * math.cos(angle),
+                    cable_vecs.append(numpy.array([cur_x + radius * math.cos(angle),
+                                                   radius * math.sin(angle),
                                                    0,
                                                    1.0]))
 
