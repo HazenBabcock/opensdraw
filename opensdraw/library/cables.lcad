@@ -25,10 +25,11 @@
 ; start - NXT cable starting point on the curve.
 ; stop - NXT cable stopping point on the curve.
 ; a-curve - The curve function that the NXT cable should follow.
+; orientation - (Keyword) The cable orientation in degrees relative to it's axis.
 ;
-(def nxt-cable (start stop a-curve)
+(def nxt-cable (start stop a-curve :orientation 0)
  (block
-  (flat-cable a-curve start stop 10 3)
+  (flat-cable a-curve start stop 10 3 orientation)
   ))
 
 ;
@@ -47,10 +48,11 @@
 ; start - PF cable starting point on the curve.
 ; stop - PF cable stopping point on the curve.
 ; a-curve - The curve function that the PF cable should follow.
+; orientation - (Keyword) The cable orientation in degrees relative to it's axis.
 ;
-(def pf-2-wire (start stop a-curve)
+(def pf-2-wire (start stop a-curve :orientation 0)
  (block
-  (ribbon-cable a-curve start stop 2 1.75)
+  (ribbon-cable a-curve start stop 2 1.75 orientation)
   ))
 
 ;
@@ -69,8 +71,9 @@
 ; start - PF cable starting point on the curve.
 ; stop - PF cable stopping point on the curve.
 ; a-curve - The curve function that the PF cable should follow.
+; orientation - (Keyword) The cable orientation in degrees relative to it's axis.
 ;
-(def pf-4-wire (start stop a-curve)
+(def pf-4-wire (start stop a-curve :orientation 0)
  (block
-  (ribbon-cable a-curve start stop 4 1.75)
+  (ribbon-cable a-curve start stop 4 1.75 orientation)
   ))

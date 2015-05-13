@@ -23,27 +23,31 @@ lcad_functions = {}
 # Helper functions.
 #
 
-def createRing(matrix, vectors):
-    ring = []
-    for vec in vectors:
-        ring.append(numpy.dot(matrix, vec)[:3])
-    return ring
-
 def createVectors(matrices, vector):
     vectors = [vector]
     for mm in matrices:
         vectors.append(numpy.dot(mm, vector))
     return vectors
 
+def matrixXVectors(matrix, vectors, truncate = True):
+    results_list = []
+    if truncate:
+        for vec in vectors:
+            results_list.append(numpy.dot(matrix, vec)[:3])
+    else:
+        for vec in vectors:
+            results_list.append(numpy.dot(matrix, vec))
+    return results_list
+
 def renderShape(curve, group, matrix, vectors, stepper, stop):
     cm = numpy.dot(matrix, stepper.getMatrix())
-    last_v = createRing(cm, vectors)
+    last_v = matrixXVectors(cm, vectors)
 
     n_vert = len(last_v) - 1
     pos = stepper.nextPos()
     while (pos < stop):
         cm = numpy.dot(matrix, stepper.getMatrix())
-        cur_v = createRing(cm, vectors)
+        cur_v = matrixXVectors(cm, vectors)
 
         for i in range(n_vert):
             #group.addPart(parts.Line(None, numpy.append(last_v[i], cur_v[i]), 16), True)
@@ -54,7 +58,7 @@ def renderShape(curve, group, matrix, vectors, stepper, stop):
         last_v = cur_v
 
     cm = numpy.dot(matrix, curve.getMatrix(stop))
-    cur_v = createRing(cm, vectors)
+    cur_v = matrixXVectors(cm, vectors)
 
     for i in range(n_vert):
         #group.addPart(parts.Line(None, numpy.append(last_v[i], cur_v[i]), 16), True)
@@ -66,12 +70,7 @@ def rotationMatrices():
     d_angle = math.radians(22.5)
     angle = d_angle
     while (angle < (2.0 * math.pi + 0.1 * d_angle)):
-        mz = numpy.identity(4)
-        mz[0,0] = math.cos(angle)
-        mz[0,1] = -math.sin(angle)
-        mz[1,0] = -mz[0,1]
-        mz[1,1] = mz[0,0]
-        matrices.append(mz)
+        matrices.append(geometry.rotationMatrixZ(angle))
         angle += d_angle
     return matrices
 
@@ -175,13 +174,13 @@ class Axle(functions.LCadFunction):
         stepper = Stepper(curve, start, stop)
 
         cm = numpy.dot(matrix, stepper.getMatrix())
-        lastv = createRing(cm, self.vectors)
+        lastv = matrixXVectors(cm, self.vectors)
         n_vert = len(lastv) - 1
 
         pos = stepper.nextPos()
         while (pos < stop):
             cm = numpy.dot(matrix, stepper.getMatrix())
-            curv = createRing(cm, self.vectors)
+            curv = matrixXVectors(cm, self.vectors)
             for i in range(n_vert):
                 group.addPart(parts.Line(None, numpy.append(lastv[i], curv[i]), 16), True)
                 group.addPart(parts.Triangle(None, numpy.append(lastv[i], [lastv[i+1], curv[i]]), 16), True)
@@ -191,7 +190,7 @@ class Axle(functions.LCadFunction):
             lastv = curv
 
         cm = numpy.dot(matrix, curve.getMatrix(stop))
-        curv = createRing(cm, self.vectors)
+        curv = matrixXVectors(cm, self.vectors)
         for i in range(n_vert):
             group.addPart(parts.Line(None, numpy.append(lastv[i], curv[i]), 16), True)
             group.addPart(parts.Triangle(None, numpy.append(lastv[i], [lastv[i+1], curv[i]]), 16), True)
@@ -209,6 +208,7 @@ class FlatCable(functions.LCadFunction):
     :param stop: The stopping point on the curve.
     :param width: The width of the cable.
     :param radius: The edge radius of the cable.
+    :param orientation: (optional) Angle in degrees in the XY plane, default is 0 (the long axis of the cable is along the X axis).
 
     The flat cable will have the color 16.
 
@@ -225,10 +225,16 @@ class FlatCable(functions.LCadFunction):
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number],
-                           [numbers.Number]])
+                           [numbers.Number],
+                           ["optional", [numbers.Number]]])
 
     def call(self, model, tree):
-        [curve, start, stop, width, radius] = self.getArgs(model, tree)
+        args = self.getArgs(model, tree)
+        [curve, start, stop, width, radius] = args[0:5]
+        if (len(args) == 6):
+            orientation = args[5]
+        else:
+            orientation = 0
 
         group = model.curGroup()
         matrix = group.matrix()
@@ -256,6 +262,12 @@ class FlatCable(functions.LCadFunction):
                                            1.0]))
 
         cable_vecs.append(cable_vecs[0])
+
+        # Rotate the cable if necessary.        
+        if (orientation != 0):
+            cable_vecs = matrixXVectors(geometry.rotationMatrixZ(math.radians(orientation)),
+                                        cable_vecs,
+                                        truncate = False)
         
         # Draw the cable.
         renderShape(curve, group, matrix, cable_vecs, stepper, stop)
@@ -272,6 +284,7 @@ class RibbonCable(functions.LCadFunction):
     :param stop: The stopping point on the curve.
     :param strands: The number of strands in the cable.
     :param radius: The radius of a single strand in the cable.
+    :param orientation: (optional) Angle in degrees in the XY plane, default is 0 (the long axis of the cable is along the X axis).
 
     The ribbon cable will have the color 16.
 
@@ -289,10 +302,16 @@ class RibbonCable(functions.LCadFunction):
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number],
-                           [numbers.Number]])
+                           [numbers.Number],
+                           ["optional", [numbers.Number]]])
 
     def call(self, model, tree):
-        [curve, start, stop, strands, radius] = self.getArgs(model, tree)
+        args = self.getArgs(model, tree)
+        [curve, start, stop, strands, radius] = args[0:5]
+        if (len(args) == 6):
+            orientation = args[5]
+        else:
+            orientation = 0
 
         group = model.curGroup()
         matrix = group.matrix()
@@ -370,6 +389,11 @@ class RibbonCable(functions.LCadFunction):
                                                    0,
                                                    1.0]))
 
+        # Rotate the cable if necessary.
+        if (orientation != 0):
+            cable_vecs = matrixXVectors(geometry.rotationMatrixZ(math.radians(orientation)),
+                                        cable_vecs,
+                                        truncate = False)
                     
         # Draw the cable.
         renderShape(curve, group, matrix, cable_vecs, stepper, stop)
@@ -518,15 +542,15 @@ class Tube(functions.LCadFunction):
         
         # Starting ring.
         cm = numpy.dot(matrix, stepper.getMatrix())
-        last_inner = createRing(cm, inner_vecs)
-        last_outer = createRing(cm, outer_vecs)
+        last_inner = matrixXVectors(cm, inner_vecs)
+        last_outer = matrixXVectors(cm, outer_vecs)
 
         n_vert = len(last_inner) - 1
         pos = stepper.nextPos()
         while (pos < stop):
             cm = numpy.dot(matrix, stepper.getMatrix())
-            cur_inner = createRing(cm, inner_vecs)
-            cur_outer = createRing(cm, outer_vecs)
+            cur_inner = matrixXVectors(cm, inner_vecs)
+            cur_outer = matrixXVectors(cm, outer_vecs)
 
             for i in range(n_vert):
 
@@ -544,8 +568,8 @@ class Tube(functions.LCadFunction):
             last_outer = cur_outer
 
         cm = numpy.dot(matrix, curve.getMatrix(stop))
-        cur_inner = createRing(cm, inner_vecs)
-        cur_outer = createRing(cm, outer_vecs)
+        cur_inner = matrixXVectors(cm, inner_vecs)
+        cur_outer = matrixXVectors(cm, outer_vecs)
 
         for i in range(n_vert):
 
