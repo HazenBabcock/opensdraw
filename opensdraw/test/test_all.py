@@ -83,6 +83,10 @@ def test_concatenate_1():
 def test_cond_1():
     assert exe("(def x 2) (cond ((= x 1) 2) ((= x 2) 3) ((= x 3) 4) (t 5))") == 3
 
+# copy
+def test_copy_1():
+    assert exe("(def a (list 1 2 3) b (copy a)) (set (aref b 0) 5) (aref a 0)") == 1
+    
 # def
 def test_def_1():
     assert exe("(def x 15) x") == 15

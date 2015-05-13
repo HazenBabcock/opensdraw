@@ -7,6 +7,7 @@
 
 """
 
+import copy
 import importlib
 from itertools import izip
 import numbers
@@ -192,6 +193,25 @@ class Cond(CoreFunction):
 lcad_functions["cond"] = Cond()
 
 
+class Copy(CoreFunction):
+    """
+    **copy** - Make a copy.
+
+    Usage::
+
+     (def a (list 1 2 3) b (copy a)) ; Make two independent lists with elements 1, 2, 3.
+
+    """
+    def __init__(self):
+        CoreFunction.__init__(self, "copy")
+        self.setSignature([[object]])
+
+    def call(self, model, tree):
+        return copy.copy(self.getArg(model, tree, 0))
+
+lcad_functions["copy"] = Copy()
+
+    
 class Def(CoreFunction):
     """
     **def** - Create a variable or function.

@@ -14,7 +14,7 @@ Functions
 ---------
 
 .. automodule:: opensdraw.lcad_language.coreFunctions
-   :members: Append, Aref, Block, Concatenate, Cond, Def, For, If, Import, Lambda, Len, List, Print, PyImport, Set, While
+   :members: Append, Aref, Block, Concatenate, Cond, Copy, Def, For, If, Import, Lambda, Len, List, Print, PyImport, Set, While
 
 Part Functions
 --------------
