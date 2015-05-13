@@ -42,7 +42,7 @@ class Absolute(MathFunction):
         self.setSignature([[numbers.Number]]),
 
     def call(self, model, tree):
-        return abs(self.getArgs(model, tree)[0])
+        return abs(self.getArg(model, tree, 0))
 
 lcad_functions["abs"] = Absolute("abs")
 
