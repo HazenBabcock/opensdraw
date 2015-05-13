@@ -40,13 +40,14 @@ Shapes
    (pyimport shapes)
 
 .. automodule:: opensdraw.library.shapes
-   :members: Axle, Ring, Rod, Tube
+   :members: Axle, FlatCable, RibbonCable, Ring, Rod, Tube
 
 Extra Functions (LCad)
 ----------------------
 
 These are functions that you will need to import in order to use. They can all be found in the *opensdraw/library* directory.
 
+* cables.lcad - Rendering cables.
 * flexible-axle.lcad - Rendering flexible axle.
 * flexible-hose.lcad - Rendering flexible hoses.
 * flexible-rod.lcad - Rendering flexible rods.
