@@ -133,6 +133,7 @@ class Axle(functions.LCadFunction):
     :param curve: The curve that the axle should follow.
     :param start: The starting point on the curve.
     :param stop: The stopping point on the curve.
+    :param orientation: (optional) Angle in degrees in the XY plane.
 
     The axle will have the color 16.
 
@@ -164,23 +165,31 @@ class Axle(functions.LCadFunction):
 
         self.setSignature([[curveFunctions.CurveFunction],
                            [numbers.Number],
-                           [numbers.Number]])
+                           [numbers.Number],
+                           ["optional", [numbers.Number]]])
 
     def call(self, model, tree):
-        [curve, start, stop] = self.getArgs(model, tree)
+        args = self.getArgs(model, tree)
+        [curve, start, stop] = args[0:3]
+        if (len(args) == 4):
+            vectors = matrixXVectors(geometry.rotationMatrixZ(math.radians(args[3])),
+                                     self.vectors,
+                                     truncate = False)
+        else:
+            vectors = self.vectors
         
         group = model.curGroup()
         matrix = group.matrix()
         stepper = Stepper(curve, start, stop)
 
         cm = numpy.dot(matrix, stepper.getMatrix())
-        lastv = matrixXVectors(cm, self.vectors)
+        lastv = matrixXVectors(cm, vectors)
         n_vert = len(lastv) - 1
 
         pos = stepper.nextPos()
         while (pos < stop):
             cm = numpy.dot(matrix, stepper.getMatrix())
-            curv = matrixXVectors(cm, self.vectors)
+            curv = matrixXVectors(cm, vectors)
             for i in range(n_vert):
                 group.addPart(parts.Line(None, numpy.append(lastv[i], curv[i]), 16), True)
                 group.addPart(parts.Triangle(None, numpy.append(lastv[i], [lastv[i+1], curv[i]]), 16), True)
@@ -190,7 +199,7 @@ class Axle(functions.LCadFunction):
             lastv = curv
 
         cm = numpy.dot(matrix, curve.getMatrix(stop))
-        curv = matrixXVectors(cm, self.vectors)
+        curv = matrixXVectors(cm, vectors)
         for i in range(n_vert):
             group.addPart(parts.Line(None, numpy.append(lastv[i], curv[i]), 16), True)
             group.addPart(parts.Triangle(None, numpy.append(lastv[i], [lastv[i+1], curv[i]]), 16), True)

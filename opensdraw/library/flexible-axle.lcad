@@ -24,8 +24,9 @@
 ;
 ; length - The total length of the axle in LDU.
 ; a-curve - The curve function that the axle should follow.
+; orientation - (Keyword) The axle orientation in degrees relative to it's axis.
 ;
-(def flexible-axle (length a-curve)
+(def flexible-axle (length a-curve :orientation 0)
  (block
 
   (def dist 0)
@@ -59,74 +60,74 @@
   (cylinder dist)
   (set dist (+ dist 3.6))
   (transform (a-curve dist)
-   (rotate (vector -90 0 0)
+   (rotate (vector -90 orientation 0)
     (for (elt disc)
      (part elt 16))))
 
-  (axle a-curve dist (+ dist 4.8))
+  (axle a-curve dist (+ dist 4.8) orientation)
   (set dist (+ dist 4.8))
   (transform (a-curve dist)
-   (rotate (vector 90 0 0)
+   (rotate (vector 90 (- orientation) 0)
     (for (elt disc)
      (part elt 16))))
 
   (cylinder dist)
   (set dist (+ dist 3.6))
   (transform (a-curve dist)
-   (rotate (vector -90 0 0)
+   (rotate (vector -90 orientation 0)
     (for (elt disc)
      (part elt 16))))
 
-  (axle a-curve dist (+ dist 4.8))
+  (axle a-curve dist (+ dist 4.8) orientation)
   (set dist (+ dist 4.8))
   (transform (a-curve dist)
-   (rotate (vector 90 0 0)
+   (rotate (vector 90 (- orientation) 0)
     (for (elt disc)
      (part elt 16))))
 
   (cylinder dist)
   (set dist (+ dist 3.6))
   (transform (a-curve dist)
-   (rotate (vector -90 0 0)
+   (rotate (vector -90 orientation 0)
     (for (elt disc)
      (part elt 16))))
 
 
   ; Middle segments.
-  (axle a-curve dist (- length (bw 3)))
+  (axle a-curve dist (- length (bw 3)) orientation)
   (set dist (- length (bw 3)))
 
   ; Final segment.
   (transform (a-curve dist)
-   (rotate (vector 90 0 0)
+   (rotate (vector 90 (- orientation) 0)
     (for (elt disc)
      (part elt 16))))
 
   (cylinder dist)
   (set dist (+ dist 3.6))
   (transform (a-curve dist)
-   (rotate (vector -90 0 0)
+   (rotate (vector -90 orientation 0)
     (for (elt disc)
      (part elt 16))))
 
-  (axle a-curve dist (+ dist 4.8))
+  (axle a-curve dist (+ dist 4.8) orientation)
   (set dist (+ dist 4.8))
   (transform (a-curve dist)
-   (rotate (vector 90 0 0)
+   (rotate (vector 90 (- orientation) 0)
     (for (elt disc)
      (part elt 16))))
 
   (cylinder dist)
   (set dist (+ dist 3.6))
   (transform (a-curve dist)
-   (rotate (vector -90 0 0)
+   (rotate (vector -90 orientation 0)
     (for (elt disc)
      (part elt 16))))
 
-  (axle a-curve dist (+ dist 4.8))
+  (axle a-curve dist (+ dist 4.8) orientation)
   (set dist (+ dist 4.8))
   (transform (a-curve dist)
-   (rotate (vector 90 0 0)
+   (rotate (vector 90 (- orientation) 0)
     (for (elt disc)
      (part elt 16))))
 
