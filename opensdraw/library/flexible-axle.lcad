@@ -39,12 +39,12 @@
   ; Drawing cylinders.
   (def cylinder (pos)
    (block
-    (def m1 (matrix (a-curve pos)))
-    (def m2 (matrix (a-curve (+ pos 3.6))))
-
     (def sv (vector 6 0 0))
-
-    (ring m1 sv m2 sv nil)
+    (ring (* (a-curve pos) (matrix (list 0 0 0 0 0 orientation)))
+	  sv
+	  (* (a-curve (+ pos 3.6)) (matrix (list 0 0 0 0 0 orientation)))
+	  sv
+	  nil)
     ))
 
   ; Stud start element.

@@ -78,12 +78,6 @@
 (def ribbed-hose-ring (a-curve inner center outer ccw)
  (block
 
-  ; Transform matrix at center point of the inner piece.
-  (def m1 (matrix (a-curve inner)))
-
-  ; Transform matrix at center point of the outer piece.
-  (def m2 (matrix (a-curve outer)))
-
   ; Inner vector.
   (def in-v (vector 6.5  0 (- center inner)))
 
@@ -91,7 +85,7 @@
   (def out-v (vector 8.01 0 (- center outer)))
 
   ; Use shapes module to draw the ring.
-  (ring m1 in-v m2 out-v ccw)
+  (ring (a-curve inner) in-v (a-curve outer) out-v ccw)
 
   ))
 
