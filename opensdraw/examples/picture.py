@@ -14,6 +14,9 @@ from PIL import Image
 import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.interpreter as interpreter
 
+# This OpenSDraw module defines some types that we will use.
+import opensdraw.lcad_language.lcadTypes as lcadTypes
+
 # This OpenSDraw module defines some exceptions that we will use.
 import opensdraw.lcad_language.lcadExceptions as lcadExceptions
 
@@ -85,15 +88,15 @@ class Picture(functions.LCadFunction):
 
         # Set signature to be exactly two arguments both of which are numbers
         # or the symbols t/nil.
-        self.setSignature([[numbers.Number, interpreter.LObject], [numbers.Number, interpreter.LObject]])
+        self.setSignature([[numbers.Number, lcadTypes.LCadObject], [numbers.Number, lcadTypes.LCadObject]])
 
     def call(self, model, tree):
         
         args = self.getArgs(model, tree)
 
         # If we got t/nil return the size of the picture.
-        # (Note: To check for True use 'x is interpreter.lcad_t').
-        if isinstance(args[0], interpreter.LObject) or isinstance(args[1], interpreter.LObject):
+        # (Note: To check for True use 'functions.isTrue(val)').
+        if isinstance(args[0], lcadTypes.LCadObject) or isinstance(args[1], lcadTypes.LCadObject):
             return list(self.im.size)
 
         # Otherwise return the color of the pixel as a LDraw "direct" color. Best
