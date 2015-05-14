@@ -10,15 +10,19 @@ import os
 import subprocess
 
 
-examples = ["auto-step.lcad",
+examples = ["artic-truck-crane.lcad",
+            "auto-step.lcad",
             "belt.lcad",
             "chain.lcad",
             "curve.lcad",
             "dumper-truck.lcad",
             "gears.lcad",
             "gripper.lcad",
+            "picture.lcad",
+            "power-functions-cable.lcad",
             "rib-hose.lcad",
             "steps.lcad",
+            "suspension.lcad",
             "trefoil.lcad",
             "wall.lcad"]
 
