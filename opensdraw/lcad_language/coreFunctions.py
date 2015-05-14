@@ -207,7 +207,7 @@ class Copy(CoreFunction):
         self.setSignature([[object]])
 
     def call(self, model, tree):
-        return copy.copy(self.getArg(model, tree, 0))
+        return copy.deepcopy(self.getArg(model, tree, 0))
 
 lcad_functions["copy"] = Copy()
 
