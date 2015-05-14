@@ -61,7 +61,7 @@
   (flexible-axle (bw 11)
 		 (curve (list (list (list 0 0 0) (list 0 1 0) (list 1 0 0))
 			      (list (list 0 y z) (list 0 d-y d-z)))
-			:scale (+ 1.0 (/ i 25.0))))  
+			:scale (+ 1.0 (/ i 25.0))))
   ))
 
 ; Add flexible axles.
