@@ -24,20 +24,35 @@ Extra Functions (Python)
 
 These are functions that you will need to import in order to use. They can all be found in the *opensdraw/library* directory.
 
-Knots
-~~~~~
+Parts Strings
+~~~~~~~~~~~~~
+This module lets you add parts using delimited strings, instead by using functions like *tb()* and *sb()* from *locate.lcad*
+
 ::
 
-   (pyimport knots)
+   (pyimport opensdraw.library.partsString)
+
+.. automodule:: opensdraw.library.partsString
+   :members: PartsFile, PartsString	     
+   
+Knots
+~~~~~
+This module makes it easier to add a knot to your MOC.
+
+::
+
+   (pyimport opensdraw.library.knots)
 
 .. automodule:: opensdraw.library.knots
    :members: SheetBendKnot
 
 Shapes
 ~~~~~~
+This module makes it easier (and faster) to create simple shapes from LDraw primitives.
+
 ::
 
-   (pyimport shapes)
+   (pyimport opensdraw.library.shapes)
 
 .. automodule:: opensdraw.library.shapes
    :members: Axle, FlatCable, RibbonCable, Ring, Rod, Tube
