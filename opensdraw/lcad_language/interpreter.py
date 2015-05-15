@@ -354,6 +354,7 @@ def getStepOffset(model):
 
     return step_offset
     
+
 def getv(node):
     """
     A convenience function, interpret() will return a symbol or a 
