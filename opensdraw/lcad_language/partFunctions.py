@@ -18,13 +18,6 @@ import parts
 
 lcad_functions = {}
 
-class EmptyTree(object):
-    """
-    An empty AST.
-    """
-    def __init__(self):
-        self.value = [False]
-
 class PartFunction(functions.LCadFunction):
     pass
 
@@ -251,15 +244,7 @@ class Part(PartFunction):
     def call(self, model, tree):
         args = self.getArgs(model, tree)
 
-        # Get step offset.
-        step_offset = interp.getv(interp.builtin_symbols["step-offset"])
-
-        # Check if it is a function, if so, call the function (which cannot take any arguments).
-        if not isinstance(step_offset, numbers.Number):
-            step_offset = interp.getv(step_offset.call(model, EmptyTree()))
-
-        if not isinstance(step_offset, numbers.Number):
-            raise lce.WrongTypeException("number", type(step_offset))
+        step_offset = interp.getStepOffset(model)
 
         if (len(args) == 3):
             part_step = args[2] + step_offset

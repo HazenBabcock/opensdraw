@@ -10,6 +10,7 @@
 import copy
 import importlib
 import math
+import numbers
 import numpy
 import os
 import xml.etree.ElementTree as ElementTree
@@ -22,6 +23,14 @@ import lcadTypes
 # Keeps track of all the built in symbols.
 builtin_symbols = {}
 mutable_symbols = []
+
+
+class EmptyTree(object):
+    """
+    An empty AST.
+    """
+    def __init__(self):
+        self.value = [False]
 
 
 class Group(object):
@@ -329,6 +338,22 @@ def findSymbol(lenv, symbol_name):
     return findSymbol(lenv.parent, symbol_name)
 
 
+def getStepOffset(model):
+    """
+    Return the current value of step-offset.
+    """
+    # Get step offset.
+    step_offset = getv(builtin_symbols["step-offset"])
+
+    # Check if it is a function, if so, call the function (which cannot take any arguments).
+    if not isinstance(step_offset, numbers.Number):
+        step_offset = getv(step_offset.call(model, EmptyTree()))
+
+    if not isinstance(step_offset, numbers.Number):
+        raise lce.WrongTypeException("number", type(step_offset))
+
+    return step_offset
+    
 def getv(node):
     """
     A convenience function, interpret() will return a symbol or a 
