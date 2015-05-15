@@ -18,7 +18,8 @@ lg = LexerGenerator()
 
 lg.add('LPAREN', r'\(')
 lg.add('RPAREN', r'\)')
-lg.add('STRING', r'(".*?"|\'.*?\')')
+#lg.add('STRING', r'(".*?"|\'.*?\')')
+lg.add('STRING', r'("[^"]*"|\'[^\']*\')')
 lg.add('IDENTIFIER', r'[^()\[\]{}\'"\s;]+')
 
 lg.ignore(r';.*(?=\r|\n|$)')
