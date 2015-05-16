@@ -43,37 +43,42 @@ All of the examples can be found in the *examples* directory.
 .. figure:: gripper.png
    :scale: 50%
 
-9. *picture.lcad* - Interfacing with Python example.
+9. *landscape.lcad* - Create a model from a simple space delimited text file.
+
+.. figure:: landscape.png
+   :scale: 50%
+	   
+10. *picture.lcad* - Interfacing with Python example.
 
 .. figure:: picture.png
    :scale: 50%
 
-10. *power-functions-cable.lcad* - 4 Wire power functions cable creation and animation.
+11. *power-functions-cable.lcad* - 4 Wire power functions cable creation and animation.
 
 .. figure:: power-functions-cable.png
    :scale: 50%
 	   
-11. *rib-hose.lcad* - Curves and ribbed-hose example.
+12. *rib-hose.lcad* - Curves and ribbed-hose example.
 
 .. figure:: rib-hose.png
    :scale: 50%
 
-12. *steps.lcad* - A build steps example.
+13. *steps.lcad* - A build steps example.
 
 .. figure:: step20.png
    :scale: 50%
 
-13. *suspension.lcad* - A spring creation and animation example.
+14. *suspension.lcad* - A spring creation and animation example.
 
 .. figure:: suspension.png
    :scale: 50%
 
-14. *trefoil.lcad* - A LDraw primitives example.
+15. *trefoil.lcad* - A LDraw primitives example.
 
 .. figure:: trefoil.png
    :scale: 50%
 
-15. *wall.lcad* - A random number generator example.
+16. *wall.lcad* - A random number generator example.
 
 .. figure:: wall.png
    :scale: 50%
