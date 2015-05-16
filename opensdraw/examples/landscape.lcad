@@ -1,0 +1,10 @@
+;
+; Demonstrates model creation from a simple text file. Use
+; landscape.py to generate the landscape.txt file.
+;
+; Hazen 5/15
+;
+
+(pyimport opensdraw.library.partsString)
+
+(parts-file "landscape.txt")
