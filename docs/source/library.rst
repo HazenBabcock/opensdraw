@@ -26,7 +26,7 @@ These are functions that you will need to import in order to use. They can all b
 
 Parts Strings
 ~~~~~~~~~~~~~
-This module lets you add parts using delimited strings, instead by using functions like *tb()* and *sb()* from *locate.lcad*
+This module lets you add parts using space delimited strings, instead of using functions like *tb()* and *sb()* from *locate.lcad*
 
 ::
 
