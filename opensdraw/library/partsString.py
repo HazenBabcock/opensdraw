@@ -70,6 +70,31 @@ def addParts(model, parts_string):
                     print line, "has an unexpected number of elements", len(data)
 
 
+class PartsFile(functions.LCadFunction):
+    """
+    **parts-file** - Specify parts in a text file.
+
+    This lets you load parts from a text file that is formatted in the
+    same fashion as for the *parts-string()* function.
+
+    :param file: A string containing the name of the file to load.
+
+    Usage::
+
+     (parts-file "parts_file.txt") ; Load parts from parts_file.txt
+
+    """
+    def __init__(self):
+        functions.LCadFunction.__init__(self, "parts-file")
+        self.setSignature([[basestring]])
+        
+    def call(self, model, tree):
+        with open(self.getArg(model, tree, 0)) as fp:
+            addParts(model, fp.read())
+
+lcad_functions["parts-file"] = PartsFile()
+
+
 class PartsString(functions.LCadFunction):
     """
     **parts-string** - Specify parts using a return delimited string.
@@ -109,27 +134,3 @@ class PartsString(functions.LCadFunction):
 
 lcad_functions["parts-string"] = PartsString()
 
-
-class PartsFile(functions.LCadFunction):
-    """
-    **parts-file** - Specify parts in a text file.
-
-    This lets you load parts from a text file that is formatted in the
-    same fashion as for the *parts-string()* function.
-
-    :param file: A string containing the name of the file to load.
-
-    Usage::
-
-     (parts-file "parts_file.txt") ; Load parts from parts_file.txt
-
-    """
-    def __init__(self):
-        functions.LCadFunction.__init__(self, "parts-file")
-        self.setSignature([[basestring]])
-        
-    def call(self, model, tree):
-        with open(self.getArg(model, tree, 0)) as fp:
-            addParts(model, fp.read())
-
-lcad_functions["parts-file"] = PartsFile()
