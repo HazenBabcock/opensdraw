@@ -41,7 +41,7 @@ def diamond_square(z, x, y, w):
 random.seed(3)
 
 #l_size = 64
-l_size = 64
+l_size = 32
 landscape = numpy.zeros((l_size + 1, l_size + 1))
 landscape[0,0] = float(l_size) * rand_fn()
 landscape[0,-1] = float(l_size) * rand_fn()
@@ -74,24 +74,48 @@ landscape[(landscape < 0)] = 0.0
 
 print numpy.max(landscape)
 
-brick = "30008"
+def addBrick(fp, x, y, z, color, stop):
+    while (z < stop):
+        if ((z + 2) < stop):
+            fp.write(str(i) + " " + str(j) + " " + str(disp*(z+2)) + " -90 0 0 3005 " + color + "\n")
+        z += 3
+
+    if (z > stop):
+        z -= 3
+        
+    while (z < stop):
+        fp.write(str(i) + " " + str(j) + " " + str(disp*z) + " -90 0 0 30008 " + color + "\n")
+        z += 1
+
+    return z
+             
 disp = 1.0/3.0
 with open("landscape.txt", "w") as fp:
     for i in range(l_size+1):
         for j in range(l_size+1):
             if (landscape[i,j] == 0.0):
-                fp.write(str(i) + " " + str(j) + " 0 -90 0 0 " + brick + " 1\n")
+                fp.write(str(i) + " " + str(j) + " 0 -90 0 0 30008 1\n")
             else:
-                g_bd = 14 + random.randrange(3)
+                g_bd = 10 + random.randrange(3)
                 b_bd = g_bd + 2 + random.randrange(2)
-                fp.write(str(i) + " " + str(j) + " 0 -90 0 0 " + brick + " 2\n")
-                for k in range(1, int(5.0 * landscape[i,j])):
-                    if (k < g_bd):
-                        fp.write(str(i) + " " + str(j) + " " + str(disp*k) + " -90 0 0 " + brick + " 2\n")
-                    elif (k < b_bd):
-                        fp.write(str(i) + " " + str(j) + " " + str(disp*k) + " -90 0 0 " + brick + " 6\n")
+                z_max = int(5.0 * landscape[i,j])
+                if (z_max == 0):
+                    fp.write(str(i) + " " + str(j) + " 0 -90 0 0 30008 2\n")
+                else:
+                    z = 0
+                    if (z_max < g_bd):
+                        addBrick(fp, x, y, z, "2", z_max)
+                        continue
                     else:
-                        fp.write(str(i) + " " + str(j) + " " + str(disp*k) + " -90 0 0 " + brick + " 15\n")
+                        z = addBrick(fp, x, y, z, "2", g_bd)
+
+                    if (z_max < b_bd):
+                        addBrick(fp, x, y, z, "6", z_max)
+                        continue
+                    else:
+                        z = addBrick(fp, x, y, z, "6", b_bd)
+                        
+                    addBrick(fp, x, y, z, "15", z_max)
 
 if 0:
     import matplotlib.pyplot as plt
