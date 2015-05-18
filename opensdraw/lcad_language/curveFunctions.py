@@ -23,8 +23,7 @@ class CurveFunction(functions.LCadFunction):
         self.setSignature([[lcadTypes.LCadObject, numbers.Number]])
         self.curve = curve
 
-    def call(self, model, tree):
-        arg = self.getArg(model, tree, 0)
+    def call(self, model, arg):
 
         # If arg is t return the curve length.
         if not isinstance(arg, numbers.Number):
@@ -35,8 +34,3 @@ class CurveFunction(functions.LCadFunction):
 
         # Return transform matrix.
         return self.curve.getMatrix(arg)
-
-    # This is to make it easier to call directly from other Python modules.
-    def getMatrix(self, pos):
-        return self.curve.getMatrix(pos)
-

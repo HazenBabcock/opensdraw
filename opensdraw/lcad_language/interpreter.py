@@ -288,7 +288,15 @@ def dispatch(func, model, tree):
         raise lce.NotAFunctionException(func)
     if not tree.initialized:
         func.argCheck(tree)
-    return func.call(model, tree)
+
+    if isinstance(func, functions.SpecialFunction):
+        return func.call(model, tree)
+    else:
+        if func.has_keyword_args:
+            [args, kwargs] = func.getArgs(model, tree)
+            return func.call(model, *args, **kwargs)
+        else:
+            return func.call(model, *func.getArgs(model, tree))
 
 
 def execute(lcad_code, filename = "NA", time_index = 0):
@@ -347,7 +355,7 @@ def getStepOffset(model):
 
     # Check if it is a function, if so, call the function (which cannot take any arguments).
     if not isinstance(step_offset, numbers.Number):
-        step_offset = getv(step_offset.call(model, EmptyTree()))
+        step_offset = getv(step_offset.call(model))
 
     if not isinstance(step_offset, numbers.Number):
         raise lce.WrongTypeException("number", type(step_offset))

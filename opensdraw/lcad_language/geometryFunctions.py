@@ -42,19 +42,13 @@ class CrossProduct(GeometryFunction):
         GeometryFunction.__init__(self, "cross-product")
         self.setSignature([[lcadTypes.LCadVector], [lcadTypes.LCadVector], ["optional", [lcadTypes.LCadObject]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-
-        normalize = True
-        if (len(args) == 3):
-            normalize = True if functions.isTrue(args[2]) else False
-
-        cp = numpy.cross(args[0][0:3], args[1][0:3])
+    def call(self, model, v1, v2, normalize = interp.lcad_t):
+        cp = numpy.cross(v1[0:3], v2[0:3])
         
-        if normalize:
+        if functions.isTrue(normalize):
             cp = cp/numpy.linalg.norm(cp)
 
-        cp = numpy.append(cp, 1)
+        cp = numpy.append(cp, 1.0)
         return cp.view(lcadTypes.LCadVector)
 
 lcad_functions["cross-product"] = CrossProduct()
@@ -79,17 +73,12 @@ class DotProduct(GeometryFunction):
         GeometryFunction.__init__(self, "dot-product")
         self.setSignature([[lcadTypes.LCadVector], [lcadTypes.LCadVector], ["optional", [lcadTypes.LCadObject]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-
-        normalize = True
-        if (len(args) == 3):
-            normalize = True if functions.isTrue(args[2]) else False
+    def call(self, model, v1, v2, normalize = interp.lcad_t):
 
         # Ignore 4th element.
-        v1 = args[0][0:3]
-        v2 = args[1][0:3]
-        if normalize:
+        v1 = v1[0:3]
+        v2 = v2[0:3]
+        if functions.isTrue(normalize):
             return numpy.dot(v1, v2) / (numpy.linalg.norm(v1) * numpy.linalg.norm(v2))
         else:
             return numpy.dot(v1, v2)
@@ -155,8 +144,7 @@ class Matrix(GeometryFunction):
         GeometryFunction.__init__(self, "matrix")
         self.setSignature([[list, lcadTypes.LCadMatrix]])
 
-    def call(self, model, tree):
-        vals = self.getArg(model, tree, 0)
+    def call(self, model, vals):
         
         # Transform matrix.
         if isinstance(vals, lcadTypes.LCadMatrix):
@@ -169,7 +157,7 @@ class Matrix(GeometryFunction):
 lcad_functions["matrix"] = Matrix()
 
 
-class Mirror(GeometryFunction):
+class Mirror(functions.SpecialFunction):
     """
     **mirror** - Mirror child elements on a plane through the origin.
 
@@ -185,7 +173,7 @@ class Mirror(GeometryFunction):
 
     """
     def __init__(self):
-        GeometryFunction.__init__(self, "mirror")
+        functions.SpecialFunction.__init__(self, "mirror")
         self.setSignature([[list, lcadTypes.LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
@@ -211,7 +199,7 @@ class Mirror(GeometryFunction):
 lcad_functions["mirror"] = Mirror()
 
 
-class Rotate(GeometryFunction):
+class Rotate(functions.SpecialFunction):
     """
     **rotate** - Rotate child elements.
 
@@ -232,7 +220,7 @@ class Rotate(GeometryFunction):
 
     """
     def __init__(self):
-        GeometryFunction.__init__(self, "rotate")
+        functions.SpecialFunction.__init__(self, "rotate")
         self.setSignature([[list, lcadTypes.LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
@@ -249,7 +237,7 @@ class Rotate(GeometryFunction):
 lcad_functions["rotate"] = Rotate()
 
 
-class Scale(GeometryFunction):
+class Scale(functions.SpecialFunction):
     """
     **scale** - Scale child elements.
 
@@ -269,7 +257,7 @@ class Scale(GeometryFunction):
 
     """
     def __init__(self):
-        GeometryFunction.__init__(self, "scale")
+        functions.SpecialFunction.__init__(self, "scale")
         self.setSignature([[list, lcadTypes.LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
@@ -292,7 +280,7 @@ class Scale(GeometryFunction):
 lcad_functions["scale"] = Scale()
 
 
-class Transform(GeometryFunction):
+class Transform(functions.SpecialFunction):
     """
     **transform** - Transform child elements.
 
@@ -309,7 +297,7 @@ class Transform(GeometryFunction):
       ..)
     """
     def __init__(self):
-        GeometryFunction.__init__(self, "transform")
+        functions.SpecialFunction.__init__(self, "transform")
         self.setSignature([[list, lcadTypes.LCadMatrix], ["optional", [object]]])
 
     def call(self, model, tree):
@@ -335,7 +323,7 @@ class Transform(GeometryFunction):
 lcad_functions["transform"] = Transform()
 
 
-class Translate(GeometryFunction):
+class Translate(functions.SpecialFunction):
     """
     **translate** - Translate child elements.
 
@@ -354,7 +342,7 @@ class Translate(GeometryFunction):
 
     """
     def __init__(self):
-        GeometryFunction.__init__(self, "translate")
+        functions.SpecialFunction.__init__(self, "translate")
         self.setSignature([[list, lcadTypes.LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
@@ -400,11 +388,8 @@ class Vector(GeometryFunction):
                            [numbers.Number],
                            ["optional", [numbers.Number]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-        vals = []
-        for arg in args:
-            vals.append(arg)
+    def call(self, model, *vals):
+        vals = list(vals)
         if (len(vals) == 3):
             vals.append(1.0)
 

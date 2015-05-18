@@ -28,10 +28,9 @@ class ComparisonFunction(functions.LCadFunction):
         self.setSignature([[basestring, numbers.Number], 
                            ["optional", [basestring, numbers.Number]]])
 
-    def compare(self, model, tree, cmp_func):
-        val0 = self.getArg(model, tree, 0)
-        for i in range(self.numberArgs(tree) - 1):
-            if not cmp_func(val0, self.getArg(model, tree, i + 1)):
+    def compare(self, model, cmp_func, val0, *vals):
+        for val in vals:
+            if not cmp_func(val0, val):
                 return interp.lcad_nil
         return interp.lcad_t
 
@@ -47,8 +46,8 @@ class Equal(ComparisonFunction):
      (= 2 2 2 2) ; t
      (= "a" "a") ; t
     """
-    def call(self, model, tree):
-        return self.compare(model, tree, operator.eq)
+    def call(self, model, *vals):
+        return self.compare(model, operator.eq, vals[0], *vals[1:])
 
 lcad_functions["="] = Equal("=")
 
@@ -61,8 +60,8 @@ class Gt(ComparisonFunction):
 
      (> 2 1) ; t
     """
-    def call(self, model, tree):
-        return self.compare(model, tree, operator.gt)
+    def call(self, model, *vals):
+        return self.compare(model, operator.gt, vals[0], *vals[1:])
 
 lcad_functions[">"] = Gt(">")
 
@@ -75,8 +74,8 @@ class Lt(ComparisonFunction):
 
      (< 2 1) ; nil
     """
-    def call(self, model, tree):
-        return self.compare(model, tree, operator.lt)
+    def call(self, model, *vals):
+        return self.compare(model, operator.lt, vals[0], *vals[1:])
 
 lcad_functions["<"] = Lt("<")
 
@@ -89,8 +88,8 @@ class Ge(ComparisonFunction):
 
      (>= 2 1) ; t
     """
-    def call(self, model, tree):
-        return self.compare(model, tree, operator.ge)
+    def call(self, model, *vals):
+        return self.compare(model, operator.ge, vals[0], *vals[1:])
 
 lcad_functions[">="] = Ge(">=")
 
@@ -103,8 +102,8 @@ class Le(ComparisonFunction):
 
      (<= 2 1) ; nil
     """
-    def call(self, model, tree):
-        return self.compare(model, tree, operator.le)
+    def call(self, model, *vals):
+        return self.compare(model, operator.le, vals[0], *vals[1:])    
 
 lcad_functions["<="] = Le("<=")
 
@@ -117,8 +116,8 @@ class Ne(ComparisonFunction):
 
      (!= 2 1) ; t
     """
-    def call(self, model, tree):
-        return self.compare(model, tree, operator.ne)
+    def call(self, model, *vals):
+        return self.compare(model, operator.ne, vals[0], *vals[1:])    
 
 lcad_functions["!="] = Ne("!=")
 

@@ -57,7 +57,7 @@ def renderShape(curve, group, matrix, vectors, stepper, stop):
         pos = stepper.nextPos()
         last_v = cur_v
 
-    cm = numpy.dot(matrix, curve.getMatrix(stop))
+    cm = numpy.dot(matrix, curve.call(None, stop))
     cur_v = matrixXVectors(cm, vectors)
 
     for i in range(n_vert):
@@ -89,7 +89,7 @@ class Stepper(object):
         self.step = 1.0
         self.stop = stop
 
-        self.mm = curve.getMatrix(start)
+        self.mm = curve.call(None, start)
 
     def anglesDiffer(self, new_mm):
         diff = 0.0
@@ -109,7 +109,7 @@ class Stepper(object):
         new_mm = self.mm
         while (cur < self.stop) and not self.anglesDiffer(new_mm):
             cur += self.step
-            new_mm = self.curve.getMatrix(cur)
+            new_mm = self.curve.call(None, cur)
         if (cur > self.stop):
             self.pos = self.stop
         else:
@@ -117,7 +117,7 @@ class Stepper(object):
                 self.pos = cur - self.step
             else:
                 self.pos += self.step
-        self.mm = self.curve.getMatrix(self.pos)
+        self.mm = self.curve.call(None, self.pos)
         return self.pos
 
 
@@ -163,16 +163,14 @@ class Axle(functions.LCadFunction):
                         numpy.array([5.602, -2, 0, 1]),
                         numpy.array([6, 0, 0, 1])]
 
-        self.setSignature([[curveFunctions.CurveFunction],
+        self.setSignature([[functions.LCadFunction],
                            [numbers.Number],
                            [numbers.Number],
                            ["optional", [numbers.Number]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-        [curve, start, stop] = args[0:3]
-        if (len(args) == 4):
-            vectors = matrixXVectors(geometry.rotationMatrixZ(math.radians(args[3])),
+    def call(self, model, curve, start, stop, orientation = 0.0):
+        if (orientation != 0.0):
+            vectors = matrixXVectors(geometry.rotationMatrixZ(math.radians(orientation)),
                                      self.vectors,
                                      truncate = False)
         else:
@@ -198,7 +196,7 @@ class Axle(functions.LCadFunction):
             pos = stepper.nextPos()
             lastv = curv
 
-        cm = numpy.dot(matrix, curve.getMatrix(stop))
+        cm = numpy.dot(matrix, curve.call(None, stop))
         curv = matrixXVectors(cm, vectors)
         for i in range(n_vert):
             group.addPart(parts.Line(None, numpy.append(lastv[i], curv[i]), 16), True)
@@ -230,21 +228,14 @@ class FlatCable(functions.LCadFunction):
     def __init__(self):
         functions.LCadFunction.__init__(self, "flat-cable")
         
-        self.setSignature([[curveFunctions.CurveFunction],
+        self.setSignature([[functions.LCadFunction],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number],
                            ["optional", [numbers.Number]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-        [curve, start, stop, width, radius] = args[0:5]
-        if (len(args) == 6):
-            orientation = args[5]
-        else:
-            orientation = 0
-
+    def call(self, model, curve, start, stop, width, radius, orientation = 0.0):
         group = model.curGroup()
         matrix = group.matrix()
         stepper = Stepper(curve, start, stop)
@@ -271,6 +262,7 @@ class FlatCable(functions.LCadFunction):
                                            1.0]))
 
         cable_vecs.append(cable_vecs[0])
+        cable_vecs.reverse()
 
         # Rotate the cable if necessary.        
         if (orientation != 0):
@@ -307,21 +299,14 @@ class RibbonCable(functions.LCadFunction):
     def __init__(self):
         functions.LCadFunction.__init__(self, "ribbon-cable")
         
-        self.setSignature([[curveFunctions.CurveFunction],
+        self.setSignature([[functions.LCadFunction],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number],
                            ["optional", [numbers.Number]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-        [curve, start, stop, strands, radius] = args[0:5]
-        if (len(args) == 6):
-            orientation = args[5]
-        else:
-            orientation = 0
-
+    def call(self, model, curve, start, stop, strands, radius, orientation = 0.0):
         group = model.curGroup()
         matrix = group.matrix()
         stepper = Stepper(curve, start, stop)
@@ -398,6 +383,8 @@ class RibbonCable(functions.LCadFunction):
                                                    0,
                                                    1.0]))
 
+        cable_vecs.reverse()
+        
         # Rotate the cable if necessary.
         if (orientation != 0):
             cable_vecs = matrixXVectors(geometry.rotationMatrixZ(math.radians(orientation)),
@@ -438,9 +425,7 @@ class Ring(functions.LCadFunction):
                            [lcadTypes.LCadVector],
                            [lcadTypes.LCadObject]])
 
-    def call(self, model, tree):
-        [m1, v1, m2, v2, ccw] = self.getArgs(model, tree)
-
+    def call(self, model, m1, v1, m2, v2, ccw):
         group = model.curGroup()
         matrix = group.matrix()
 
@@ -489,14 +474,12 @@ class Rod(functions.LCadFunction):
         functions.LCadFunction.__init__(self, "rod")
 
         self.matrices = rotationMatrices()
-        self.setSignature([[curveFunctions.CurveFunction],
+        self.setSignature([[functions.LCadFunction],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number]])
 
-    def call(self, model, tree):
-        [curve, start, stop, radius] = self.getArgs(model, tree)
-
+    def call(self, model, curve, start, stop, radius):
         group = model.curGroup()
         matrix = group.matrix()
         stepper = Stepper(curve, start, stop)
@@ -532,15 +515,13 @@ class Tube(functions.LCadFunction):
         functions.LCadFunction.__init__(self, "tube")
 
         self.matrices = rotationMatrices()
-        self.setSignature([[curveFunctions.CurveFunction],
+        self.setSignature([[functions.LCadFunction],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number]])
 
-    def call(self, model, tree):
-        [curve, start, stop, inner_radius, outer_radius] = self.getArgs(model, tree)
-
+    def call(self, model, curve, start, stop, inner_radius, outer_radius):
         group = model.curGroup()
         matrix = group.matrix()
         stepper = Stepper(curve, start, stop)
@@ -576,7 +557,7 @@ class Tube(functions.LCadFunction):
             last_inner = cur_inner
             last_outer = cur_outer
 
-        cm = numpy.dot(matrix, curve.getMatrix(stop))
+        cm = numpy.dot(matrix, curve.call(None, stop))
         cur_inner = matrixXVectors(cm, inner_vecs)
         cur_outer = matrixXVectors(cm, outer_vecs)
 

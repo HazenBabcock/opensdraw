@@ -49,11 +49,8 @@ class SheetBendKnot(functions.LCadFunction):
         
         self.setSignature([[numbers.Number], [numbers.Number]])
 
-    def call(self, model, tree):
-        [diameter, loop_size] = self.getArgs(model, tree)
-
-        sbknot = SBKnot(diameter, loop_size)
-        
+    def call(self, model, diameter, loop_size):
+        sbknot = SBKnot(diameter, loop_size)        
         return curveFunctions.CurveFunction(sbknot, "user created sheet bend knot function.")
 
 

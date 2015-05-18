@@ -23,7 +23,7 @@ class LogicFunction(functions.LCadFunction):
     """
     pass
 
-class And(LogicFunction):
+class And(functions.SpecialFunction):
     """
     **and** - And statement.
 
@@ -33,7 +33,7 @@ class And(LogicFunction):
      (and (fn x) nil)      ; nil
     """
     def __init__(self, name):
-        LogicFunction.__init__(self, name)
+        functions.SpecialFunction.__init__(self, name)
         self.setSignature([[lcadTypes.LCadObject], [lcadTypes.LCadObject], ["optional", [lcadTypes.LCadObject]]])
 
     def call(self, model, tree):
@@ -45,7 +45,7 @@ class And(LogicFunction):
 lcad_functions["and"] = And("and")
 
 
-class Or(LogicFunction):
+class Or(functions.SpecialFunction):
     """
     **or** - Or statement.
 
@@ -56,7 +56,7 @@ class Or(LogicFunction):
      (or nil nil)          ; nil
     """
     def __init__(self, name):
-        LogicFunction.__init__(self, name)
+        functions.SpecialFunction.__init__(self, name)
         self.setSignature([[lcadTypes.LCadObject], [lcadTypes.LCadObject], ["optional", [lcadTypes.LCadObject]]])
 
     def call(self, model, tree):
@@ -81,8 +81,8 @@ class Not(LogicFunction):
         LogicFunction.__init__(self, name)
         self.setSignature([[lcadTypes.LCadObject]])
 
-    def call(self, model, tree):
-        if functions.isTrue(self.getArg(model, tree, 0)):
+    def call(self, model, val):
+        if functions.isTrue(val):
             return interp.lcad_nil
         else:
             return interp.lcad_t

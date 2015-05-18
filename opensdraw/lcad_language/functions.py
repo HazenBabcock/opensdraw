@@ -78,9 +78,6 @@ class LCadFunction(object):
                 raise lce.NumberArgumentsException("exactly " + str(self.minimum_args), len(args))
         tree.initialized = True
 
-    def call(self, model, tree):
-        pass
-
     def getArg(self, model, tree, index):
         """
         This will get the arguments one at time. It only works with 
@@ -202,6 +199,13 @@ class LCadFunction(object):
                         self.has_keyword_args = True
 
 
+class SpecialFunction(LCadFunction):
+    """
+    Functions that operate on the AST.
+    """
+    pass
+
+
 class UserFunction(LCadFunction):
     """
     'Normal' user defined functions.
@@ -257,18 +261,19 @@ class UserFunction(LCadFunction):
             standard_args.append(["keyword", keyword_dict])
         self.setSignature(standard_args)
 
-    def call(self, model, tree):
+    def call(self, model, *args, **kwargs):
+
+        # Check argument count.
+        if (len(args) != self.minimum_args):
+            raise lce.NumberArgumentsException(self.minimum_args, len(args))
+            
         # Fill in arguments.
+        for i in range(len(args)):
+            self.lenv.symbols[self.arg_names[i]].setv(args[i])
+
         if self.has_keyword_args:
-            [args, keywords] = self.getArgs(model, tree)
-            for i in range(len(args)):
-                self.lenv.symbols[self.arg_names[i]].setv(args[i])
-            for key in keywords.keys():
-                self.lenv.symbols[key].setv(keywords[key])
-        else:
-            args = self.getArgs(model, tree)
-            for i in range(len(args)):
-                self.lenv.symbols[self.arg_names[i]].setv(args[i])
+            for key in kwargs.keys():
+                self.lenv.symbols[key].setv(kwargs[key])
 
         # Evaluate function.
         return interp.interpret(model, self.body)

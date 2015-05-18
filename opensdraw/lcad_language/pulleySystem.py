@@ -100,8 +100,7 @@ class LCadPulleySystem(functions.LCadFunction):
         functions.LCadFunction.__init__(self, "pulley-system")
         self.setSignature([[list]])
 
-    def call(self, model, tree):
-        [pulley_list] = self.getArgs(model, tree)
+    def call(self, model, pulley_list):
         if (len(pulley_list) < 2):
             raise NumberPulleysException(len(pulley_list))
 

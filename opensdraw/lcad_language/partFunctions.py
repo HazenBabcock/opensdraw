@@ -29,8 +29,7 @@ class PrimitiveFunction(PartFunction):
     def __init__(self, name):
         PartFunction.__init__(self, name)
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
+    def call(self, model, *args):
         coords = []
 
         # Get color.
@@ -71,8 +70,8 @@ class Comment(PartFunction):
         PartFunction.__init__(self, "comment")
         self.setSignature([[basestring, numbers.Number]])
 
-    def call(self, model, tree):
-        text = str(self.getArg(model, tree, 0))
+    def call(self, model, comment):
+        text = str(comment)
         group = model.curGroup()
         group.addComment(parts.Comment(text))
         return text
@@ -80,7 +79,7 @@ class Comment(PartFunction):
 lcad_functions["comment"] = Comment()
 
 
-class Group(PartFunction):
+class Group(functions.SpecialFunction):
     """
     **group** - Creates a group (or sub-file) in the model.
 
@@ -107,7 +106,7 @@ class Group(PartFunction):
 
     """
     def __init__(self):
-        PartFunction.__init__(self, "group")
+        functions.SpecialFunction.__init__(self, "group")
         self.setSignature([[basestring], ["optional", [object]]])
 
     def call(self, model, tree):
@@ -140,8 +139,8 @@ class Header(PartFunction):
         PartFunction.__init__(self, "header")
         self.setSignature([[basestring]])
 
-    def call(self, model, tree):
-        text = self.getArg(model, tree, 0)
+    def call(self, model, text):
+        text = str(text)
         model.curGroup().header.append(text)
         return text
 
@@ -241,9 +240,7 @@ class Part(PartFunction):
                            [basestring, numbers.Number],
                            ["optional", [numbers.Number]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-
+    def call(self, model, *args):
         step_offset = interp.getStepOffset(model)
 
         if (len(args) == 3):

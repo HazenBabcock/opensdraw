@@ -68,11 +68,9 @@ class Append(CoreFunction):
         CoreFunction.__init__(self, "append")
         self.setSignature([[list], [object], ["optional", [object]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-        tlist = args[0]
-        for arg in args[1:]:
-            tlist.append(arg)
+    def call(self, model, tlist, *vals):
+        for val in vals:
+            tlist.append(val)
         return tlist
 
 lcad_functions["append"] = Append()
@@ -93,31 +91,33 @@ class Aref(CoreFunction):
         CoreFunction.__init__(self, "aref")
         self.setSignature([[list, numpy.ndarray], [int], ["optional", [int]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-        tlist = args[0]
+    def call(self, model, tlist, *indices):
 
         # 1D list / vector.
-        if (len(args) == 2):
-            if (args[1] >= 0) and (args[1] < len(tlist)):
-                return ArefSymbol(tlist, args[1])
+        if (len(indices) == 1):
+            if not isinstance(tlist, list) and not isinstance(tlist, lcadTypes.LCadVector):
+                raise lce.WrongTypeException("list, vector", functions.typeToString(type(tlist)))
+
+            index = indices[0]
+            if (index >= 0) and (index < len(tlist)):
+                return ArefSymbol(tlist, index)
             else:
-                raise lce.OutOfRangeException(tlist.size - 1, args[1])
+                raise lce.OutOfRangeException(len(tlist) - 1, index)
 
         # 2D matrix.
         else:
             if not isinstance(tlist, lcadTypes.LCadMatrix):
                 raise lce.WrongTypeException("matrix", functions.typeToString(type(tlist)))
 
-            if (args[1] >= 0) and (args[1] < tlist.shape[0]) and (args[2] >= 0) and (args[2] < tlist.shape[1]):
-                return ArefSymbol(tlist, tuple(args[1:]))
+            if (indices[0] >= 0) and (indices[0] < tlist.shape[0]) and (indices[1] >= 0) and (indices[1] < tlist.shape[1]):
+                return ArefSymbol(tlist, indices)
             else:
-                raise lce.LCadException(" index " + str(tuple(args[1:])) + " is outside of " + str(tlist.shape))
+                raise lce.LCadException(" index " + str(indices) + " is outside of " + str(tlist.shape))
 
 lcad_functions["aref"] = Aref()
 
 
-class Block(CoreFunction):
+class Block(functions.SpecialFunction):
     """
     **block** - A block of code, similar to *progn* in Lisp.
 
@@ -131,7 +131,7 @@ class Block(CoreFunction):
 
     """
     def __init__(self):
-        CoreFunction.__init__(self, "block")
+        functions.SpecialFunction.__init__(self, "block")
         self.setSignature([["optional", [object]]])
 
     def call(self, model, tree):
@@ -154,16 +154,13 @@ class Concatenate(CoreFunction):
         CoreFunction.__init__(self, "cond")
         self.setSignature([[basestring, numbers.Number], ["optional", [basestring, numbers.Number]]])
 
-    def call(self, model, tree):
-        a_string = ""
-        for arg in self.getArgs(model, tree):
-            a_string += str(arg)
-        return a_string
+    def call(self, model, *vals):
+        return "".join(map(str, vals))
                             
 lcad_functions["concatenate"] = Concatenate()
 
 
-class Cond(CoreFunction):
+class Cond(functions.SpecialFunction):
     """
     **cond** - Switch statement.
 
@@ -176,7 +173,7 @@ class Cond(CoreFunction):
        (t ..))      ; otherwise do this
     """
     def __init__(self):
-        CoreFunction.__init__(self, "cond")
+        functions.SpecialFunction.__init__(self, "cond")
         self.setSignature([[object], ["optional", [object]]])
 
     def call(self, model, tree):
@@ -206,13 +203,13 @@ class Copy(CoreFunction):
         CoreFunction.__init__(self, "copy")
         self.setSignature([[object]])
 
-    def call(self, model, tree):
-        return copy.deepcopy(self.getArg(model, tree, 0))
+    def call(self, model, val):
+        return copy.deepcopy(val)
 
 lcad_functions["copy"] = Copy()
 
     
-class Def(CoreFunction):
+class Def(functions.SpecialFunction):
     """
     **def** - Create a variable or function.
 
@@ -222,7 +219,7 @@ class Def(CoreFunction):
      (def x 15 y 20) - Create x with value 15, y with value 20.
      (def incf (x) (+ x 1)) - Create the function incf.
 
-    Note: You cannot create multiple functions at the same time::
+    Note: You cannot create multiple functions at the same time.::
 
      (def fn (x y)  ; Wrong. def() will think you are trying to create
       (+ x 1)       ; two symbols, the first called 'fn' and the second
@@ -236,7 +233,7 @@ class Def(CoreFunction):
 
     """
     def __init__(self):
-        CoreFunction.__init__(self, "def")
+        functions.SpecialFunction.__init__(self, "def")
 
     def argCheck(self, tree):
         # def needs at least 3 arguments.
@@ -289,7 +286,7 @@ class Def(CoreFunction):
 lcad_functions["def"] = Def()
 
 
-class For(CoreFunction):
+class For(functions.SpecialFunction):
     """
     **for** - For statement.
 
@@ -301,7 +298,7 @@ class For(CoreFunction):
      (for (i (list 1 3 4)) ..) ; increment i over the values in the list.
     """
     def __init__(self):
-        CoreFunction.__init__(self, "for")
+        functions.SpecialFunction.__init__(self, "for")
 
     def argCheck(self, tree):
         flist = tree.value
@@ -374,7 +371,7 @@ class For(CoreFunction):
 lcad_functions["for"] = For()
 
 
-class If(CoreFunction):
+class If(functions.SpecialFunction):
     """
     **if** - If statement. 
 
@@ -394,7 +391,7 @@ class If(CoreFunction):
        (fn3 1 2))
     """
     def __init__(self):
-        CoreFunction.__init__(self, "if")
+        functions.SpecialFunction.__init__(self, "if")
 
     def argCheck(self, tree):
         if (len(tree.value) != 3) and (len(tree.value) != 4):
@@ -414,7 +411,7 @@ class If(CoreFunction):
 lcad_functions["if"] = If()
 
 
-class Import(CoreFunction):
+class Import(functions.SpecialFunction):
     """
     **import** - Import a module.
 
@@ -435,7 +432,7 @@ class Import(CoreFunction):
      (import mod1 mod2 :local) ; import mod1.lcad and mod2.lcad into the name space of current module.
     """
     def __init__(self):
-        CoreFunction.__init__(self, "import")
+        functions.SpecialFunction.__init__(self, "import")
         self.paths = ["./", os.path.dirname(__file__) + "/../library/"]
 
     def argCheck(self, tree):
@@ -483,7 +480,7 @@ class Import(CoreFunction):
 lcad_functions["import"] = Import()
 
 
-class Lambda(CoreFunction):
+class Lambda(functions.SpecialFunction):
     """
     **lambda** - Create an anonymous function.
 
@@ -494,7 +491,7 @@ class Lambda(CoreFunction):
     (def myp (lambda () (part "32524" 15))) ; Create function that creates a particular part.
     """
     def __init__(self):
-        CoreFunction.__init__(self, "lambda")
+        functions.SpecialFunction.__init__(self, "lambda")
 
     def argCheck(self, tree):
         if (len(tree.value) != 3):
@@ -519,8 +516,8 @@ class Len(CoreFunction):
         CoreFunction.__init__(self, "len")
         self.setSignature([[list]])
 
-    def call(self, model, tree):
-        return len(self.getArg(model, tree, 0))
+    def call(self, model, vals):
+        return len(vals)
 
 lcad_functions["len"] = Len()
 
@@ -538,11 +535,8 @@ class List(CoreFunction):
         CoreFunction.__init__(self, "list")
         self.setSignature([["optional", [object]]])
 
-    def call(self, model, tree):
-        vals = []
-        for arg in self.getArgs(model, tree):
-            vals.append(arg)
-        return vals
+    def call(self, model, *tlist):
+        return list(tlist)
     
 lcad_functions["list"] = List()
 
@@ -560,17 +554,15 @@ class Print(CoreFunction):
         CoreFunction.__init__(self, "print")
         self.setSignature([["optional", [object]]])
 
-    def call(self, model, tree):
-        string = ""
-        for arg in self.getArgs(model, tree):
-            string += str(arg)
-        print string
-        return string
+    def call(self, model, *vals):
+        p_string = "".join(map(str, vals))
+        print p_string
+        return p_string
 
 lcad_functions["print"] = Print()
 
 
-class PyImport(CoreFunction):
+class PyImport(functions.SpecialFunction):
     """
     **pyimport** - Import a Python module and add any functions in the
     modules lcad_functions{} dictionary (that are instances of LCadFunction)
@@ -582,7 +574,7 @@ class PyImport(CoreFunction):
      (pyimport mymodule)  ; Import the Python module mymodule.py.
     """
     def __init__(self):
-        CoreFunction.__init__(self, "pyimport")
+        functions.SpecialFunction.__init__(self, "pyimport")
 
     def argCheck(self, tree):
         if (len(tree.value) < 2):
@@ -609,7 +601,7 @@ class PyImport(CoreFunction):
 lcad_functions["pyimport"] = PyImport()
 
 
-class Set(CoreFunction):
+class Set(functions.SpecialFunction):
     """
     **set** - Set the value of an existing symbol.
 
@@ -620,7 +612,7 @@ class Set(CoreFunction):
      (set x fn) - Set x to be the function fn.
     """
     def __init__(self):
-        CoreFunction.__init__(self, "set")
+        functions.SpecialFunction.__init__(self, "set")
 
     def argCheck(self, tree):
         flist = tree.value
@@ -651,7 +643,7 @@ class Set(CoreFunction):
 lcad_functions["set"] = Set()
 
 
-class While(CoreFunction):
+class While(functions.SpecialFunction):
     """
     **while** - While loop.
 
@@ -661,7 +653,7 @@ class While(CoreFunction):
      (while (< x 10) .. )
     """
     def __init__(self):
-        CoreFunction.__init__(self, "while")
+        functions.SpecialFunction.__init__(self, "while")
 
     def argCheck(self, tree):
         if (len(tree.value)<3):

@@ -41,8 +41,8 @@ class Absolute(MathFunction):
         MathFunction.__init__(self, name)
         self.setSignature([[numbers.Number]]),
 
-    def call(self, model, tree):
-        return abs(self.getArg(model, tree, 0))
+    def call(self, model, val):
+        return abs(val)
 
 lcad_functions["abs"] = Absolute("abs")
 
@@ -63,11 +63,9 @@ class Divide(MathFunction):
                            [numbers.Number, numpy.ndarray],
                            ["optional", [numbers.Number, numpy.ndarray]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-        total = args[0]
-        for arg in args[1:]:
-            total = total/arg
+    def call(self, model, total, *vals):
+        for val in vals:
+            total = total/val
         return total
 
 lcad_functions["/"] = Divide("/")
@@ -89,19 +87,17 @@ class Minus(MathFunction):
         self.setSignature([[numbers.Number, numpy.ndarray],
                            ["optional", [numbers.Number, numpy.ndarray]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-        if (len(args) == 1):
-            return -args[0]
+    def call(self, model, total, *vals):
+        if (len(vals) == 0):
+            return -total
         else:
-            total = args[0]
 
             # If this a numpy array, make a copy to avoid destroying the original.
             if isinstance(total, numpy.ndarray):
                 total = total.copy()
 
-            for arg in args[1:]:
-                total -= arg
+            for val in vals:
+                total -= val
             return total
 
 lcad_functions["-"] = Minus("-")
@@ -120,9 +116,8 @@ class Modulo(MathFunction):
         MathFunction.__init__(self, name)
         self.setSignature([[numbers.Number], [numbers.Number]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-        return args[0] % args[1]
+    def call(self, model, val1, val2):
+        return val1 % val2
 
 lcad_functions["%"] = Modulo("%")
 
@@ -145,18 +140,17 @@ class Multiply(MathFunction):
                            [numbers.Number, numpy.ndarray],
                            ["optional", [numbers.Number, numpy.ndarray]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
+    def call(self, model, *vals):
         total = 1.0
-        for arg in args:
+        for val in vals:
             if isinstance(total, lcadTypes.LCadMatrix):
-                total = numpy.dot(total, arg)
+                total = numpy.dot(total, val)
                 if (len(total.shape) == 2):
                     total = total.view(lcadTypes.LCadMatrix)
                 else:
                     total = total.view(lcadTypes.LCadVector)
             else:
-                total = total * arg
+                total = total * val
         return total
 
 lcad_functions["*"] = Multiply("*")
@@ -177,11 +171,10 @@ class Plus(MathFunction):
                            [numbers.Number, numpy.ndarray],
                            ["optional", [numbers.Number, numpy.ndarray]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
+    def call(self, model, *vals):
         total = 0
-        for arg in args:
-            total += arg
+        for val in vals:
+            total += val
         return total
 
 lcad_functions["+"] = Plus("+")
@@ -198,8 +191,8 @@ class AdvMathFunction(MathFunction):
         self.py_func = py_func
         self.setSignature([[numbers.Number], ["optional", [numbers.Number]]])
 
-    def call(self, model, tree):
-        return self.py_func(*self.getArgs(model, tree))
+    def call(self, model, *vals):
+        return self.py_func(*vals)
 
 for name in dir(math):
     obj = getattr(math, name)

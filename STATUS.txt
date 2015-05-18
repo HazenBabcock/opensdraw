@@ -1,6 +1,12 @@
 
 Current:
 
+2015-05-18: Change calling convention so that only SpecialFunctions get the
+            an AST as an argument. Normal functions have their arguments
+	    interpreted for them and passed in standard Python fashion. This
+	    simplifies creating functions and also makes it easier to call
+	    functions from Python.
+
 2015-05-12: Add cables of various types.
 
 2015-04-18: Add suspension as an example of how to use spring().

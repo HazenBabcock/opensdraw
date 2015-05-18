@@ -12,10 +12,8 @@ class Plus(functions.LCadFunction):
         functions.LCadFunction.__init__(self, "plus")
         self.setSignature([[numbers.Number], [numbers.Number]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-
-        return args[0] + args[1]
+    def call(self, model, v1, v2):
+        return v1 + v2
 
 
 lcad_functions["plus"] = Plus()

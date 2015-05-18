@@ -71,14 +71,12 @@ class LCadChain(functions.LCadFunction):
         self.setSignature([[list], 
                            ["keyword", {"continuous" : [[lcadTypes.LCadObject], interp.lcad_t]}]])
 
-    def call(self, model, tree):
-        [args, keywords] = self.getArgs(model, tree)
+    def call(self, model, sprocket_list, continuous = interp.lcad_t):
 
         # Keywords
-        continuous = True if functions.isTrue(keywords["continuous"]) else False
+        continuous = True if functions.isTrue(continuous) else False
 
         # Get list of sprockets.
-        sprocket_list = args[0]
         if (len(sprocket_list) < 2):
             raise NumberSprocketsException(len(sprocket_list))
 

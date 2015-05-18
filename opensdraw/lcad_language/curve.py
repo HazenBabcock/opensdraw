@@ -85,19 +85,17 @@ class LCadCurve(functions.LCadFunction):
                            ["keyword", {"auto-scale" : [[lcadTypes.LCadObject], interp.lcad_t],
                                         "extrapolate" : [[lcadTypes.LCadObject], interp.lcad_t],
                                         "scale" : [[numbers.Number], 1.0],
-                                        "twist" : [[numbers.Number], 0]}]])
+                                        "twist" : [[numbers.Number], 0.0]}]])
 
-    def call(self, model, tree):
-        [args, keywords] = self.getArgs(model, tree)
+    def call(self, model, controlp_list, **kwargs):
 
         # Keyword defaults.
-        auto_scale = True if functions.isTrue(keywords["auto-scale"]) else False
-        extrapolate = True if functions.isTrue(keywords["extrapolate"]) else False
-        scale = keywords["scale"]
-        twist = keywords["twist"]
+        auto_scale = True if functions.isTrue(kwargs["auto-scale"]) else False
+        extrapolate = True if functions.isTrue(kwargs["extrapolate"]) else False
+        scale = kwargs["scale"]
+        twist = kwargs["twist"]
 
         # Process control points.
-        controlp_list = args[0]
         if (len(controlp_list) < 2):
             raise NumberControlPointsException(len(controlp_list))
 

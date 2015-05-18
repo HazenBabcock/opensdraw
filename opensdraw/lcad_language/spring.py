@@ -52,15 +52,10 @@ class LCadSpring(functions.LCadFunction):
         self.setSignature([[numbers.Number], [numbers.Number], [numbers.Number], [numbers.Number],
                            ["optional", [numbers.Number]]])
 
-    def call(self, model, tree):
-        args = self.getArgs(model, tree)
-
-        end_turns = 2
-        if (len(args) == 5):
-            end_turns = args[4]
+    def call(self, model, length, diameter, gauge, turns, end_turns = 2):
 
         # Create spring.
-        spring = Spring(args[0], args[1], args[2], args[3], end_turns)
+        spring = Spring(length, diameter, gauge, turns, end_turns)
 
         # Return curve function.
         return curveFunctions.CurveFunction(spring, "user created spring function.")

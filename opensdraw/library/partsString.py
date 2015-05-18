@@ -88,8 +88,8 @@ class PartsFile(functions.LCadFunction):
         functions.LCadFunction.__init__(self, "parts-file")
         self.setSignature([[basestring]])
         
-    def call(self, model, tree):
-        with open(self.getArg(model, tree, 0)) as fp:
+    def call(self, model, filename):
+        with open(filename) as fp:
             addParts(model, fp.read())
 
 lcad_functions["parts-file"] = PartsFile()
@@ -129,8 +129,8 @@ class PartsString(functions.LCadFunction):
         functions.LCadFunction.__init__(self, "parts-string")
         self.setSignature([[basestring]])
 
-    def call(self, model, tree):
-        addParts(model, self.getArg(model, tree, 0))
+    def call(self, model, string):
+        addParts(model, string)
 
 lcad_functions["parts-string"] = PartsString()
 
