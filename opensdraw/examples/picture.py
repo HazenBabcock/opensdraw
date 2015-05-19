@@ -87,7 +87,7 @@ class Picture(functions.LCadFunction):
     def call(self, model, x, y):
 
         # If we got t/nil return the size of the picture.
-        # (Note: To check for True use 'functions.isTrue(val)').
+        # (Note: To check for Truth use 'functions.isTrue(val)').
         if isinstance(x, lcadTypes.LCadObject) or isinstance(y, lcadTypes.LCadObject):
             return list(self.im.size)
 
