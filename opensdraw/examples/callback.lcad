@@ -7,7 +7,7 @@
 (import cables :local)
 (import locate :local)
 
-; Connectors.
+; Two connectors on top of each other.
 (def connectors ()
  (block
 
@@ -19,20 +19,23 @@
       
   ))
 
-; Callback
-(def twist-callback (a-curve)
+;
+; This creates and returns the callback function. The callback function
+; will add a uniform twist to the belt.
+;
+(def twist-callback (curve-fn twist)
  (block
-  (def curve-fn a-curve curve-len (a-curve t))
+  (def curve-len (curve-fn t))
   (def twist-fn (pos)
    (cond
     ((boolean? pos) curve-len)
     ((or (< pos 0) (> pos curve-len)) (curve-fn pos))
     (t
-     (* (curve-fn pos) (matrix (list 0 0 0 0 0 (* 360.0 (/ pos curve-len))))))))
+     (* (curve-fn pos) (matrix (list 0 0 0 0 0 (* twist (/ pos curve-len))))))))
   twist-fn))
  
 ; Cable
-(def cable ()
+(def cable (name twist)
  (block
   (def p-vec (vector 0 1 0))
   (def extra 90)
@@ -42,14 +45,27 @@
 			  (list (list (bw 1) 0 (bw 8)) p-vec (bw 7.6) 1))
 		    :continuous nil))
 
-  (group "power-cable.ldr"
+  (group name
    (header "!LDRAW_ORG Unofficial_part")
    (header "BFC CERTIFY CCW")
-   (pf-4-wire (- extra) (+ (a-belt t) extra) (twist-callback a-belt)))
+   (pf-4-wire (- extra) (+ (a-belt t) extra) (twist-callback a-belt twist)))
 
   (translate (list (bw 0.6) 0 15)
-   (part "power-cable.ldr" 0))
+   (part name 0))
   ))
 
-(connectors)
-(cable)
+; Create cables with different twists.
+(print "cable1")
+(translate (list 0 (bw -2) 0)
+ (connectors)
+ (cable "n360.ldr" -360))
+
+(print "cable2")
+(translate (list 0 (bw 0) 0)
+ (connectors)
+ (cable "p0.ldr" 0))
+
+(print "cable3")
+(translate (list 0 (bw 2) 0)
+ (connectors)
+ (cable "p360.ldr" 360))

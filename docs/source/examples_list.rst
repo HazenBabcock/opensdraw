@@ -18,67 +18,72 @@ All of the examples can be found in the *examples* directory.
 .. figure:: belt.png
    :scale: 50%
 
-4. *chain.lcad* - 2D chain and sprocket system creation and animation.
+4. *callback.lcad* - Using callbacks to add twist to a curve function.
+
+.. figure:: callback.png
+   :scale: 50%
+      
+5. *chain.lcad* - 2D chain and sprocket system creation and animation.
 
 .. figure:: chain.png
    :scale: 50%
 
-5. *curve.lcad* - Curve creation example.
+6. *curve.lcad* - Curve creation example.
 
 .. figure:: curve.png
    :scale: 50%
 
-6. *dumper-truck.lcad* - The Dumper Truck example from `here <http://www.holly-wood.it/mlcad/basic1-en.html>`_.
+7. *dumper-truck.lcad* - The Dumper Truck example from `here <http://www.holly-wood.it/mlcad/basic1-en.html>`_.
 
 .. figure:: dumper-truck5.png
    :scale: 50%
 
-7. *gears.lcad* - An animation example.
+8. *gears.lcad* - An animation example.
 
 .. figure:: gears_00001.png
    :scale: 50%
 
-8. *gripper.lcad* - A gripper, original design by Efferman from `here <http://www.brickshelf.com/cgi-bin/gallery.cgi?i=5724663>`_.
+9. *gripper.lcad* - A gripper, original design by Efferman from `here <http://www.brickshelf.com/cgi-bin/gallery.cgi?i=5724663>`_.
 
 .. figure:: gripper.png
    :scale: 50%
 
-9. *landscape.lcad* - Create a model from a simple space delimited text file.
+10. *landscape.lcad* - Create a model from a simple space delimited text file.
 
 .. figure:: landscape.png
    :scale: 50%
 	   
-10. *picture.lcad* - Interfacing with Python example.
+11. *picture.lcad* - Interfacing with Python example.
 
 .. figure:: picture.png
    :scale: 50%
 
-11. *power-functions-cable.lcad* - 4 Wire power functions cable creation and animation.
+12. *power-functions-cable.lcad* - 4 Wire power functions cable creation and animation.
 
 .. figure:: power-functions-cable.png
    :scale: 50%
 	   
-12. *rib-hose.lcad* - Curves and ribbed-hose example.
+13. *rib-hose.lcad* - Curves and ribbed-hose example.
 
 .. figure:: rib-hose.png
    :scale: 50%
 
-13. *steps.lcad* - A build steps example.
+14. *steps.lcad* - A build steps example.
 
 .. figure:: step20.png
    :scale: 50%
 
-14. *suspension.lcad* - A spring creation and animation example.
+15. *suspension.lcad* - A spring creation and animation example.
 
 .. figure:: suspension.png
    :scale: 50%
 
-15. *trefoil.lcad* - A LDraw primitives example.
+16. *trefoil.lcad* - A LDraw primitives example.
 
 .. figure:: trefoil.png
    :scale: 50%
 
-16. *wall.lcad* - A random number generator example.
+17. *wall.lcad* - A random number generator example.
 
 .. figure:: wall.png
    :scale: 50%
