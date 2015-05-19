@@ -13,6 +13,7 @@ from PIL import Image
 # These OpenSDraw modules have some classes that we will use.
 import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.interpreter as interpreter
+import opensdraw.lcad_language.typeFunctions as typeFunctions
 
 # This OpenSDraw module defines some types that we will use.
 import opensdraw.lcad_language.lcadTypes as lcadTypes
@@ -88,7 +89,7 @@ class Picture(functions.LCadFunction):
 
         # If we got t/nil return the size of the picture.
         # (Note: To check for Truth use 'functions.isTrue(val)').
-        if isinstance(x, lcadTypes.LCadObject) or isinstance(y, lcadTypes.LCadObject):
+        if typeFunctions.isBoolean(x) or typeFunctions.isBoolean(y):
             return list(self.im.size)
 
         # Otherwise return the color of the pixel as a LDraw "direct" color. Best
