@@ -1,0 +1,55 @@
+;
+; Demonstrates using callbacks.
+;
+; Hazen 5/15
+;
+
+(import cables :local)
+(import locate :local)
+
+; Connectors.
+(def connectors ()
+ (block
+
+  ; Power Functions Connector with 9V Bottom
+  (tb 0 0 0.8 90 0 0 "58124c02" 71)
+  
+  ; Power Functions Connector with PF Bottom
+  (tb 0 0 0 90 0 0 "58124c01" 72)
+      
+  ))
+
+; Callback
+(def twist-callback (a-curve)
+ (block
+  (def curve-fn a-curve curve-len (a-curve t))
+  (def twist-fn (pos)
+   (cond
+    ((boolean? pos) curve-len)
+    ((or (< pos 0) (> pos curve-len)) (curve-fn pos))
+    (t
+     (* (curve-fn pos) (matrix (list 0 0 0 0 0 (* 360.0 (/ pos curve-len))))))))
+  twist-fn))
+ 
+; Cable
+(def cable ()
+ (block
+  (def p-vec (vector 0 1 0))
+  (def extra 90)
+
+  (def a-belt (belt (list (list (list (bw 1) 0 (bw -8)) p-vec (bw 7.6) 1)
+			  (list (list (bw 10) 0 0) p-vec (bw 4) -1)
+			  (list (list (bw 1) 0 (bw 8)) p-vec (bw 7.6) 1))
+		    :continuous nil))
+
+  (group "power-cable.ldr"
+   (header "!LDRAW_ORG Unofficial_part")
+   (header "BFC CERTIFY CCW")
+   (pf-4-wire (- extra) (+ (a-belt t) extra) (twist-callback a-belt)))
+
+  (translate (list (bw 0.6) 0 15)
+   (part "power-cable.ldr" 0))
+  ))
+
+(connectors)
+(cable)
