@@ -23,4 +23,4 @@ This folder contains the modules that define the lcad language. This is a [prefi
 * parts.py - The Part object.
 * randomNumberFunctions.py - Random number generating functions.
 * spring.py - A function for creating springs.
-
+* typeFunctions.py - Functions for determining an objects type.

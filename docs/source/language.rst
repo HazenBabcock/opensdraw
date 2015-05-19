@@ -22,23 +22,29 @@ Part Functions
 .. automodule:: opensdraw.lcad_language.partFunctions
    :members: Comment, Group, Header, Line, OptionalLine, Part, Quadrilateral, Triangle
 
-Comparison Operators
+Comparison Functions
 --------------------
 
 .. automodule:: opensdraw.lcad_language.comparisonFunctions
    :members: Equal, Ne, Gt, Ge, Lt, Le
 
+Logical Functions
+-----------------
+
+.. automodule:: opensdraw.lcad_language.logicFunctions
+   :members: And, Or, Not
+
+Type Functions
+--------------
+
+.. automodule:: opensdraw.lcad_language.typeFunctions
+   :members: IsBoolean, IsMatrix, IsNumber, IsString, IsVector
+      
 Geometry Functions
 ------------------
 
 .. automodule:: opensdraw.lcad_language.geometryFunctions
    :members: CrossProduct, DotProduct, Matrix, Mirror, Rotate, Scale, Transform, Translate, Vector
-
-Logical Operators
------------------
-
-.. automodule:: opensdraw.lcad_language.logicFunctions
-   :members: And, Or, Not
 
 Math Functions
 --------------

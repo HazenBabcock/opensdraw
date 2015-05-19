@@ -12,4 +12,5 @@
   <module>opensdraw.lcad_language.pulleySystem</module>
   <module>opensdraw.lcad_language.randomNumberFunctions</module>
   <module>opensdraw.lcad_language.spring</module>
+  <module>opensdraw.lcad_language.typeFunctions</module>
 </modules>

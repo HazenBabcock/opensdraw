@@ -49,6 +49,51 @@ def text_time_index():
     assert exe("time-index") == 0
 
 
+## Comparison Functions.
+
+# equal
+def test_eq_1():
+    assert exe("(if (= 1 1) 0 1)") == 0
+
+def test_eq_2():
+    assert exe("(if (= 1 0) 0 1)") == 1
+
+# gt
+def test_gt_1():
+    assert exe("(if (> 1 2) 0 1)") == 1
+
+def test_gt_2():
+    assert exe("(if (> 1 0) 0 1)") == 0
+
+# lt
+def test_lt_1():
+    assert exe("(if (< 1 2) 0 1)") == 0
+
+def test_lt_2():
+    assert exe("(if (< 1 0) 0 1)") == 1
+
+# le
+def test_le_1():
+    assert exe("(if (<= 1 1) 0 1)") == 0
+
+def test_le_2():
+    assert exe("(if (<= 1 0) 0 1)") == 1
+
+# ge
+def test_ge_1():
+    assert exe("(if (>= 1 2) 0 1)") == 1
+
+def test_ge_2():
+    assert exe("(if (>= 1 1) 0 1)") == 0
+
+# ne
+def test_ne_1():
+    assert exe("(if (!= 1 2) 0 1)") == 0
+
+def test_ne_2():
+    assert exe("(if (!= 1 1) 0 1)") == 1
+
+
 ## coreFunctions
 
 # append
@@ -180,95 +225,6 @@ def test_while_1():
     assert exe("(def x 0) (while (< x 9) (set x (+ 2 x))) x") == 10
 
 
-## Part Functions.
-
-# group
-def test_group_1():
-    assert exe("(group \"adsf\" 1)") == 1
-
-# header
-def test_header_1():
-    assert exe("(header \"asdf\")") == "asdf"
-
-
-# line
-def test_line_1():
-    assert exe("(line (list 1 2 3) (list 4 5 6)) 1") == 1
-
-def test_line_2():
-    assert exe("(line (vector 1 2 3) (vector 4 5 6)) 1") == 1
-
-# optional line
-def test_optional_line_1():
-    assert exe("(optional-line (list 1 2 3) (list 4 5 6) (list 1 2 3) (list 4 5 6)) 1") == 1
-
-def test_optional_line_1():
-    assert exe("(optional-line (vector 1 2 3) (vector 4 5 6) (vector 1 2 3) (vector 4 5 6)) 1") == 1
-
-# part
-def test_part_1():
-    assert exe("(part '1234' 5) 1") == 1
-
-# quadrilateral
-def test_quadrilateral_1():
-    assert exe("(quadrilateral (list 1 2 3) (list 4 5 6) (list 1 2 3) (list 4 5 6)) 1") == 1
-
-def test_quadrilateral_2():
-    assert exe("(quadrilateral (vector 1 2 3) (vector 4 5 6) (vector 1 2 3) (vector 4 5 6)) 1") == 1
-
-# triangle
-def test_triangle_1():
-    assert exe("(triangle (list 1 2 3) (list 4 5 6) (list 7 8 9)) 1") == 1
-
-def test_triangle_1():
-    assert exe("(triangle (vector 1 2 3) (vector 4 5 6) (vector 7 8 9)) 1") == 1
-
-
-## Comparison Operators.
-
-# equal
-def test_eq_1():
-    assert exe("(if (= 1 1) 0 1)") == 0
-
-def test_eq_2():
-    assert exe("(if (= 1 0) 0 1)") == 1
-
-# gt
-def test_gt_1():
-    assert exe("(if (> 1 2) 0 1)") == 1
-
-def test_gt_2():
-    assert exe("(if (> 1 0) 0 1)") == 0
-
-# lt
-def test_lt_1():
-    assert exe("(if (< 1 2) 0 1)") == 0
-
-def test_lt_2():
-    assert exe("(if (< 1 0) 0 1)") == 1
-
-# le
-def test_le_1():
-    assert exe("(if (<= 1 1) 0 1)") == 0
-
-def test_le_2():
-    assert exe("(if (<= 1 0) 0 1)") == 1
-
-# ge
-def test_ge_1():
-    assert exe("(if (>= 1 2) 0 1)") == 1
-
-def test_ge_2():
-    assert exe("(if (>= 1 1) 0 1)") == 0
-
-# ne
-def test_ne_1():
-    assert exe("(if (!= 1 2) 0 1)") == 0
-
-def test_ne_2():
-    assert exe("(if (!= 1 1) 0 1)") == 1
-
-
 ## Geometry Functions.
 
 # cross product
@@ -341,7 +297,7 @@ def test_vector_1():
     assert isinstance(exe("(vector 1 2 3)"), lcadTypes.LCadVector)
 
 
-## Logical Operators.
+## Logic Functions.
 
 # and
 def test_and_1():
@@ -430,7 +386,109 @@ def test_py_math_4():
     assert int(round(exe("(sin (/ pi 2))"))) == 1
 
 
-## Miscellaneous Functions.
+## Part Functions.
+
+# group
+def test_group_1():
+    assert exe("(group \"adsf\" 1)") == 1
+
+# header
+def test_header_1():
+    assert exe("(header \"asdf\")") == "asdf"
+
+
+# line
+def test_line_1():
+    assert exe("(line (list 1 2 3) (list 4 5 6)) 1") == 1
+
+def test_line_2():
+    assert exe("(line (vector 1 2 3) (vector 4 5 6)) 1") == 1
+
+# optional line
+def test_optional_line_1():
+    assert exe("(optional-line (list 1 2 3) (list 4 5 6) (list 1 2 3) (list 4 5 6)) 1") == 1
+
+def test_optional_line_1():
+    assert exe("(optional-line (vector 1 2 3) (vector 4 5 6) (vector 1 2 3) (vector 4 5 6)) 1") == 1
+
+# part
+def test_part_1():
+    assert exe("(part '1234' 5) 1") == 1
+
+# quadrilateral
+def test_quadrilateral_1():
+    assert exe("(quadrilateral (list 1 2 3) (list 4 5 6) (list 1 2 3) (list 4 5 6)) 1") == 1
+
+def test_quadrilateral_2():
+    assert exe("(quadrilateral (vector 1 2 3) (vector 4 5 6) (vector 1 2 3) (vector 4 5 6)) 1") == 1
+
+# triangle
+def test_triangle_1():
+    assert exe("(triangle (list 1 2 3) (list 4 5 6) (list 7 8 9)) 1") == 1
+
+def test_triangle_1():
+    assert exe("(triangle (vector 1 2 3) (vector 4 5 6) (vector 7 8 9)) 1") == 1
+
+
+# Random Number Functions.
+def test_rand_seed_1():
+    assert isinstance(exe("(rand-seed 10)"), numbers.Number)
+
+def test_rand_choice_1():
+    assert isinstance(exe("(rand-choice (list 1 2 3))"), numbers.Number)
+
+def test_rand_choice_2():
+    assert isinstance(exe("(def a () 10) (def b () 20) (def c (rand-choice (list a b))) (c)"), numbers.Number)
+    
+def test_rand_gauss_1():
+    assert isinstance(exe("(rand-gauss)"), numbers.Number)
+
+def test_rand_gauss_2():
+    assert isinstance(exe("(rand-gauss 1 2)"), numbers.Number)
+
+def test_rand_integer_1():
+    assert isinstance(exe("(rand-integer 0 10)"), numbers.Number)
+
+def test_rand_uniform_1():
+    assert isinstance(exe("(rand-uniform)"), numbers.Number)
+
+def test_rand_uniform_2():
+    assert isinstance(exe("(rand-uniform 1 10)"), numbers.Number)
+
+
+## Type Functions.
+def test_is_boolean_1():
+    assert exe("(if (boolean? nil) 1 0)") == 1
+
+def test_is_boolean_2():
+    assert exe("(if (boolean? 1) 1 0)") == 0
+
+def test_is_matrix_1():
+    assert exe("(if (matrix? (matrix (list 0 0 0 0 0 0))) 1 0)") == 1
+
+def test_is_matrix_2():
+    assert exe("(if (matrix? (vector 0 0 0)) 1 0)") == 0
+
+def test_is_number_1():
+    assert exe("(if (number? 1) 1 0)") == 1
+
+def test_is_number_2():
+    assert exe("(if (number? 'a') 1 0)") == 0    
+
+def test_is_string_1():
+    assert exe("(if (string? 1) 1 0)") == 0
+
+def test_is_string_2():
+    assert exe("(if (string? 'a') 1 0)") == 1
+
+def test_is_vector_1():
+    assert exe("(if (vector? (matrix (list 0 0 0 0 0 0))) 1 0)") == 0
+
+def test_is_vector_2():
+    assert exe("(if (vector? (vector 0 0 0)) 1 0)") == 1
+
+    
+## Library Functions.
 
 # belt
 def test_belt_1():
@@ -463,27 +521,11 @@ def test_pulley_system_1():
 def test_pulley_system_2():
     assert exe("(pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50) (list (list 20 0 0) \"point\"))) 1") == 1
 
-# Random Number Functions.
-def test_rand_seed_1():
-    assert isinstance(exe("(rand-seed 10)"), numbers.Number)
+# spring
+def test_spring_1():
+    assert exe("(spring 40 10 1 10) 1") == 1
 
-def test_rand_choice_1():
-    assert isinstance(exe("(rand-choice (list 1 2 3))"), numbers.Number)
+def test_spring_2():
+    assert exe("(spring 40 10 1 10 1) 1") == 1
 
-def test_rand_choice_2():
-    assert isinstance(exe("(def a () 10) (def b () 20) (def c (rand-choice (list a b))) (c)"), numbers.Number)
     
-def test_rand_gauss_1():
-    assert isinstance(exe("(rand-gauss)"), numbers.Number)
-
-def test_rand_gauss_2():
-    assert isinstance(exe("(rand-gauss 1 2)"), numbers.Number)
-
-def test_rand_integer_1():
-    assert isinstance(exe("(rand-integer 0 10)"), numbers.Number)
-
-def test_rand_uniform_1():
-    assert isinstance(exe("(rand-uniform)"), numbers.Number)
-
-def test_rand_uniform_2():
-    assert isinstance(exe("(rand-uniform 1 10)"), numbers.Number)
