@@ -115,7 +115,7 @@ class LCadPulleySystem(functions.LCadFunction):
             raise lcadExceptions.WrongTypeException("list", type(drum))
 
         if (len(drum) != 7):
-            DrumException(len(drum))
+            raise DrumException(len(drum))
 
         drum_pos = geometry.parseArgs(drum[0])
         drum_zvec = geometry.parseArgs(drum[1])
@@ -131,7 +131,7 @@ class LCadPulleySystem(functions.LCadFunction):
             raise lcadExceptions.WrongTypeException("list", type(end_point))
 
         if (len(end_point) != 2):
-            EndPointException(len(end_point))
+            raise EndPointException(len(end_point))
 
         end_vec = geometry.parseArgs(end_point[0])
         end_type = end_point[1]
