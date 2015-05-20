@@ -188,6 +188,18 @@ def test_def_9():
 def test_def_10():
     exe("(def 1 1)")
 
+@nose.tools.raises(lcadExceptions.CannotOverrideBuiltIn)
+def test_def_11():
+    exe("(def t 1)")
+
+@nose.tools.raises(lcadExceptions.SymbolAlreadyExists)
+def test_def_11():
+    exe("(def x 1) (def x 2)")
+
+@nose.tools.raises(lcadExceptions.NotAFunctionException)
+def test_def_12():
+    exe("(def a 1) (a)")
+    
 # for
 def test_for_1():
     assert exe("(def x 0) (for (i 10) (set x (+ 1 x))) x") == 10
