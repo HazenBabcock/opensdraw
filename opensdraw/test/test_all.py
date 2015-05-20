@@ -8,12 +8,18 @@
 """
 
 import math
+import nose
 import numbers
 import numpy
 
+import opensdraw.lcad_language.belt as belt
+import opensdraw.lcad_language.chain as chain
+import opensdraw.lcad_language.curve as curve
 import opensdraw.lcad_language.interpreter as interpreter
+import opensdraw.lcad_language.lcadExceptions as lcadExceptions
 import opensdraw.lcad_language.lexerParser as lexerParser
 import opensdraw.lcad_language.lcadTypes as lcadTypes
+import opensdraw.lcad_language.pulleySystem as pulleySystem
 
 def exe(string):
     """
@@ -116,6 +122,22 @@ def test_aref_3():
 def test_aref_4():
     assert exe("(def m (matrix (list 1 2 3 4 5 6 7 8 9 10 11 12))) (set (aref m 1 1) 0) (aref m 1 1)") == 0
 
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_aref_5():
+    exe("(aref (matrix (list 0 0 0 0 0 0)) 1)")
+
+@nose.tools.raises(lcadExceptions.OutOfRangeException)
+def test_aref_6():
+    exe("(aref (list 1 2 3) 5)")
+
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_aref_7():
+    exe("(aref (vector 0 0 0) 1 2)")
+    
+@nose.tools.raises(lcadExceptions.LCadException)
+def test_aref_8():
+    exe("(aref (matrix (list 0 0 0 0 0 0)) 5 5)")
+
 # block
 def test_block_1():
     assert exe("(def fn (block (def x 5) (def inc-x () (+ x 1)) inc-x)) (fn)") == 6
@@ -154,6 +176,18 @@ def test_def_6():
 def test_def_7():
     assert exe("(def incf (:y 0) (+ y 1)) (incf)") == 1
 
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_def_8():
+    exe("(def a)")
+
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_def_9():
+    exe("(def a 1 b 2 c)")
+
+@nose.tools.raises(lcadExceptions.CannotSetException)
+def test_def_10():
+    exe("(def 1 1)")
+
 # for
 def test_for_1():
     assert exe("(def x 0) (for (i 10) (set x (+ 1 x))) x") == 10
@@ -167,6 +201,26 @@ def test_for_3():
 def test_for_4():
     assert exe("(def x 0) (for (i (list 1 2 3)) (set x (+ i x))) x") == 6
 
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_for_5():
+    exe("(for 10)")
+
+@nose.tools.raises(lcadExceptions.LCadException)
+def test_for_6():
+    exe("(for i 1)")
+    
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_for_7():
+    exe("(for (i) 1)")
+
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_for_8():
+    exe("(for (i 1 10 20 30) 1)")
+
+@nose.tools.raises(lcadExceptions.LCadException)
+def test_for_9():
+    exe("(for (1 10) 1)")
+    
 # if
 def test_if_1():
     assert exe("(if t 1 2)") == 1
@@ -180,6 +234,14 @@ def test_if_3():
 def test_if_4():
     assert exe("(if (if (= 1 2) t) 1 2)") == 2
 
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_if_5():
+    exe("(if t)")
+
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_if_6():
+    exe("(if t 0 1 2)")
+    
 # import
 def test_import_1():
     assert exe("(import mod) (mod:fn)") == math.pi
@@ -187,10 +249,18 @@ def test_import_1():
 def test_import_2():
     assert exe("(import mod :local) (fn)") ==  math.pi
 
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_import_3():
+    exe("(import)")
+    
 # lambda
 def test_lambda_1():
     assert exe("(def fn (lambda (x) (+ x 1))) (fn 1)") == 2
 
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_lambda_2():
+    exe("(lambda (x))")
+    
 # len
 def test_len_1():
     assert exe("(len (list 1 2 3))") == 3
@@ -202,13 +272,17 @@ def test_list_1():
 def test_list_2():
     assert exe("(list 1 2 3)")[1] == 2
 
+# print
+def test_print_1():
+    assert exe("(print \"123\")") == "123"
+
 # pyimport
 def test_pyimport_1():
     assert exe("(pyimport pyimp1) (plus 1 1)") == 2
 
-# print
-def test_print_1():
-    assert exe("(print \"123\")") == "123"
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_pyimport_2():
+    exe("(pyimport)")
 
 # set
 def test_set_1():
@@ -220,10 +294,25 @@ def test_set_2():
 def test_set_3():
     assert exe("(def fn () 1) (def x 2) (set x fn) (x)") == 1
 
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_set_4():
+    exe("(set x)")
+
+@nose.tools.raises(lcadExceptions.CannotSetException)
+def test_set_5():
+    exe("(set 1 2)")
+
+@nose.tools.raises(lcadExceptions.CannotOverrideBuiltIn)
+def test_set_6():
+    exe("(set t nil)")
+
 # while
 def test_while_1():
     assert exe("(def x 0) (while (< x 9) (set x (+ 2 x))) x") == 10
 
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_while_2():
+    exe("(while t)")
 
 ## Geometry Functions.
 
@@ -296,7 +385,18 @@ def test_translate_1():
 def test_vector_1():
     assert isinstance(exe("(vector 1 2 3)"), lcadTypes.LCadVector)
 
+@nose.tools.raises(lcadExceptions.NumberArgumentsException)
+def test_vector_2():
+    exe("(vector 1)")
 
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_vector_3():
+    exe("(vector 1 2 'a')")
+
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_vector_4():
+    exe("(vector 1 2 3 4 'a')")
+    
 ## Logic Functions.
 
 # and
@@ -497,12 +597,56 @@ def test_belt_1():
 def test_belt_2():
     assert exe("(belt (list (list (list 0 0 0) (list 0 0 1) 1.0 1) (list (list 4 0 0) (list 0 0 1) 1.5 1)) :continuous nil) 1") == 1
 
+@nose.tools.raises(belt.NumberPulleysException)
+def test_belt_3():
+    exe("(belt (list (list (list 0 0 0) (list 0 0 1) 1.0 1)))")
+
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_belt_4():
+    exe("(belt (list (vector 1 1 1 1) (vector 1 1 1 1)))")
+
+@nose.tools.raises(belt.PulleyException)
+def test_belt_5():
+    exe("(belt (list (list (list 0 0 0) 1.0 1) (list (list 4 0 0) (list 0 0 1) 1.5 1)))")
+    
+@nose.tools.raises(lcadExceptions.LCadException)
+def test_belt_6():
+    exe("(belt (list (list (list 0 0) (list 0 0 1) 1.0 1) (list (list 4 0 0) (list 0 0 1) 1.5 1)))")
+    
+@nose.tools.raises(lcadExceptions.LCadException)
+def test_belt_7():
+    exe("(belt (list (list (list 0 0 0) (list 0 0) 1.0 1) (list (list 4 0 0) (list 0 0 1) 1.5 1)))")
+    
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_belt_8():
+    exe("(belt (list (list (list 0 0 0) (list 0 0 1) t 1) (list (list 4 0 0) (list 0 0 1) 1.5 1)))")
+    
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_belt_9():
+    exe("(belt (list (list (list 0 0 0) (list 0 0 1) 1.0 'a') (list (list 4 0 0) (list 0 0 1) 1.5 1)))")
+    
 # chain
 def test_chain_1():
     assert exe("(chain (list (list -4 0 1 1) (list 4 0 1 1))) 1") == 1
 
 def test_chain_2():
     assert exe("(chain (list (list -4 0 1 1) (list 4 0 1 1)) :continuous nil) 1") == 1
+
+@nose.tools.raises(chain.NumberSprocketsException)
+def test_chain_3():
+    exe("(chain (list (list -4 0 1 1)))")
+
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_chain_4():
+    exe("(chain (list (list -4 0 1 1) (vector 4 0 1 1)))")
+
+@nose.tools.raises(chain.SprocketException)
+def test_chain_5():
+    exe("(chain (list (list -4 0 1 1) (list 0 1 1)))")
+
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_chain_6():
+    exe("(chain (list (list -4 0 1 1) (list t 0 1 1)))")
 
 # curve
 def test_curve_1():
@@ -514,12 +658,76 @@ def test_curve_2():
 def test_curve_3():
     assert exe("(curve (list (list (list 0 0 0) (list 1 1 0) (list 0 0 1)) (list (list 5 0 0) (list 1 0 0))) :auto-scale nil) 1") == 1
 
+@nose.tools.raises(curve.NumberControlPointsException)
+def test_curve_4():
+    exe("(curve (list (list (list 0 0 0) (list 1 1 0) (list 0 0 1))))")
+
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_curve_5():
+    exe("(curve (list (list (list 0 0 0) (list 1 1 0) (list 0 0 1)) (vector 0 1 2)))")
+
+@nose.tools.raises(curve.ControlPointException)
+def test_curve_6():
+    exe("(curve (list (list (list 0 0 0) (list 0 0 1)) (list (list 5 0 0) (list 1 0 0))))")
+
+@nose.tools.raises(curve.ControlPointException)
+def test_curve_7():
+    exe("(curve (list (list (list 0 0 0) (list 1 1 0) (list 0 0 1)) (list (list 5 0 0))))")
+
+@nose.tools.raises(curve.ControlPointException)
+def test_curve_8():
+    exe("(curve (list (list (list 0 0) (list 1 1 0) (list 0 0 1)) (list (list 5 0 0) (list 1 0 0))))")
+
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_curve_9():
+    exe("(curve (list (list (list t 0 0) (list 1 1 0) (list 0 0 1)) (list (list 5 0 0) (list 1 0 0))))")
+
+@nose.tools.raises(TypeError)
+def test_curve_10():
+    exe("(curve (list (list t (list 1 1 0) (list 0 0 1)) (list (list 5 0 0) (list 1 0 0))))")
+    
+@nose.tools.raises(curve.TangentException)
+def test_curve_11():
+    exe("(curve (list (list (list 0 0 0) (list 0 0 0) (list 0 0 1)) (list (list 5 0 0) (list 1 0 0))))")
+    
 # pulley system.
 def test_pulley_system_1():
     assert exe("(pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50) (list (list 20 0 1) (list 0 0 1) 5.0 1) (list (list -1 0 0) \"tangent\"))) 1") == 1
 
 def test_pulley_system_2():
     assert exe("(pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50) (list (list 20 0 0) \"point\"))) 1") == 1
+
+@nose.tools.raises(pulleySystem.NumberPulleysException)
+def test_pulley_system_3():
+    exe("(pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50)))")
+
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_pulley_system_4():
+    exe("(pulley-system (list (vector 1 2 3) (list (list 20 0 0) \"point\")))")
+
+@nose.tools.raises(pulleySystem.DrumException)
+def test_pulley_system_5():
+    exe("(pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1) (list (list 20 0 0) \"point\")))")
+
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_pulley_system_6():
+    exe("(pulley-system (list (list (list 0 0 0) (list 0 0 1) t 1 5.0 1 50) (list (list 20 0 0) \"point\")))")
+
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_pulley_system_7():
+    exe("(pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50) (vector 0 0 0)))")
+
+@nose.tools.raises(pulleySystem.EndPointException)
+def test_pulley_system_8():
+    exe("(pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50) (list (list 20 0 0))))")
+
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_pulley_system_9():
+    exe("(pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50) (list (list 20 0 0) t)))")
+
+@nose.tools.raises(pulleySystem.EndPointTypeException)
+def test_pulley_system_10():
+    exe("(pulley-system (list (list (list 0 0 0) (list 0 0 1) 5.0 1 5.0 1 50) (list (list 20 0 0) \"foo\")))")
 
 # spring
 def test_spring_1():
