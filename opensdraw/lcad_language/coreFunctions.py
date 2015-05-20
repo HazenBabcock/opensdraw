@@ -93,26 +93,31 @@ class Aref(CoreFunction):
 
     def call(self, model, tlist, *indices):
 
-        # 1D list / vector.
-        if (len(indices) == 1):
-            if not isinstance(tlist, list) and not isinstance(tlist, lcadTypes.LCadVector):
-                raise lce.WrongTypeException("list, vector", functions.typeToString(type(tlist)))
-
+        # List.
+        if isinstance(tlist, list):
+            if (len(indices) != 1):
+                raise lce.LCadException("Attempt to index list with multiple indices.")
+            
             index = indices[0]
             if (index >= 0) and (index < len(tlist)):
                 return ArefSymbol(tlist, index)
             else:
                 raise lce.OutOfRangeException(len(tlist) - 1, index)
 
-        # 2D matrix.
-        else:
-            if not isinstance(tlist, lcadTypes.LCadMatrix):
-                raise lce.WrongTypeException("matrix", functions.typeToString(type(tlist)))
+        # Numpy array.
+        elif isinstance(tlist, numpy.ndarray):
+            shape = tlist.shape
+            if (len(indices) != len(shape)):
+                raise lce.LCadException("Number of indices (" + str(len(indices)) + ") does not match array shape (" + str(len(shape)) + ").")
 
-            if (indices[0] >= 0) and (indices[0] < tlist.shape[0]) and (indices[1] >= 0) and (indices[1] < tlist.shape[1]):
-                return ArefSymbol(tlist, indices)
-            else:
-                raise lce.LCadException(" index " + str(indices) + " is outside of " + str(tlist.shape))
+            for i in range(len(shape)):
+                if (indices[i] < 0) or (indices[i] >= shape[i]):
+                    raise lce.LCadException(" index " + str(indices) + " is outside of " + str(shape))
+
+            return ArefSymbol(tlist, indices)
+
+        else:
+            raise lce.WrongTypeException("list, vector, matrix", functions.typeToString(type(tlist)))            
 
 lcad_functions["aref"] = Aref()
 
@@ -562,6 +567,79 @@ class Print(CoreFunction):
 lcad_functions["print"] = Print()
 
 
+class PyFunc(functions.SpecialFunction):
+    """
+    **pyfunc** - Call a Python function. You may need to use *pyimport*
+    to import the necessary Python module(s).
+
+    Usage::
+     
+     (pyimport numpy)                  ; Import the numpy module.
+     (def arr (pyfunc numpy.zeros 5))  ; Create a numpy array with 5 zeros.
+     (set (aref arr 1) 1)              ; Set the second value to 1.
+     (print arr)                       ; Print the array.
+    """
+    def __init__(self):
+        functions.SpecialFunction.__init__(self, "pycall")
+
+    def argCheck(self, tree):
+        if (len(tree.value) < 2):
+            raise lce.NumberArgumentsException("1 or more", len(tree.value) - 1)
+        tree.initialized = True
+
+    def call(self, model, tree):
+        fn_name = tree.value[1].value
+        vals = tree.value[2:]
+        lenv = tree.lenv.parent
+
+        args = []
+        kwargs = {}
+
+        # Parse standard arguments.
+        index = 0
+        while (index < len(vals)):
+
+            # Check if this is a keyword argument.
+            arg = vals[index].value
+            if isinstance(arg, basestring) and (arg[0] == ":"):
+                break
+            
+            args.append(interp.getv(interp.interpret(model, vals[index])))
+            index += 1
+
+        # Parse keyword arguments.
+        while (index < len(vals)):
+            print index
+            key = vals[index].value
+            if (key[0] != ":"):
+                raise lce.KeywordException(vals[index].value)
+            key = key[1:]
+            val = interp.getv(interp.interpret(model, vals[index+1]))
+            kwargs[key] = val
+            index += 2
+
+        # Find the python function.
+        temp = fn_name.split(".")
+        pyfn = None
+        
+        # Check builtins first.
+        if (len(temp) == 1):
+            pyfn = globals()["__builtins__"].get(temp[0])
+
+        if pyfn is None:
+            pyfn = globals().get(temp[0])
+            for m in temp[1:]:
+                pyfn = getattr(pyfn, m)
+
+        if pyfn is None:
+            raise lce.LCadException("Cannot find function \"" + fn_name + "\"")
+
+        # Call the python function.
+        return pyfn(*args, **kwargs)
+
+lcad_functions["pyfunc"] = PyFunc()
+
+    
 class PyImport(functions.SpecialFunction):
     """
     **pyimport** - Import a Python module and add any functions in the

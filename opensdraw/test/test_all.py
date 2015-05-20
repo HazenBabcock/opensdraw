@@ -122,21 +122,25 @@ def test_aref_3():
 def test_aref_4():
     assert exe("(def m (matrix (list 1 2 3 4 5 6 7 8 9 10 11 12))) (set (aref m 1 1) 0) (aref m 1 1)") == 0
 
-@nose.tools.raises(lcadExceptions.WrongTypeException)
+@nose.tools.raises(lcadExceptions.LCadException)
 def test_aref_5():
-    exe("(aref (matrix (list 0 0 0 0 0 0)) 1)")
+    exe("(aref (list 0 0 0 0 0 0) 1 1)")
 
 @nose.tools.raises(lcadExceptions.OutOfRangeException)
 def test_aref_6():
     exe("(aref (list 1 2 3) 5)")
 
-@nose.tools.raises(lcadExceptions.WrongTypeException)
+@nose.tools.raises(lcadExceptions.LCadException)
 def test_aref_7():
     exe("(aref (vector 0 0 0) 1 2)")
     
 @nose.tools.raises(lcadExceptions.LCadException)
 def test_aref_8():
     exe("(aref (matrix (list 0 0 0 0 0 0)) 5 5)")
+
+@nose.tools.raises(lcadExceptions.WrongTypeException)
+def test_aref_9():
+    exe("(aref 1 5 5)")
 
 # block
 def test_block_1():
