@@ -199,7 +199,19 @@ def test_def_11():
 @nose.tools.raises(lcadExceptions.NotAFunctionException)
 def test_def_12():
     exe("(def a 1) (a)")
-    
+
+@nose.tools.raises(TypeError)
+def test_def_13():
+    exe("(def fn (x :y 2) (+ x y)) (fn 1 2)")
+
+@nose.tools.raises(lcadExceptions.KeywordException)
+def test_def_14():
+    exe("(def fn (x :y 2) (+ x y)) (fn 1 y 2)")
+
+@nose.tools.raises(lcadExceptions.UnknownKeywordException)
+def test_def_15():
+    exe("(def fn (x :y 2) (+ x y)) (fn 1 :z 3)")
+
 # for
 def test_for_1():
     assert exe("(def x 0) (for (i 10) (set x (+ 1 x))) x") == 10
