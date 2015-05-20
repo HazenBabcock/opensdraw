@@ -15,7 +15,7 @@ import lcadTypes
 lcad_functions = {}
 
 def isBoolean(obj):
-    return isinstance(obj, lcadTypes.LCadObject)
+    return isinstance(obj, lcadTypes.LCadBoolean)
 
 def isMatrix(obj):
     return isinstance(obj, lcadTypes.LCadMatrix)

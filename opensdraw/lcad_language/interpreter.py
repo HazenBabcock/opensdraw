@@ -167,11 +167,11 @@ class Symbol(object):
 # t and nil are objects so that we can do comparisons using 'is' and
 # be gauranteed that there is only one truth and one false.
 
-lcad_t = lcadTypes.LCadObject("t")
+lcad_t = lcadTypes.LCadBoolean("t")
 builtin_symbols["t"] = Symbol("t", "builtin")
 builtin_symbols["t"].setv(lcad_t)
 
-lcad_nil = lcadTypes.LCadObject("nil")
+lcad_nil = lcadTypes.LCadBoolean("nil")
 builtin_symbols["nil"] = Symbol("nil", "builtin")
 builtin_symbols["nil"].setv(lcad_nil)
 

@@ -82,8 +82,8 @@ class LCadCurve(functions.LCadFunction):
     def __init__(self):
         functions.LCadFunction.__init__(self, "curve")
         self.setSignature([[list],
-                           ["keyword", {"auto-scale" : [[lcadTypes.LCadObject], interp.lcad_t],
-                                        "extrapolate" : [[lcadTypes.LCadObject], interp.lcad_t],
+                           ["keyword", {"auto-scale" : [[lcadTypes.LCadBoolean], interp.lcad_t],
+                                        "extrapolate" : [[lcadTypes.LCadBoolean], interp.lcad_t],
                                         "scale" : [[numbers.Number], 1.0],
                                         "twist" : [[numbers.Number], 0.0]}]])
 

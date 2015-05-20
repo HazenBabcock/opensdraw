@@ -40,7 +40,7 @@ class CrossProduct(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "cross-product")
-        self.setSignature([[lcadTypes.LCadVector], [lcadTypes.LCadVector], ["optional", [lcadTypes.LCadObject]]])
+        self.setSignature([[lcadTypes.LCadVector], [lcadTypes.LCadVector], ["optional", [lcadTypes.LCadBoolean]]])
 
     def call(self, model, v1, v2, normalize = interp.lcad_t):
         cp = numpy.cross(v1[0:3], v2[0:3])
@@ -71,7 +71,7 @@ class DotProduct(GeometryFunction):
     """
     def __init__(self):
         GeometryFunction.__init__(self, "dot-product")
-        self.setSignature([[lcadTypes.LCadVector], [lcadTypes.LCadVector], ["optional", [lcadTypes.LCadObject]]])
+        self.setSignature([[lcadTypes.LCadVector], [lcadTypes.LCadVector], ["optional", [lcadTypes.LCadBoolean]]])
 
     def call(self, model, v1, v2, normalize = interp.lcad_t):
 

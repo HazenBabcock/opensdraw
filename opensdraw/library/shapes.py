@@ -423,7 +423,7 @@ class Ring(functions.LCadFunction):
                            [lcadTypes.LCadVector],
                            [lcadTypes.LCadMatrix],
                            [lcadTypes.LCadVector],
-                           [lcadTypes.LCadObject]])
+                           [lcadTypes.LCadBoolean]])
 
     def call(self, model, m1, v1, m2, v2, ccw):
         group = model.curGroup()

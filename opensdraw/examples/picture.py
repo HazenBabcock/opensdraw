@@ -83,7 +83,7 @@ class Picture(functions.LCadFunction):
 
         # Set signature to be exactly two arguments both of which are numbers
         # or the symbols t/nil.
-        self.setSignature([[numbers.Number, lcadTypes.LCadObject], [numbers.Number, lcadTypes.LCadObject]])
+        self.setSignature([[numbers.Number, lcadTypes.LCadBoolean], [numbers.Number, lcadTypes.LCadBoolean]])
 
     def call(self, model, x, y):
 

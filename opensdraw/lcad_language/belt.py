@@ -104,7 +104,7 @@ class LCadBelt(functions.LCadFunction):
     def __init__(self):
         functions.LCadFunction.__init__(self, "belt")
         self.setSignature([[list], 
-                           ["keyword", {"continuous" : [[lcadTypes.LCadObject], interp.lcad_t]}]])
+                           ["keyword", {"continuous" : [[lcadTypes.LCadBoolean], interp.lcad_t]}]])
 
     def call(self, model, pulley_list, continuous = interp.lcad_t):
 

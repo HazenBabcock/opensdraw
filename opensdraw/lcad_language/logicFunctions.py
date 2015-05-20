@@ -34,7 +34,7 @@ class And(functions.SpecialFunction):
     """
     def __init__(self, name):
         functions.SpecialFunction.__init__(self, name)
-        self.setSignature([[lcadTypes.LCadObject], [lcadTypes.LCadObject], ["optional", [lcadTypes.LCadObject]]])
+        self.setSignature([[lcadTypes.LCadBoolean], [lcadTypes.LCadBoolean], ["optional", [lcadTypes.LCadBoolean]]])
 
     def call(self, model, tree):
         for i in range(self.numberArgs(tree)):
@@ -57,7 +57,7 @@ class Or(functions.SpecialFunction):
     """
     def __init__(self, name):
         functions.SpecialFunction.__init__(self, name)
-        self.setSignature([[lcadTypes.LCadObject], [lcadTypes.LCadObject], ["optional", [lcadTypes.LCadObject]]])
+        self.setSignature([[lcadTypes.LCadBoolean], [lcadTypes.LCadBoolean], ["optional", [lcadTypes.LCadBoolean]]])
 
     def call(self, model, tree):
         for i in range(self.numberArgs(tree)):
@@ -79,7 +79,7 @@ class Not(LogicFunction):
     """
     def __init__(self, name):
         LogicFunction.__init__(self, name)
-        self.setSignature([[lcadTypes.LCadObject]])
+        self.setSignature([[lcadTypes.LCadBoolean]])
 
     def call(self, model, val):
         if functions.isTrue(val):

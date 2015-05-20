@@ -10,21 +10,21 @@
 import numpy
 
 
-class LCadMatrix(numpy.ndarray):
+class LCadBoolean(object):
     """
-    4x4 numpy array.
+    boolean type, t/nil
     """
-    pass
-
-
-class LCadObject(object):
-    
     def __init__(self, name):
         self.name = name
         
     def __str__(self):
         return str(self.name)
-
+    
+class LCadMatrix(numpy.ndarray):
+    """
+    4x4 numpy array.
+    """
+    pass
 
 class LCadVector(numpy.ndarray):
     """

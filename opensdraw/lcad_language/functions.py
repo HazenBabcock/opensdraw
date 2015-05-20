@@ -43,7 +43,7 @@ def typeToString(a_type):
         return "string"
     if (a_string == "CurveFunction"):
         return "curve function"
-    if (a_string == "LCadObject"):
+    if (a_string == "LCadBoolean"):
         return "t, nil"
     if (a_string == "interp.Symbol"):
         return "symbol"

@@ -1,6 +1,8 @@
 
 Current:
 
+2015-05-19: Rename the LCadObject type to LCadBoolean.
+
 2015-05-18: Change calling convention so that only SpecialFunctions get the
             an AST as an argument. Normal functions have their arguments
 	    interpreted for them and passed in standard Python fashion. This

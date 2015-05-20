@@ -69,7 +69,7 @@ class LCadChain(functions.LCadFunction):
     def __init__(self):
         functions.LCadFunction.__init__(self, "chain")
         self.setSignature([[list], 
-                           ["keyword", {"continuous" : [[lcadTypes.LCadObject], interp.lcad_t]}]])
+                           ["keyword", {"continuous" : [[lcadTypes.LCadBoolean], interp.lcad_t]}]])
 
     def call(self, model, sprocket_list, continuous = interp.lcad_t):
 

@@ -20,7 +20,7 @@ class CurveFunction(functions.LCadFunction):
     """
     def __init__(self, curve, name):
         functions.LCadFunction.__init__(self, name)
-        self.setSignature([[lcadTypes.LCadObject, numbers.Number]])
+        self.setSignature([[lcadTypes.LCadBoolean, numbers.Number]])
         self.curve = curve
 
     def call(self, model, arg):
