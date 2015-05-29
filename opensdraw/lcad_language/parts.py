@@ -90,7 +90,8 @@ class Part(object):
                 ld_str += formatNumber(self.matrix[i,j], 3) + " "
 
         # part
-        if not (".dat" in self.part_id) and not (".ldr" in self.part_id):
+        #if not (".dat" in self.part_id) and not (".ldr" in self.part_id):
+        if not any(x in self.part_id for x in [".dat", ".ldr", ".mpd"]):
             ld_str += self.part_id + ".dat"
         else:
             ld_str += self.part_id
