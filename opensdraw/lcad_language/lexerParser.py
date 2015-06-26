@@ -144,9 +144,9 @@ def empty_parens(state, p):
 def error_handler(state, token):
     if (token.gettokentype() == '$end'):
         raise Exception("Unexpected EOF. Empty file? Unbalanced Parenthesis?")
-    raise ValueError("Ran into a {!s} where it was't expected at row {!s} column {!s}".format(token.gettokentype(), 
-                                                                                              token.source_pos.lineno, 
-                                                                                              token.source_pos.colno))
+    raise ValueError("Ran into a {!s} where it wasn't expected at row {!s} column {!s}".format(token.gettokentype(), 
+                                                                                               token.source_pos.lineno, 
+                                                                                               token.source_pos.colno))
 
 parser = pg.build()
 
