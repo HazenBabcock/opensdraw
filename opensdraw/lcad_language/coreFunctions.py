@@ -141,7 +141,10 @@ class Block(functions.SpecialFunction):
 
     def call(self, model, tree):
         args = self.getArgs(model, tree)
-        return args[-1]
+        if (len(args) > 0):
+            return args[-1]
+        else:
+            return interp.lcad_nil
 
 lcad_functions["block"] = Block()
 
