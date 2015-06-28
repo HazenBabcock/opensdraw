@@ -24,17 +24,6 @@ Extra Functions (Python)
 
 These are functions that you will need to import in order to use. They can all be found in the *opensdraw/library* directory.
 
-Parts Strings
-~~~~~~~~~~~~~
-This module lets you add parts using space delimited strings, instead of using functions like *tb()* and *sb()* from *locate.lcad*
-
-::
-
-   (pyimport opensdraw.library.partsString)
-
-.. automodule:: opensdraw.library.partsString
-   :members: PartsFile, PartsString	     
-   
 Knots
 ~~~~~
 This module makes it easier to add a knot to your MOC.
@@ -46,6 +35,28 @@ This module makes it easier to add a knot to your MOC.
 .. automodule:: opensdraw.library.knots
    :members: SheetBendKnot
 
+Overlay
+~~~~~~~
+This module make LDraw compatible images that can be overlaid on a MOC for scaling pictures. It can also be used for creating 2D (i.e. flat) stickers.
+
+::
+
+   (pyimport opensdraw.library.overlay)
+
+.. automodule:: opensdraw.library.overlay
+   :members: Overlay
+
+Parts Strings
+~~~~~~~~~~~~~
+This module lets you add parts using space delimited strings, instead of using functions like *tb()* and *sb()* from *locate.lcad*
+
+::
+
+   (pyimport opensdraw.library.partsString)
+
+.. automodule:: opensdraw.library.partsString
+   :members: PartsFile, PartsString	     
+   
 Shapes
 ~~~~~~
 This module makes it easier (and faster) to create simple shapes from LDraw primitives.

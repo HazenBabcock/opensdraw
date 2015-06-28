@@ -52,38 +52,43 @@ All of the examples can be found in the *examples* directory.
 
 .. figure:: landscape.png
    :scale: 50%
+
+11. *overlay.lcad* - Overlay pictures / blueprints for model scaling.
+	       
+.. figure:: overlay.png
+   :scale: 50%
 	   
-11. *picture.lcad* - Interfacing with Python example.
+12. *picture.lcad* - Interfacing with Python example.
 
 .. figure:: picture.png
    :scale: 50%
 
-12. *power-functions-cable.lcad* - 4 Wire power functions cable creation and animation.
+13. *power-functions-cable.lcad* - 4 Wire power functions cable creation and animation.
 
 .. figure:: power-functions-cable.png
    :scale: 50%
 	   
-13. *rib-hose.lcad* - Curves and ribbed-hose example.
+14. *rib-hose.lcad* - Curves and ribbed-hose example.
 
 .. figure:: rib-hose.png
    :scale: 50%
 
-14. *steps.lcad* - A build steps example.
+15. *steps.lcad* - A build steps example.
 
 .. figure:: step20.png
    :scale: 50%
 
-15. *suspension.lcad* - A spring creation and animation example.
+16. *suspension.lcad* - A spring creation and animation example.
 
 .. figure:: suspension.png
    :scale: 50%
 
-16. *trefoil.lcad* - A LDraw primitives example.
+17. *trefoil.lcad* - A LDraw primitives example.
 
 .. figure:: trefoil.png
    :scale: 50%
 
-17. *wall.lcad* - A random number generator example.
+18. *wall.lcad* - A random number generator example.
 
 .. figure:: wall.png
    :scale: 50%
