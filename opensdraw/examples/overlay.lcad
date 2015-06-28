@@ -1,0 +1,190 @@
+;
+; Demonstrates overlaying images for easier MOC scaling.
+;
+; Hazen 6/15
+;
+
+(import locate :local)
+
+(pyimport opensdraw.library.overlay)
+
+;
+; Create the overlays.
+;
+; NOTE: It is not efficient to re-create the overlays with each MOC
+;    update. A better approach is to create the overlays once as a
+;    separate .mpd file, then include that file using:
+;
+;    (part "my_overlay.mpd" 0)
+;
+;    This will be much faster.
+;
+
+;(translate (list (bw 5) (bw -12) (bw 22))
+; (rotate (list 0 90 90)
+;  (overlay "d31ex_fv.png" 2.5)))
+
+(mirror (list 0 0 1)
+ (translate (list (bw -20.5) 0 (bw -20.5))
+  (rotate (list 90 0 0)
+   (overlay "d31ex_sv.png" 2.5))))
+
+;(translate (list (bw -16) (bw -13.3) 0)
+; (overlay "d31ex_tv.png" 2.5))
+
+;
+; Add some parts.
+;
+
+(def cab ()
+ (block
+
+  ; brick 1 x 1 with stud on 1 side
+  (tb 1.5 -1 18 -90 -90 0 "87087" 14)
+  (tb 1.5 0 18 -90 -90 0 "87087" 14)
+  (tb 1.5 1 18 -90 -90 0 "87087" 14)
+  
+  ; brick 1 x 2
+  (tb 11.5 1.5 18 -90 90 0 "3004" 14)
+  (tb 3 -2 18 -90 0 0 "3004" 14)
+  (tb 3 2 18 -90 0 0 "3004" 14)
+
+  ; brick 1 x 3
+  (tb 11.5 -1 18 -90 90 0 "3622" 14)
+  
+  ; brick 1 x 4
+  (tb 8 -4 18 -90 0 0 "3010" 14)
+  (tb 8 4 18 -90 0 0 "3010" 14)
+
+  ; exhaust pipe with pin
+;  (tb -2 -1 11 -90 180 0 "40620" 0)
+   
+  ; plate 1 x 1
+  (tb 4.5 -2 18 -90 0 0 "3024" 0)
+  (tb 4.5 2 18 -90 0 0 "3024" 0)
+
+  ; plate 1 x 1 round
+  (tb 0.6 -1 17.5 0 0 -90 "6141" 47)
+  (tb 0.6 0 17.5 0 0 -90 "6141" 47)
+  (tb 0.6 1 17.5 0 0 -90 "6141" 47)
+  
+  ; plate 1 x 3
+  (tb 1.5 0 16.8 -90 90 0 "3623" 14)
+  (tb 10.5 0 18.4 -90 0 0 "3623" 14)
+  (tb 8.5 -3 18 -90 0 0 "3623" 0)
+  (tb 8.5 3 18 -90 0 0 "3623" 0)
+  (tb 9.5 -1 18 -90 0 0 "3623" 0)
+  
+  ; plate 1 x 4
+  (tb 11.5 -2.5 18.4 -90 90 0 "3710" 14)
+  (tb 11.5 2.5 18.4 -90 90 0 "3710" 14)
+  
+  ; plate 1 x 6
+  (tb 5 1 18 -90 0 0 "3666" 0)
+  (tb 8 -2 18 -90 0 0 "3666" 0)
+  (tb 8 2 18 -90 0 0 "3666" 0)
+
+  ; plate 1 x 8
+  (tb 5 0 18.4 -90 0 0 "3460" 14)
+   
+  ; plate 2 x 3
+  (tb 9.5 0.5 18 -90 0 0 "3021" 0)
+
+  ; plate 2 x 6
+  (tb 5 -0.5 18 -90 0 0 "3795" 0)
+
+  ; plate 4 x 4 without corner
+  (tb 3 -2.5 18.4 -90 -90 0 "30503" 14)
+  (tb 3 2.5 18.4 -90 180 0 "30503" 14)
+   
+  ; plate 4 x 6
+  (tb 8 -2.5 18.4 -90 0 0 "3032" 14)
+  (tb 8 2.5 18.4 -90 0 0 "3032" 14)
+
+  ; technic angle connector #3 (157.5 degree)
+  (tb -2 -2 15.5 0 0 -90 "32016" 0)
+   
+  ; technic axle 6 black
+  (tb 11 -4 14 0 90 0 "370626" 0)
+  (tb 11 4 14 0 90 0 "370626" 0)
+
+  ; technic axle 10 black
+  (tb 5 -4 12 0 90 0 "3737" 0)
+  (tb 5 4 12 0 90 0 "3737" 0)
+
+  ; technic axle joiner inline smooth
+  (tb -2 -2 11 0 0 0 "59443" 0)
+  (tb -2 -2 13 0 0 0 "59443" 0)
+
+  ; technic brick 1 x 2 with hole
+  (tb 11 -3 18 -90 0 0 "3700" 14)
+  (tb 11 3 18 -90 0 0 "3700" 14)
+
+  ; technic brick 1 x 4 with holes
+  (tb 5 -3 18 -90 0 0 "3701" 14)
+  (tb 5 3 18 -90 0 0 "3701" 14)
+  
+  ; technic connect (pin/bush) with 2 studs
+  (tb 5 -4 16.5 0 180 90 "3651" 71)  
+  (tb 5 4 16.5 0 180 90 "3651" 71)
+  (tb 11 -4 16.5 0 180 90 "3651" 71)
+  (tb 11 4 16.5 0 180 90 "3651" 71)
+   
+  ; technic pin with friction
+  (tb 5 -3.5 17.5 0 0 90 "4459" 0)
+  (tb 5 3.5 17.5 0 0 90 "4459" 0)
+  (tb 11 -3.5 17.5 0 0 90 "4459" 0)
+  (tb 11 3.5 17.5 0 0 90 "4459" 0)
+  
+  ))
+
+(def chain-link ()
+ (translate (list 0 0 -9)
+
+  ; technic chain tread 17
+  (part "3873" 0)))
+
+(def track (left?)
+ (block
+
+  ; technic bush 1/2 smooth with axle hole semi-reduced
+  (translate (list 0 (if left? (bw -0.75) (bw 0.75)) 0)
+   (tb 0 0 0.5 90 0 11 "32123b" 71)
+   (tb 2 0 0.5 90 0 22.5 "32123b" 71)
+   (tb 4 0 0.5 90 0 0 "32123b" 71)
+   (tb 6 0 0.5 90 0 22.5 "32123b" 71)
+   (tb 8 0 0.5 90 0 0 "32123b" 71)
+   (tb 4 0 4.5 90 0 0 "32123b" 71))
+   
+  ; technic gear 8 tooth
+  (tb 0 0 0.5 90 0 11 "3647" 71)
+  (tb 2 0 0.5 90 0 22.5 "3647" 71)
+  (tb 4 0 0.5 90 0 0 "3647" 71)
+  (tb 6 0 0.5 90 0 22.5 "3647" 71)
+  (tb 8 0 0.5 90 0 0 "3647" 71)
+  (tb 4 0 4.5 90 0 0 "3647" 71)
+      
+  ; technic gear 40 tooth
+  (tb -3 0 2.5 90 0 0 "3649" 7)
+  (tb 11 0 2.5 90 0 0 "3649" 7)
+
+  (def a-chain (chain (list (list (bw -3) (bw 2.5) (bw 2.5) -1)
+			    (list (bw 4) (bw 4.5) (bw 0.65) -1)
+			    (list (bw 11) (bw 2.5) (bw 2.5) -1)
+			    (list (bw 8) (bw 0.5) (bw 0.65) -1)
+			    (list (bw 0) (bw 0.5) (bw 0.65) -1)
+			    )))  
+
+  (rotate (list 90 0 0)
+   (for (i 56)
+    (transform (a-chain (* 15.59 i))
+     (chain-link))))  
+  ))
+
+(cab)
+
+(translate (list 0 (bw -5) (bw 0.5))
+ (track t))
+
+(translate (list 0 (bw 5) (bw 0.5))
+ (track nil))
