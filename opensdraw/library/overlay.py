@@ -27,7 +27,7 @@ class Overlay(functions.LCadFunction):
 
     :param image: The name of the image file.
     :param scale: The conversion factor (LDU / pixel).
-    :param transparency: Optional (0-255), default is 64.
+    :param transparency: Optional (0-255, lower is more transparent), default is 64.
 
     Usage::
 
