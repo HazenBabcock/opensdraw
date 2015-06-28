@@ -1,6 +1,8 @@
 
 Current:
 
+2015-06-28: Add overlay() module for easier MOC scaling.
+
 2015-05-19: Rename the LCadObject type to LCadBoolean.
 
 2015-05-18: Change calling convention so that only SpecialFunctions get the
