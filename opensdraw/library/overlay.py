@@ -60,12 +60,15 @@ class Overlay(functions.LCadFunction):
             colors = {}
             
             pic = Image.open(filename)
+            pic = pic.convert('RGB')
             [width, height] = pic.size
             
             # Process the picture, white pixels are ignored.
             for i in range(width):
                 for j in range(height):
+                    
                     [r, g, b] = pic.getpixel((i, j))
+                    
                     color = "#" + "".join(map(lambda(x): "{0:#0{1}x}".format(x,4).upper()[2:], [r, g, b]))
                     if (color == "#FFFFFF"):
                         continue
