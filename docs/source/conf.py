@@ -283,7 +283,7 @@ texinfo_documents = [
 
 import mock
 
-MOCK_MODULES = ['numpy', 'rply', 'scipy']
+MOCK_MODULES = ['numpy', 'rply', 'scipy', 'scipy.optimize']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.MagicMock()
 
