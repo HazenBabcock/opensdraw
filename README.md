@@ -2,7 +2,7 @@
 A programming language (and some related utilities) for creating [LDraw](http://www.ldraw.org) format files.
 
 ### Documentation ###
-The documentation is [here](http://HazenBabcock.github.io/opensdraw).
+The documentation is [here](http://opensdraw.readthedocs.org/en/latest/).
 
 ### Getting Started ###
 You will need to add this directory to your Python path. One way to do this is to copy the openldraw.pth file into your Python dist-packages directory, then edit it to have the correct path.
