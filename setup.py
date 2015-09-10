@@ -8,5 +8,5 @@ setup(name='OpenSDraw',
       author='Hazen Babcock',
       author_email='hbabcock@mac.com',
       packages=['opensdraw'],
-      install_requires['numpy', 'rply', 'scipy']
+      install_requires=['numpy', 'rply', 'scipy']
      )
