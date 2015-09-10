@@ -9,9 +9,6 @@ can be read by any LDraw compatible viewer such as LDView.
 
 This project was inspired by `OpenSCAD <http://www.openscad.org/>`_.
 
-If you have any questions please e-mail me at hbabcock _at_ mac _dot_ com,
-or open an issue on the project page.
-
 Download
 --------
 
