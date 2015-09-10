@@ -281,12 +281,9 @@ texinfo_documents = [
 
 # -- Mock for read-the-docs ---------------------------------------------
 
-from unittest.mock import MagicMock
-
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-            return Mock()
+import mock
 
 MOCK_MODULES = ['numpy', 'rply', 'scipy']
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = mock.Mock()
+
