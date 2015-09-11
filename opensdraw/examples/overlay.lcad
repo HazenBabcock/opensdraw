@@ -27,7 +27,7 @@
 (mirror (list 0 0 1)
  (translate (list (bw -20.5) 0 (bw -20.5))
   (rotate (list 90 0 0)
-   (overlay "d31ex_sv.png" 2.5))))
+   (overlay "d31ex_sv.png" 2.5 600))))
 
 ;(translate (list (bw -16) (bw -13.3) 0)
 ; (overlay "d31ex_tv.png" 2.5))

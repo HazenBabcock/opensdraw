@@ -25,26 +25,29 @@ class Overlay(functions.LCadFunction):
     be used to create 2D stickers. The image will be in the XY plane with the upper 
     left corner of the image at 0,0.
 
+    The function will return the highest color index that is used.
+
     :param image: The name of the image file.
     :param scale: The conversion factor (LDU / pixel).
+    :param index: The starting color index. LDraw uses color indices as high as 511, so 600+ is probably a good idea.
     :param transparency: Optional (0-255, lower is more transparent), default is 64.
 
     Usage::
 
-     (overlay "blueprint.png" 2.0)
+     (overlay "blueprint.png" 2.0 600)
     """
 
     def __init__(self):
         functions.LCadFunction.__init__(self, "overlay")
-        self.color_index = 1000
         self.header_fn = partFunctions.lcad_functions["header"]
         self.quad_fn = partFunctions.lcad_functions["quadrilateral"]
         self.setSignature([[basestring],
                            [numbers.Number],
+                           [numbers.Number],
                            ["optional", [numbers.Number]]])
 
-    def call(self, model, filename, scale, *transparency):
-
+    def call(self, model, filename, scale, color_index, *transparency):
+        
         if (len(transparency) == 0):
             alpha = " ALPHA " + str(64)
         else:
@@ -74,8 +77,8 @@ class Overlay(functions.LCadFunction):
                         continue
 
                     if not (color in colors):
-                        self.color_index += 1
-                        colors[color] = self.color_index
+                        color_index += 1
+                        colors[color] = color_index
                         
                     self.quad_fn.call(model,
                                       [i * scale, j * scale, 0],
