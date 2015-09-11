@@ -29,7 +29,9 @@ class MathFunction(functions.LCadFunction):
 
 class Absolute(MathFunction):
     """
-    **abs** - Return the absolute value of a number.
+    **abs**
+
+    Return the absolute value of a number.
 
     Usage::
 
@@ -49,7 +51,9 @@ lcad_functions["abs"] = Absolute("abs")
 
 class Divide(MathFunction):
     """
-    **/** - Divide the first number, vector or matrix by one or more additional 
+    **/**   
+
+    Divide the first number, vector or matrix by one or more additional 
     numbers, vectors or matrices. Vectors and matrices are divided pointwise.
 
     Usage::
@@ -73,7 +77,9 @@ lcad_functions["/"] = Divide("/")
 
 class Minus(MathFunction):
     """
-    **-** - Subtract one or more numbers, vectors or matrices from the first 
+    **-** 
+
+    Subtract one or more numbers, vectors or matrices from the first 
     number, vector or matrix.
 
     Usage::
@@ -105,7 +111,9 @@ lcad_functions["-"] = Minus("-")
 
 class Modulo(MathFunction):
     """
-    **%** - Return remainder of the first number divided by the second number.
+    **%**
+
+    Return remainder of the first number divided by the second number.
 
     Usage::
 
@@ -124,7 +132,9 @@ lcad_functions["%"] = Modulo("%")
 
 class Multiply(MathFunction):
     """
-    ***** - Multiply two or more numbers, vectors or matrices. If the first 
+    **\***
+
+    Multiply two or more numbers, vectors or matrices. If the first 
     number is a matrix, then multiplication will be done using matrix 
     multiplication, i.e. (* mat vec) will return a vector and (* mat mat)
     will return a matrix.
@@ -158,7 +168,9 @@ lcad_functions["*"] = Multiply("*")
 
 class Plus(MathFunction):
     """
-    **+** - Add together two or more numbers, vectors or matrices.
+    **+** 
+
+    Add together two or more numbers, vectors or matrices.
 
     Usage::
 
