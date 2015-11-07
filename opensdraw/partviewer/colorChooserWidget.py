@@ -70,6 +70,20 @@ class ColorChooserWidget(QtGui.QWidget):
     def handleClick(self, color):
         self.colorPicked.emit(color)
 
+    ## markAvailableColors
+    #
+    # @param colors An array of color ids, or None.
+    #
+    def markAvailableColors(self, colors):
+        for panel in self.color_panels:
+            if colors is not None:
+                if panel.getColorID() in colors:
+                    panel.markAvailable(True)
+                else:
+                    panel.markAvailable(False)
+            else:
+                panel.markAvailable(True)
+
 
 ## ColorPanelFrame
 #
@@ -100,6 +114,18 @@ class ColorPanelFrame(QtGui.QFrame):
 
         self.setToolTip("LDraw color code: " + self.color.code + "\nLDraw name: " + self.color.name)
 
+    ## getColorID
+    #
+    def getColorID(self):
+        return self.color.code
+
+    ## markAvailable
+    #
+    def markAvailable(self, available):
+        if (self.widget.available != available):
+            self.widget.available = available
+            self.widget.update()
+        
     ## mousePressEvent
     #
     # @param event A QMouseEvent
@@ -122,8 +148,9 @@ class ColorPanelWidget(QtGui.QWidget):
     def __init__(self, color, parent):
         QtGui.QWidget.__init__(self, parent)
 
+        self.available = True
         self.q_color = QtGui.QColor(*color.getFaceColor(scale = "256"))
-
+        
     ## paintEvent
     #
     # @param event A QPaintEvent.
@@ -131,8 +158,12 @@ class ColorPanelWidget(QtGui.QWidget):
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
         painter.setPen(self.q_color)
-        painter.setBrush(self.q_color)
-        painter.drawRect(0, 0, self.width(), self.height())
+        if self.available:
+            painter.setBrush(self.q_color)
+            painter.drawRect(0, 0, self.width(), self.height())
+        else:
+            painter.drawLine(0, 0, self.width(), self.height())
+            painter.drawLine(self.width(), 0, 0, self.height())
 
 
 ## parseColor

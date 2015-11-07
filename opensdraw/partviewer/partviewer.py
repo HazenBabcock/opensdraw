@@ -9,6 +9,9 @@
 
 import os
 import sys
+import urllib
+import urllib2
+
 from xml.etree import ElementTree
 
 from PyQt4 import QtCore, QtGui
@@ -17,6 +20,34 @@ import opensdraw.lcad_lib.ldrawPath as ldrawPath
 import colorChooserWidget
 
 import partviewer_ui
+
+
+## getRBPartInfo
+#
+# Get part information from rebrickable.com.
+#
+def getRBPartInfo(api_key, part_id):
+    query = {"key" : api_key,
+             "format" : "xml",
+             "part_id" : part_id,
+             "inc_colors" : "1"}
+
+    url = "http://rebrickable.com/api/get_part?" + urllib.urlencode(query)
+    response = urllib2.urlopen(url).read()
+    part_xml = ElementTree.fromstring(response)
+
+    info = {}
+    info["year1"] = part_xml.find("year1").text
+    info["year2"] = part_xml.find("year2").text
+
+    colors = []
+    for color in part_xml.find("colors"):
+        colors.append(color.find("ldraw_color_id").text)
+
+    info["colors"] = colors
+
+    return info
+
 
 ## PartProxyModel
 #
@@ -128,6 +159,8 @@ class PartViewer(QtGui.QMainWindow):
         # Restore settings.
         self.resize(self.settings.value("MainWindow/Size", self.size()).toSize())
         self.move(self.settings.value("MainWindow/Position", self.pos()).toPoint())
+        self.ui.apiLineEdit.setText(self.settings.value("apiText", "").toString())
+        self.ui.rebrickCheckBox.setChecked(self.settings.value("rebrickCheckBox", False).toBool())
         self.ui.splitter.restoreState(self.settings.value("splitterSizes").toByteArray())
 
     ## closeEvent
@@ -138,6 +171,8 @@ class PartViewer(QtGui.QMainWindow):
         self.ui.openGLWidget.freePartGL()
         self.settings.setValue("MainWindow/Size", self.size())
         self.settings.setValue("MainWindow/Position", self.pos())
+        self.settings.setValue("apiText", self.ui.apiLineEdit.text())
+        self.settings.setValue("rebrickCheckBox", self.ui.rebrickCheckBox.isChecked())
         self.settings.setValue("splitterSizes", self.ui.splitter.saveState())
 
     ## handleCurrentRowChange
@@ -180,12 +215,19 @@ class PartViewer(QtGui.QMainWindow):
     #
     def handleLoadPart(self):
         self.ui.openGLWidget.loadPart(self.part_path + self.part_file)
-
+        if self.ui.rebrickCheckBox.isChecked():
+            part_id = self.part_file.split(".")[0]
+            info = getRBPartInfo(self.ui.apiLineEdit.text(), part_id)
+            self.color_chooser.markAvailableColors(info["colors"])
+            self.ui.rebrickLabel.setText(info["year1"] + " - " + info["year2"])
+        else:
+            self.color_chooser.markAvailableColors(None)
+            
     ## updatePartLabel
     #
     # Update the part label text based on the current part & color.
     def updatePartLabel(self):
-        self.ui.partFileLabel.setText(self.part_file+ ", " + self.part_color)
+        self.ui.partFileLabel.setText(self.part_file + ", " + self.part_color)
 
 
 # Main
