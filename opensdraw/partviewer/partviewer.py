@@ -31,14 +31,21 @@ def getRBPartInfo(api_key, part_id):
              "format" : "xml",
              "part_id" : part_id,
              "inc_colors" : "1"}
+    info = {}
 
     url = "http://rebrickable.com/api/get_part?" + urllib.urlencode(query)
     response = urllib2.urlopen(url).read()
+    if (response == "INVALIDKEY"):
+        info["invalid_key"] = True
+        return info
+    
     part_xml = ElementTree.fromstring(response)
 
-    info = {}
-    info["year1"] = part_xml.find("year1").text
-    info["year2"] = part_xml.find("year2").text
+    try:
+        info["year1"] = part_xml.find("year1").text
+        info["year2"] = part_xml.find("year2").text
+    except AttributeError:
+        info["invalid_id"] = True
 
     colors = []
     for color in part_xml.find("colors"):
@@ -212,14 +219,20 @@ class PartViewer(QtGui.QMainWindow):
 
     ## handleLoadPartTimeout
     #
-    #
     def handleLoadPart(self):
         self.ui.openGLWidget.loadPart(self.part_path + self.part_file)
         if self.ui.rebrickCheckBox.isChecked():
             part_id = self.part_file.split(".")[0]
             info = getRBPartInfo(self.ui.apiLineEdit.text(), part_id)
-            self.color_chooser.markAvailableColors(info["colors"])
-            self.ui.rebrickLabel.setText(info["year1"] + " - " + info["year2"])
+            if "invalid_id" in info:
+                self.color_chooser.markAvailableColors(None)
+                self.ui.rebrickLabel.setText("This part is not known to Rebrickable.")
+            elif "invalid_key" in info:
+                self.color_chooser.markAvailableColors(None)
+                self.ui.rebrickLabel.setText("Invalid API key.")
+            else:
+                self.color_chooser.markAvailableColors(info["colors"])
+                self.ui.rebrickLabel.setText(info["year1"] + " - " + info["year2"])
         else:
             self.color_chooser.markAvailableColors(None)
             
