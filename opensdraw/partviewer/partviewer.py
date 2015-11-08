@@ -33,6 +33,14 @@ def getRBPartInfo(api_key, part_id):
              "inc_colors" : "1"}
     info = {}
 
+    #
+    # FIXME:
+    #
+    #   We should use https:// but this currently fails for (Python 2.7.9)
+    #   with "certificate verify failed".
+    #
+    #   http://stackoverflow.com/questions/27804710/python-urllib2-ssl-error/27826829#27826829
+    #
     url = "http://rebrickable.com/api/get_part?" + urllib.urlencode(query)
     response = urllib2.urlopen(url).read()
     if (response == "INVALIDKEY"):
