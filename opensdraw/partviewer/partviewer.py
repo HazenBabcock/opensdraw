@@ -8,9 +8,11 @@
 #
 
 import os
+import requests
 import sys
 import urllib
 import urllib2
+import warnings
 
 from xml.etree import ElementTree
 
@@ -26,43 +28,38 @@ import partviewer_ui
 #
 # Get part information from rebrickable.com.
 #
+cert_fails = False
 def getRBPartInfo(api_key, part_id):
     query = {"key" : api_key,
-             "format" : "xml",
+             "format" : "json",
              "part_id" : part_id,
              "inc_colors" : "1"}
-    info = {}
 
-    #
-    # FIXME:
-    #
-    #   We should use https:// but this currently fails for (Python 2.7.9)
-    #   with "certificate verify failed".
-    #
-    #   http://stackoverflow.com/questions/27804710/python-urllib2-ssl-error/27826829#27826829
-    #
-    url = "http://rebrickable.com/api/get_part?" + urllib.urlencode(query)
-    response = urllib2.urlopen(url).read()
-    if (response == "INVALIDKEY"):
-        info["invalid_key"] = True
-        return info
+    url = "https://rebrickable.com/api/get_part?" + urllib.urlencode(query)
+
+    global cert_fails
+    if not cert_fails:
+        try:
+            # Try with verification first.
+            response = requests.get(url, allow_redirects=False)
     
-    part_xml = ElementTree.fromstring(response)
+        except requests.exceptions.SSLError as e:
+            print "Got SSL Error:", e
+            print "Trying again without SSL certificate verification."
+            cert_fails = True
 
-    try:
-        info["year1"] = part_xml.find("year1").text
-        info["year2"] = part_xml.find("year2").text
-    except AttributeError:
-        info["invalid_id"] = True
+    if cert_fails:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            response = requests.get(url, allow_redirects=False, verify=False)
 
-    colors = []
-    for color in part_xml.find("colors"):
-        colors.append(color.find("ldraw_color_id").text)
-
-    info["colors"] = colors
-
-    return info
-
+    if (response.text == "INVALIDKEY"):
+        return {"error" : "Invalid API key."}
+    elif (response.text == "NOPART"):
+        return {"error" : "This part is not known to Rebrickable."}
+    else:
+        return response.json()
+    
 
 ## PartProxyModel
 #
@@ -232,15 +229,13 @@ class PartViewer(QtGui.QMainWindow):
         if self.ui.rebrickCheckBox.isChecked():
             part_id = self.part_file.split(".")[0]
             info = getRBPartInfo(self.ui.apiLineEdit.text(), part_id)
-            if "invalid_id" in info:
+            if ("error" in info):
                 self.color_chooser.markAvailableColors(None)
-                self.ui.rebrickLabel.setText("This part is not known to Rebrickable.")
-            elif "invalid_key" in info:
-                self.color_chooser.markAvailableColors(None)
-                self.ui.rebrickLabel.setText("Invalid API key.")
+                self.ui.rebrickLabel.setText(info["error"])
             else:
-                self.color_chooser.markAvailableColors(info["colors"])
-                self.ui.rebrickLabel.setText(info["year1"] + " - " + info["year2"])
+                colors = map(lambda(x): x.get("ldraw_color_id", ""), info.get("colors", []))
+                self.color_chooser.markAvailableColors(colors)
+                self.ui.rebrickLabel.setText(info.get("year1","?") + " - " + info.get("year2","?"))
         else:
             self.color_chooser.markAvailableColors(None)
             
