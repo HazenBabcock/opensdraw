@@ -11,7 +11,7 @@ import numpy
 import opensdraw.lcad_lib.colorsParser as colorsParser
 
 # Load colors and create dictionaries.
-all_colors = colorsParser.loadColors()
+all_colors = colorsParser.loadColorGroups()
 
 lcad_name_dict = {}
 for color_group in all_colors:
