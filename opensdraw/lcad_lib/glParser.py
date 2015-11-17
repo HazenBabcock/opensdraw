@@ -102,8 +102,9 @@ void main(void)
 triangle_fragment = """
 #version 150
 
-uniform mat4 mvp;
+uniform vec3 camera_position;
 uniform vec3 light_position;
+uniform mat4 mvp;
 
 in vec4 frag_color;
 in vec4 frag_normal;
@@ -113,32 +114,34 @@ out vec4 final_color;
 
 void main(void)
 {
-    vec3 light_color = vec(1.0, 1.0, 1.0);
+    vec3 light_color = vec3(frag_color);
+    vec3 specular_color = vec3(frag_color);
 
-    // Calculate normal in world coordinates
-    mat3 normal_matrix = mat3(mvp);
-    vec3 normal = normalize(normal_matrix * vec3(frag_normal));
+    vec3 normal = normalize(mat3(mvp) * vec3(frag_normal));
+    vec3 surface_pos = vec3(mvp * frag_vert);
+    vec3 surface_to_light = normalize(light_position - surface_pos);
+    vec3 surface_to_camera = normalize(camera_position - surface_pos);
     
-    // Calculate the location of this fragment (pixel) in world coordinates
-    vec3 frag_position = vec3(mvp * frag_vert);
-    
-    // Calculate the vector from this pixels surface to the light source
-    vec3 surface_to_light = light_position - frag_position;
+    // ambient
+    float ambient_coefficient = 0.2;
+    vec3 ambient = 0.05 * frag_color.rgb * light_color;
 
-    // Calculate the cosine of the angle of incidence
-    float brightness = dot(normal, surface_to_light) / (length(surface_to_light) * length(normal));
-    brightness = clamp(brightness, 0, 1);
+    // diffuse
+    float diffuse_coefficient = max(0.0, dot(normal, surface_to_light));
+    vec3 diffuse = diffuse_coefficient * frag_color.rgb * light_color;
 
-    // Calculate final color of the pixel, based on:
-    //  1. The angle of incidence: brightness
-    //  2. The color/intensities of the light: light.intensities
-    float gain = 100;
-    float r = clamp(gain * brightness * light_color * frag_color[0], 0, 1);
-    float g = clamp(gain * brightness * light_color * frag_color[1], 0, 1);
-    float b = clamp(gain * brightness * light_color * frag_color[2], 0, 1);
+    // specular
+    float specular_coefficient = 0.0;
+    if (diffuse_coefficient > 0.0){
+        specular_coefficient = pow(max(0.0, dot(surface_to_camera, reflect(-surface_to_light, normal))), 2);
+    }
+    vec3 specular = specular_coefficient * specular_color * light_color;
 
-    //final_color = vec4(brightness * light_color * frag_color.rgb, frag_color.a);
-    final_color = vec4(r, g, b, frag_color.a);
+    // linear color
+    vec3 linear_color = min(ambient_coefficient + diffuse_coefficient + specular_coefficient, 1.0) * frag_color.rgb;
+    //linear_color = min(linear_color, vec3(1.0, 1.0, 1.0));
+
+    final_color = vec4(linear_color, frag_color.a);
 }
 """
 
@@ -222,8 +225,8 @@ class GLParser(datFileParser.Parser):
         self.lines_only = False  # This is mostly for debugging.
         self.matrix = matrix
         self.vao_lines = GLVaoLine()
-        #self.vao_triangles = GLVaoTriangle()
-        self.vao_triangles = GLVaoTest()
+        self.vao_triangles = GLVaoTriangle()
+        #self.vao_triangles = GLVaoTest()
 
         if self.matrix is None:
             self.matrix = numpy.identity(4)
@@ -364,14 +367,14 @@ class GLParser(datFileParser.Parser):
                 self.addTriangle(p1,p3,p2)
                 self.addTriangle(p1,p4,p3)
 
-    def render(self, mvp, light_position):
+    def render(self, mvp):
 
-        self.vao_triangles.render(mvp, light_position)
+        self.vao_triangles.render(mvp)
         self.vao_lines.render(mvp)
 
         # Draw children.
         for child in self.children:
-            child.render(mvp, light_position)
+            child.render(mvp)
                         
     def startFile(self, depth):
         self.depth = depth
@@ -464,6 +467,10 @@ class GLVaoLine(object):
         self.v_size += 4
 
     def fillBuffer(self, shader, buffer_id, buffer_data, buffer_name):
+        if (shader.attributeLocation(buffer_name) < 0):
+            print buffer_name, "has does not exist?"
+            return
+        
         np_buffer_data = numpy.array(buffer_data, dtype = numpy.float32)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo_id[buffer_id])
         GL.glBufferData(GL.GL_ARRAY_BUFFER,
@@ -558,7 +565,7 @@ class GLVaoTest(GLVaoLine):
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
         GL.glBindVertexArray(0)
 
-    def render(self, mvp, light_position):
+    def render(self, mvp):
         GL.glUseProgram(GLVaoTriangle.gl_shader.program_id)
 
         mvp_id = GLVaoTriangle.gl_shader.uniformLocation('mvp')
@@ -615,14 +622,17 @@ class GLVaoTriangle(GLVaoLine):
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
         GL.glBindVertexArray(0)
 
-    def render(self, mvp, light_position):
+    def render(self, mvp):
         GL.glUseProgram(GLVaoTriangle.gl_shader.program_id)
 
         mvp_id = GLVaoTriangle.gl_shader.uniformLocation('mvp')
         GL.glUniformMatrix4fv(mvp_id, 1, GL.GL_FALSE, mvp)
 
+        camera_position_id = GLVaoTriangle.gl_shader.uniformLocation('camera_position')
+        GL.glUniform3fv(camera_position_id, 1, numpy.array([0.0, 0.0, 0.5], dtype = numpy.float32))
+        
         light_position_id = GLVaoTriangle.gl_shader.uniformLocation('light_position')
-        GL.glUniform3fv(light_position_id, 1, light_position)
+        GL.glUniform3fv(light_position_id, 1, numpy.array([0.0, 4.0, 0.0], dtype = numpy.float32))
 
         GL.glBindVertexArray(self.gl_id)
         GL.glDrawArrays(self.gl_type, 0, self.v_size)
