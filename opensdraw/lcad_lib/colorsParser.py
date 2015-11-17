@@ -73,7 +73,7 @@ def loadColors(colors_file = None):
         cur_group = []
         for color_entry in color_group:
             color_obj = Color(color_entry)
-            all_colors[color_obj.lego_id] = color_obj
+            all_colors[color_obj.code] = color_obj
 
     return all_colors    
 
@@ -104,7 +104,9 @@ def loadColorGroups(colors_file = None):
 
 
 if (__name__ == '__main__'):
-    print loadColors()
+    all_colors = loadColors()
+    for key in sorted(all_colors.keys()):
+        print key, all_colors[key].name
 
 #
 # The MIT License
