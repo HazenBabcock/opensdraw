@@ -21,6 +21,11 @@ images this is not too much of an issue.
 Hazen 11/15
 """
 
+# Notes
+#
+# 1. Sort out winding problems using colors
+#
+
 import numpy
 
 from OpenGL import arrays, GL
@@ -28,21 +33,61 @@ from OpenGL import arrays, GL
 import colorsParser
 import datFileParser
 
-# Variables 
 
-# Vertex shader
-vertex = """
+#
+# Shader for lines.
+#
+
+# Line vertex shader
+line_vertex = """
 #version 150
+
 in vec4 vert;
 in vec4 vert_color;
-in vec4 vert_normal;
 
 out vec4 frag_color;
-out vec4 frag_normal;
-out vec4 frag_vert;
 
 uniform mat4 mvp;
 
+void main(void)
+{
+    frag_color = vert_color;
+    gl_Position = mvp * vert;
+}
+"""
+
+# Line fragment shader
+line_fragment = """
+#version 150
+
+in vec4 frag_color;
+
+out vec4 final_color;
+
+void main(void)
+{
+    final_color = frag_color;
+}
+"""
+
+#
+# Shader for triangles.
+#
+
+# Triangle vertex shader
+triangle_vertex = """
+#version 150
+
+in vec4 vert;
+in vec4 vert_color;
+in vec4 vert_normal;
+ 
+out vec4 frag_color;
+out vec4 frag_normal;
+out vec4 frag_vert;
+ 
+uniform mat4 mvp;
+ 
 void main(void)
 {
     frag_color = vert_color;
@@ -53,13 +98,12 @@ void main(void)
 }
 """
 
-# Fragment shader
-fragment = """
+# Triangle fragment shader
+triangle_fragment = """
 #version 150
 
 uniform mat4 mvp;
 uniform vec3 light_position;
-uniform vec3 light_color;
 
 in vec4 frag_color;
 in vec4 frag_normal;
@@ -69,24 +113,82 @@ out vec4 final_color;
 
 void main(void)
 {
-    //calculate normal in world coordinates
-    mat3 normal_matrix = transpose(inverse(mat3(mvp)));
+    vec3 light_color = vec(1.0, 1.0, 1.0);
+
+    // Calculate normal in world coordinates
+    mat3 normal_matrix = mat3(mvp);
     vec3 normal = normalize(normal_matrix * vec3(frag_normal));
     
-    //calculate the location of this fragment (pixel) in world coordinates
+    // Calculate the location of this fragment (pixel) in world coordinates
     vec3 frag_position = vec3(mvp * frag_vert);
     
-    //calculate the vector from this pixels surface to the light source
+    // Calculate the vector from this pixels surface to the light source
     vec3 surface_to_light = light_position - frag_position;
 
-    //calculate the cosine of the angle of incidence
+    // Calculate the cosine of the angle of incidence
     float brightness = dot(normal, surface_to_light) / (length(surface_to_light) * length(normal));
     brightness = clamp(brightness, 0, 1);
 
-    //calculate final color of the pixel, based on:
-    // 1. The angle of incidence: brightness
-    // 2. The color/intensities of the light: light.intensities
-    final_color = vec4(brightness * light_color * frag_color.rgb, frag_color.a);
+    // Calculate final color of the pixel, based on:
+    //  1. The angle of incidence: brightness
+    //  2. The color/intensities of the light: light.intensities
+    float gain = 100;
+    float r = clamp(gain * brightness * light_color * frag_color[0], 0, 1);
+    float g = clamp(gain * brightness * light_color * frag_color[1], 0, 1);
+    float b = clamp(gain * brightness * light_color * frag_color[2], 0, 1);
+
+    //final_color = vec4(brightness * light_color * frag_color.rgb, frag_color.a);
+    final_color = vec4(r, g, b, frag_color.a);
+}
+"""
+
+#
+# Shader for checking that surface normals are correct for
+# the purpose of identifying counter-clockwise vs clockwise
+# winding errors.
+#
+
+# test (triangle) vertex shader
+test_vertex = """
+#version 150
+
+in vec4 vert;
+in vec4 vert_normal;
+
+out vec4 frag_normal;
+ 
+uniform mat4 mvp;
+ 
+void main(void)
+{
+    frag_normal = vert_normal;
+
+    gl_Position = mvp * vert;
+}
+"""
+
+# test (triangle) fragment shader
+test_fragment = """
+#version 150
+
+uniform mat4 mvp;
+
+in vec4 frag_normal;
+
+out vec4 final_color;
+
+void main(void)
+{
+    mat3 normal_matrix = mat3(mvp);
+    vec3 normal = normalize(normal_matrix * vec3(frag_normal));
+
+    float ndot = dot(normal, vec3(0.0, 0.0, 1.0));
+    if (ndot >= 0){
+        final_color = vec4(0.0, 1.0, 0.0, 1.0);
+    }
+    else{
+        final_color = vec4(1.0, 0.0, 0.0, 1.0);
+    }
 }
 """
 
@@ -107,11 +209,9 @@ class GLParser(datFileParser.Parser):
     with this object.
     """
 
-    gl_shader = None
-
     def __init__(self, face_color, edge_color, matrix = None, invert_winding = False):
         datFileParser.Parser.__init__(self, None, None)
-
+        
         self.cw_winding = False
         self.children = []
         self.depth = 0
@@ -121,12 +221,10 @@ class GLParser(datFileParser.Parser):
         self.invert_winding = invert_winding
         self.lines_only = False  # This is mostly for debugging.
         self.matrix = matrix
-        self.vao_lines = GLVao(GL.GL_LINES)
-        self.vao_triangles = GLVao(GL.GL_TRIANGLES)
+        self.vao_lines = GLVaoLine()
+        #self.vao_triangles = GLVaoTriangle()
+        self.vao_triangles = GLVaoTest()
 
-        if GLParser.gl_shader is None:
-            GLParser.gl_shader = GLShader(vertex, fragment)
-            
         if self.matrix is None:
             self.matrix = numpy.identity(4)
 
@@ -184,8 +282,8 @@ class GLParser(datFileParser.Parser):
                 #print "  ", self.depth, parsed_line, self.cw_winding
 
     def endFile(self):
-        #self.vao_lines.finalize(GLParser.gl_shader)
-        self.vao_triangles.finalize(GLParser.gl_shader)
+        self.vao_lines.finalize()
+        self.vao_triangles.finalize()
     
     def freeGL(self):
         if (self.vao_triangles.v_size > 0):
@@ -266,35 +364,14 @@ class GLParser(datFileParser.Parser):
                 self.addTriangle(p1,p3,p2)
                 self.addTriangle(p1,p4,p3)
 
-    def render(self, mvp, light_position, light_color):
+    def render(self, mvp, light_position):
 
-        # Draw object.
-        GL.glUseProgram(GLParser.gl_shader.program_id)
-
-        mvp_id = GLParser.gl_shader.uniformLocation('mvp')
-        GL.glUniformMatrix4fv(mvp_id, 1, GL.GL_FALSE, mvp)
-
-        light_position_id = GLParser.gl_shader.uniformLocation('light_position')
-        GL.glUniform3fv(light_position_id, 1, light_position)
-
-        light_color_id = GLParser.gl_shader.uniformLocation('light_color')
-        GL.glUniform3fv(light_color_id, 1, light_color)
-
-        #if not self.lines_only:
-        #    if (self.vao_triangles.v_size > 0):
-        GL.glBindVertexArray(self.vao_triangles.gl_id)
-        GL.glDrawArrays(self.vao_triangles.gl_type, 0, self.vao_triangles.v_size)
-
-        #if (self.vao_lines.v_size > 0):
-        #    GL.glBindVertexArray(self.vao_lines.gl_id)
-        #    GL.glDrawArrays(self.vao_lines.gl_type, 0, self.vao_lines.v_size)
-
-        GL.glBindVertexArray(0)
-        GL.glUseProgram(0)
+        self.vao_triangles.render(mvp, light_position)
+        self.vao_lines.render(mvp)
 
         # Draw children.
         for child in self.children:
-            child.render(mvp, light_position, light_color)
+            child.render(mvp, light_position)
                         
     def startFile(self, depth):
         self.depth = depth
@@ -356,95 +433,66 @@ class GLShader(object):
         return GL.glGetAttribLocation(self.program_id, name)
 
 
-class GLVao(object):
+class GLVaoLine(object):
+    """
+    GL Vertex array object lines.
+    """
 
-    def __init__(self, gl_type):
+    gl_shader = None
+    
+    def __init__(self):
 
         self.gl_id = 0
-        self.gl_type = gl_type
+        self.gl_type = GL.GL_LINES
         self.vbo_id = 0
         
         self.c_size = 0
-        self.n_size = 0
         self.v_size = 0
         
         self.colors = []
-        self.normals = []
         self.vertices = []
+
+        if GLVaoLine.gl_shader is None:
+            GLVaoLine.gl_shader = GLShader(line_vertex, line_fragment)
 
     def addColor(self, color):
         self.colors.extend(color)
         self.c_size += 4
 
-    def addNormal(self, normal):
-        self.normals.extend(normal)
-        self.n_size += 4
-        
     def addVertex(self, vertex):
         self.vertices.extend(vertex)
         self.v_size += 4
 
-    def finalize(self, gl_shader):
+    def fillBuffer(self, shader, buffer_id, buffer_data, buffer_name):
+        np_buffer_data = numpy.array(buffer_data, dtype = numpy.float32)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo_id[buffer_id])
+        GL.glBufferData(GL.GL_ARRAY_BUFFER,
+                        arrays.ArrayDatatype.arrayByteCount(np_buffer_data),
+                        np_buffer_data, 
+                        GL.GL_STATIC_DRAW)
+        GL.glVertexAttribPointer(shader.attributeLocation(buffer_name), 
+                                 4,
+                                 GL.GL_FLOAT,
+                                 GL.GL_FALSE,
+                                 0,
+                                 None)
+        GL.glEnableVertexAttribArray(buffer_id)
+
+    def finalize(self):
         if (self.v_size == 0):
             return
 
         if (self.c_size != self.v_size):
             raise GLParserException("Number of colors vertices does not match number of position vertices")
 
-        if (self.c_size != self.n_size):
-            raise GLParserException("Number of normal vertices does not match number of position vertices")
-
-        color_data = numpy.array(self.colors, dtype = numpy.float32)
-        normal_data = numpy.array(self.normals, dtype = numpy.float32)
-        vertex_data = numpy.array(self.vertices, dtype = numpy.float32)
-        
         self.gl_id = GL.glGenVertexArrays(1)
         GL.glBindVertexArray(self.gl_id)
 
-        # Create buffers.
-        self.vbo_id = GL.glGenBuffers(3)
+        # Create and fill buffers.
+        self.vbo_id = GL.glGenBuffers(2)
 
-        # Fill first buffer with the vertices.
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo_id[0])
-        GL.glBufferData(GL.GL_ARRAY_BUFFER,
-                        arrays.ArrayDatatype.arrayByteCount(vertex_data), 
-                        vertex_data, 
-                        GL.GL_STATIC_DRAW)
-        GL.glVertexAttribPointer(gl_shader.attributeLocation('vert'), 
-                                 4,
-                                 GL.GL_FLOAT,
-                                 GL.GL_FALSE,
-                                 0,
-                                 None)
-        GL.glEnableVertexAttribArray(0)
-
-        # Fill second buffer with the colors.
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo_id[1])
-        GL.glBufferData(GL.GL_ARRAY_BUFFER,
-                        arrays.ArrayDatatype.arrayByteCount(color_data), 
-                        color_data,
-                        GL.GL_STATIC_DRAW)
-        GL.glVertexAttribPointer(gl_shader.attributeLocation('vert_color'), 
-                                 4,
-                                 GL.GL_FLOAT,
-                                 GL.GL_FALSE,
-                                 0,
-                                 None)
-        GL.glEnableVertexAttribArray(1)
-
-        # Fill third buffer with the normals.
-        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo_id[2])
-        GL.glBufferData(GL.GL_ARRAY_BUFFER,
-                        arrays.ArrayDatatype.arrayByteCount(color_data), 
-                        color_data,
-                        GL.GL_STATIC_DRAW)
-        GL.glVertexAttribPointer(gl_shader.attributeLocation('vert_normal'),
-                                 4,
-                                 GL.GL_FLOAT,
-                                 GL.GL_FALSE,
-                                 0,
-                                 None)
-        GL.glEnableVertexAttribArray(2)
+        self.fillBuffer(GLVaoLine.gl_shader, 0, self.vertices, 'vert')
+        self.fillBuffer(GLVaoLine.gl_shader, 1, self.colors, 'vert_color')
         
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
         GL.glBindVertexArray(0)
@@ -454,10 +502,135 @@ class GLVao(object):
         GL.glDeleteVertexArrays(1, [self.gl_id])
         self.v_size = 0
 
-    def getColor(self):
-        return self.color
+    def render(self, mvp):
+        GL.glUseProgram(GLVaoLine.gl_shader.program_id)
 
+        mvp_id = GLVaoLine.gl_shader.uniformLocation('mvp')
+        GL.glUniformMatrix4fv(mvp_id, 1, GL.GL_FALSE, mvp)
 
+        GL.glBindVertexArray(self.gl_id)
+        GL.glDrawArrays(self.gl_type, 0, self.v_size)
+
+        GL.glBindVertexArray(0)
+        GL.glUseProgram(0)        
+        
+
+class GLVaoTest(GLVaoLine):
+    """
+    GL Vertex array object for testing surface normals.
+    """
+
+    gl_shader = None
+    
+    def __init__(self):
+        GLVaoLine.__init__(self)
+
+        self.gl_type = GL.GL_TRIANGLES
+        self.n_size = 0
+        self.normals = []
+
+        if GLVaoTriangle.gl_shader is None:
+            GLVaoTriangle.gl_shader = GLShader(test_vertex, test_fragment)
+
+    def addNormal(self, normal):
+        self.normals.extend(normal)
+        self.n_size += 4
+        
+    def finalize(self):
+        if (self.v_size == 0):
+            return
+
+        if (self.c_size != self.v_size):
+            raise GLParserException("Number of colors vertices does not match number of position vertices")        
+        
+        if (self.c_size != self.n_size):
+            raise GLParserException("Number of normal vertices does not match number of position vertices")
+        
+        self.gl_id = GL.glGenVertexArrays(1)
+        GL.glBindVertexArray(self.gl_id)
+
+        # Create and fill buffers.
+        self.vbo_id = GL.glGenBuffers(2)
+
+        self.fillBuffer(GLVaoTriangle.gl_shader, 0, self.vertices, 'vert')
+        self.fillBuffer(GLVaoTriangle.gl_shader, 1, self.colors, 'vert_normal')
+        
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+        GL.glBindVertexArray(0)
+
+    def render(self, mvp, light_position):
+        GL.glUseProgram(GLVaoTriangle.gl_shader.program_id)
+
+        mvp_id = GLVaoTriangle.gl_shader.uniformLocation('mvp')
+        GL.glUniformMatrix4fv(mvp_id, 1, GL.GL_FALSE, mvp)
+
+        GL.glBindVertexArray(self.gl_id)
+        GL.glDrawArrays(self.gl_type, 0, self.v_size)
+
+        GL.glBindVertexArray(0)
+        GL.glUseProgram(0)
+
+        
+class GLVaoTriangle(GLVaoLine):
+    """
+    GL Vertex array object triangles.
+    """
+
+    gl_shader = None
+    
+    def __init__(self):
+        GLVaoLine.__init__(self)
+
+        self.gl_type = GL.GL_TRIANGLES
+        self.n_size = 0
+        self.normals = []
+
+        if GLVaoTriangle.gl_shader is None:
+            GLVaoTriangle.gl_shader = GLShader(triangle_vertex, triangle_fragment)
+
+    def addNormal(self, normal):
+        self.normals.extend(normal)
+        self.n_size += 4
+        
+    def finalize(self):
+        if (self.v_size == 0):
+            return
+
+        if (self.c_size != self.v_size):
+            raise GLParserException("Number of colors vertices does not match number of position vertices")        
+        
+        if (self.c_size != self.n_size):
+            raise GLParserException("Number of normal vertices does not match number of position vertices")
+        
+        self.gl_id = GL.glGenVertexArrays(1)
+        GL.glBindVertexArray(self.gl_id)
+
+        # Create and fill buffers.
+        self.vbo_id = GL.glGenBuffers(3)
+
+        self.fillBuffer(GLVaoTriangle.gl_shader, 0, self.vertices, 'vert')
+        self.fillBuffer(GLVaoTriangle.gl_shader, 1, self.colors, 'vert_color')
+        self.fillBuffer(GLVaoTriangle.gl_shader, 2, self.colors, 'vert_normal')
+        
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
+        GL.glBindVertexArray(0)
+
+    def render(self, mvp, light_position):
+        GL.glUseProgram(GLVaoTriangle.gl_shader.program_id)
+
+        mvp_id = GLVaoTriangle.gl_shader.uniformLocation('mvp')
+        GL.glUniformMatrix4fv(mvp_id, 1, GL.GL_FALSE, mvp)
+
+        light_position_id = GLVaoTriangle.gl_shader.uniformLocation('light_position')
+        GL.glUniform3fv(light_position_id, 1, light_position)
+
+        GL.glBindVertexArray(self.gl_id)
+        GL.glDrawArrays(self.gl_type, 0, self.v_size)
+
+        GL.glBindVertexArray(0)
+        GL.glUseProgram(0)
+
+        
 #
 # The MIT License
 #
