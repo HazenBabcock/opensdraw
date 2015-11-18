@@ -34,12 +34,6 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         self.setFixedSize(width, height)
 
-        #gl_format = QtOpenGL.QGLFormat()
-        #gl_format.setAlpha(True)
-        #gl_format.setSamples(2)
-        #gl_format.setSampleBuffers(True)
-        #self.setFormat(gl_format)
-
     def freePartGL(self):
         if self.part is not None:
             self.part.freeGL()
@@ -52,7 +46,7 @@ class GLWidget(QtOpenGL.QGLWidget):
             print ' Opengl version: %s' % (GL.glGetString(GL.GL_VERSION))
             print ' GLSL Version: %s' % (GL.glGetString(GL.GL_SHADING_LANGUAGE_VERSION))
             print ' Renderer: %s' % (GL.glGetString(GL.GL_RENDERER))
-
+            
     def renderPart(self, filename, color_id):
         self.freePartGL()
         color = all_colors[str(color_id)]
@@ -67,7 +61,7 @@ class GLWidget(QtOpenGL.QGLWidget):
     def paintGL(self):
         pass
 
-    def offscreen(self):
+    def offscreen(self, picture_file):
         
         _format = QtOpenGL.QGLFramebufferObjectFormat()
         _format.setAttachment(QtOpenGL.QGLFramebufferObject.CombinedDepthStencil)
@@ -81,29 +75,16 @@ class GLWidget(QtOpenGL.QGLWidget):
         GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
         GL.glLineWidth(2.0)
 
-        GL.glShadeModel(GL.GL_SMOOTH)
-
-        #GL.glMaterialfv(GL.GL_FRONT, GL.GL_SPECULAR, [1.0, 1.0, 1.0, 1.0])
-        #GL.glMaterialfv(GL.GL_FRONT, GL.GL_SHININESS, [50.0])
-        #GL.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, [100.0, 0.0, 0.0, 0.0])
-
-        GL.glEnable(GL.GL_LIGHTING)
-        #GL.glEnable(GL.GL_LIGHT0)
-
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         
         self.mvp_matrix = self.mvp_matrix.astype(numpy.float32)
-        self.part.render(self.mvp_matrix,
-                         numpy.array([2,0,2], dtype = numpy.float32),
-                         numpy.array([1,1,1], dtype = numpy.float32))
-        #GLUT.glutInit()
-        #GLUT.glutSolidSphere(1.0, 20, 16)
+        self.part.render(self.mvp_matrix)
         
         GL.glFlush()
         
         fbo.release()
         image = fbo.toImage()
-        image.save("off.png")
+        image.save(picture_file)
 
     def updateView(self):
 
@@ -114,7 +95,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.mvp_matrix[2,2] = scale
 
         # Rotate around x axis.
-        ax = math.radians(45)
+        ax = math.radians(0)
         rot_x = numpy.identity(4)
         rot_x[1,1] = math.cos(ax)
         rot_x[2,2] = rot_x[1,1]
@@ -122,14 +103,22 @@ class GLWidget(QtOpenGL.QGLWidget):
         rot_x[2,1] = -rot_x[1,2]
         
         # Rotate around y axis.
-        ay = math.radians(45)
+        ay = math.radians(0)
         rot_y = numpy.identity(4)
         rot_y[0,0] = math.cos(ay)
         rot_y[2,2] = rot_y[0,0]
         rot_y[0,2] = math.sin(ay)
         rot_y[2,0] = -rot_y[0,2]
+
+        # Rotate around z axis.
+        az = math.radians(0)
+        rot_z = numpy.identity(4)
+        rot_z[0,0] = math.cos(az)
+        rot_z[1,1] = rot_z[0,0]
+        rot_z[0,1] = math.sin(az)
+        rot_z[1,0] = -rot_z[0,1]
         
-        self.mvp_matrix = numpy.dot(self.mvp_matrix, numpy.dot(rot_x, rot_y))
+        self.mvp_matrix = numpy.dot(self.mvp_matrix, numpy.dot(rot_x, numpy.dot(rot_y, rot_z)))
 
 
 ## GLWidgetTest
@@ -146,8 +135,9 @@ class GLWidgetTest(QtGui.QMainWindow):
     def renderPart(self):
         #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/32523.dat", 2)
         self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/57519.dat", 0)
+        #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/3622.dat", 1)
         #self.gl_widget.renderPixmap(100,100)
-        self.gl_widget.offscreen()
+        self.gl_widget.offscreen("test.png")
         self.close()
         
         #pixmap = self.gl_widget.grabFrameBuffer()
