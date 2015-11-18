@@ -197,6 +197,11 @@ void main(void)
 
 all_colors = colorsParser.loadColors()
 
+def compileShaders():
+    GLVaoLine()
+    GLVaoTest()
+    GLVaoTriangle()
+    
 
 class GLParserException(Exception):
     def __init__(self, message):
