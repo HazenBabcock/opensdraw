@@ -142,6 +142,7 @@ void main(void)
     //linear_color = min(linear_color, vec3(1.0, 1.0, 1.0));
 
     final_color = vec4(linear_color, frag_color.a);
+    //final_color = frag_color;
 }
 """
 
@@ -217,7 +218,7 @@ class GLParser(datFileParser.Parser):
     with this object.
     """
 
-    def __init__(self, face_color, edge_color, matrix = None, invert_winding = False):
+    def __init__(self, face_color, edge_color, matrix = None, invert_winding = False, mm_range = None):
         datFileParser.Parser.__init__(self, None, None)
         
         self.cw_winding = False
@@ -230,40 +231,60 @@ class GLParser(datFileParser.Parser):
         self.lines_only = False  # This is mostly for debugging.
         self.matrix = matrix
         self.vao_lines = GLVaoLine()
-        self.vao_triangles = GLVaoTriangle()
-        #self.vao_triangles = GLVaoTest()
-
+        #self.vao_triangles = GLVaoTriangle()
+        self.vao_triangles = GLVaoTest()
+        
         if self.matrix is None:
             self.matrix = numpy.identity(4)
 
-    def addLine(self, p1, p2):
+        if mm_range is None:
+            self.mm_range = [None, None, None, None, None, None]
+        else:
+            self.mm_range = mm_range
+            
+    def addLine(self, p1, p2, color_id):
+        if (color_id != 24):
+            color = all_colors[color_id]
+            edge_color = color.getEdgeColor()
+        else:
+            edge_color = self.edge_color
+            
         self.vao_lines.addVertex(p1)
-        self.vao_lines.addColor(self.edge_color)
+        self.vao_lines.addColor(edge_color)
         
         self.vao_lines.addVertex(p2)
-        self.vao_lines.addColor(self.edge_color)
+        self.vao_lines.addColor(edge_color)
 
-    def addTriangle(self, p1, p2, p3):
+    def addTriangle(self, p1, p2, p3, color_id):
         if not self.lines_only:
+
+            if (color_id != "16"):
+                color = all_colors[color_id]
+                face_color = color.getFaceColor()
+            else:
+                face_color = self.face_color
+                
             normal = numpy.cross(numpy.array(p2[:-1]) - numpy.array(p1[:-1]),
                                  numpy.array(p3[:-1]) - numpy.array(p1[:-1]))
             normal = normal.tolist() + [1.0]
 
             self.vao_triangles.addVertex(p1)
-            self.vao_triangles.addColor(self.face_color)
+            self.vao_triangles.addColor(face_color)
             self.vao_triangles.addNormal(normal)
             
             self.vao_triangles.addVertex(p2)
-            self.vao_triangles.addColor(self.face_color)
+            self.vao_triangles.addColor(face_color)
             self.vao_triangles.addNormal(normal)
             
             self.vao_triangles.addVertex(p3)
-            self.vao_triangles.addColor(self.face_color)
+            self.vao_triangles.addColor(face_color)
             self.vao_triangles.addNormal(normal)
 
-    def checkColor(self, color):
-        if (color != "16") and (color != "24"):
-            print "Unexpected color", color
+    def checkColor(self, parsed_line):
+        pass
+#        color = parsed_line[1]
+#        if (color != "16") and (color != "24"):
+#            print "Unexpected color", color, " ".join(parsed_line)
 
     def command(self, parsed_line):
         if (len(parsed_line) > 1):
@@ -302,11 +323,14 @@ class GLParser(datFileParser.Parser):
         for child in self.children:
             child.freeGL()
 
+    def getRange(self):
+        return self.mm_range
+    
     def line(self, parsed_line):
-        self.checkColor(parsed_line[1])
+        self.checkColor(parsed_line)
         p1 = self.parsePoint(parsed_line[2:5])
         p2 = self.parsePoint(parsed_line[5:8])
-        self.addLine(p1, p2)
+        self.addLine(p1, p2, parsed_line[1])
 
     def newFile(self, parsed_line):
 
@@ -336,22 +360,38 @@ class GLParser(datFileParser.Parser):
         child = GLParser(face_color,
                          edge_color,
                          matrix = matrix,
-                         invert_winding = invert_winding)
+                         invert_winding = invert_winding,
+                         mm_range = self.mm_range)
         self.invert_next = False
         self.children.append(child)
         return child
 
     def optionalLine(self, parsed_line):
-        self.checkColor(parsed_line[1])
+        pass
+#        self.checkColor(parsed_line)
 
     def parsePoint(self, point):
         point.append("1.0")
         pi = numpy.array(map(float, point))
         pf = numpy.dot(self.matrix, pi)
+
+        for i in range(3):
+            if self.mm_range[i] is None:
+                self.mm_range[i] = pf[i]
+            else:
+                if (pf[i] < self.mm_range[i]):
+                    self.mm_range[i] = pf[i]
+
+            if self.mm_range[i+3] is None:
+                self.mm_range[i+3] = pf[i]
+            else:
+                if (pf[i] > self.mm_range[i+3]):
+                    self.mm_range[i+3] = pf[i]
+
         return pf.tolist()[:-1] + [1.0]
 
     def quadrilateral(self, parsed_line):
-        self.checkColor(parsed_line[1])
+        self.checkColor(parsed_line)
 
         p1 = self.parsePoint(parsed_line[2:5])
         p2 = self.parsePoint(parsed_line[5:8])
@@ -364,13 +404,14 @@ class GLParser(datFileParser.Parser):
             self.addLine(p3, p4)
             self.addLine(p4, p1)
 
+        color_id = parsed_line[1]
         if not self.lines_only:
             if self.cw_winding:
-                self.addTriangle(p1,p2,p3)
-                self.addTriangle(p1,p3,p4)
+                self.addTriangle(p1, p2, p3, color_id)
+                self.addTriangle(p1, p3, p4, color_id)
             else:
-                self.addTriangle(p1,p3,p2)
-                self.addTriangle(p1,p4,p3)
+                self.addTriangle(p1, p3, p2, color_id)
+                self.addTriangle(p1, p4, p3, color_id)
 
     def render(self, mvp):
 
@@ -385,7 +426,7 @@ class GLParser(datFileParser.Parser):
         self.depth = depth
 
     def triangle(self, parsed_line):
-        self.checkColor(parsed_line[1])
+        self.checkColor(parsed_line)
         p1 = self.parsePoint(parsed_line[2:5])
         p2 = self.parsePoint(parsed_line[5:8])
         p3 = self.parsePoint(parsed_line[8:11])
@@ -395,10 +436,11 @@ class GLParser(datFileParser.Parser):
             self.addLine(p2, p3)
             self.addLine(p3, p1)
 
+        color_id = parsed_line[1]
         if self.cw_winding:
-            self.addTriangle(p1,p2,p3)
+            self.addTriangle(p1, p2, p3, color_id)
         else:
-            self.addTriangle(p1,p3,p2)
+            self.addTriangle(p1, p3, p2, color_id)
 
 
 class GLShader(object):
@@ -565,7 +607,7 @@ class GLVaoTest(GLVaoLine):
         self.vbo_id = GL.glGenBuffers(2)
 
         self.fillBuffer(GLVaoTriangle.gl_shader, 0, self.vertices, 'vert')
-        self.fillBuffer(GLVaoTriangle.gl_shader, 1, self.colors, 'vert_normal')
+        self.fillBuffer(GLVaoTriangle.gl_shader, 1, self.normals, 'vert_normal')
         
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
         GL.glBindVertexArray(0)
@@ -622,7 +664,7 @@ class GLVaoTriangle(GLVaoLine):
 
         self.fillBuffer(GLVaoTriangle.gl_shader, 0, self.vertices, 'vert')
         self.fillBuffer(GLVaoTriangle.gl_shader, 1, self.colors, 'vert_color')
-        self.fillBuffer(GLVaoTriangle.gl_shader, 2, self.colors, 'vert_normal')
+        self.fillBuffer(GLVaoTriangle.gl_shader, 2, self.normals, 'vert_normal')
         
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, 0)
         GL.glBindVertexArray(0)
