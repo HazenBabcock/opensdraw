@@ -83,19 +83,44 @@ class GLWidget(QtOpenGL.QGLWidget):
         GL.glFlush()
         
         fbo.release()
-        image = fbo.toImage()
+        image = fbo.toImage().mirrored(horizontal = True)
         image.save(picture_file)
 
     def updateView(self):
 
+        [min_x, min_y, min_z, max_x, max_y, max_z] = self.part.getRange()
+        cx = 0.5 * (max_x + min_x)
+        cy = 0.5 * (max_y + min_y)
+        cz = 0.5 * (max_z + min_z)
+
+        dx = max_x - cx
+        dy = max_y - cy
+        dz = max_z - cz
+
+        rr = math.sqrt(dx*dx + dy*dy + dz*dz)
+        
         self.mvp_matrix = numpy.identity(4)
-        scale = 0.015
+        scale = 0.9/rr
         self.mvp_matrix[0,0] = scale
         self.mvp_matrix[1,1] = scale
         self.mvp_matrix[2,2] = scale
 
+        # Center object
+        t_mat = numpy.identity(4)
+        t_mat[3,0] = -cx * scale
+        t_mat[3,1] = -cy * scale
+        t_mat[3,2] = -cz * scale
+
+        # LDView matrix
+        r_mat = numpy.array([ 0.707107, 0,        0.707107, 0,
+                              0.353553, 0.866025,-0.353553, 0,
+                             -0.612373, 0.5,      0.612372, 0,
+                              0,        0,        0,        1.0]).reshape(4,4)
+
+        r_mat = numpy.transpose(r_mat)
+        
         # Rotate around x axis.
-        ax = math.radians(0)
+        ax = math.radians(-45)
         rot_x = numpy.identity(4)
         rot_x[1,1] = math.cos(ax)
         rot_x[2,2] = rot_x[1,1]
@@ -103,7 +128,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         rot_x[2,1] = -rot_x[1,2]
         
         # Rotate around y axis.
-        ay = math.radians(0)
+        ay = math.radians(45)
         rot_y = numpy.identity(4)
         rot_y[0,0] = math.cos(ay)
         rot_y[2,2] = rot_y[0,0]
@@ -118,8 +143,12 @@ class GLWidget(QtOpenGL.QGLWidget):
         rot_z[0,1] = math.sin(az)
         rot_z[1,0] = -rot_z[0,1]
         
-        self.mvp_matrix = numpy.dot(self.mvp_matrix, numpy.dot(rot_x, numpy.dot(rot_y, rot_z)))
+#        self.mvp_matrix = numpy.dot(self.mvp_matrix,
+#                                    numpy.dot(rot_x,
+#                                              numpy.dot(rot_y,
+#                                                        numpy.dot(rot_z, t_mat))))
 
+        self.mvp_matrix = numpy.dot(self.mvp_matrix, numpy.dot(r_mat, t_mat))
 
 ## GLWidgetTest
 #
@@ -134,8 +163,10 @@ class GLWidgetTest(QtGui.QMainWindow):
 
     def renderPart(self):
         #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/32523.dat", 2)
-        self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/57519.dat", 0)
+        self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/57519.dat", 1)
         #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/3622.dat", 1)
+        #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/42003.dat", 1)
+        #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/58119.dat", 3)
         #self.gl_widget.renderPixmap(100,100)
         self.gl_widget.offscreen("test.png")
         self.close()
