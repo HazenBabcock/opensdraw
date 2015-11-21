@@ -79,8 +79,6 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         GL.glClearColor(1.0, 1.0, 1.0, 1.0)
 
-        # FIXME: Get backface culling to work properly.
-        #
         GL.glFrontFace(GL.GL_CCW)
         GL.glEnable(GL.GL_CULL_FACE)
 

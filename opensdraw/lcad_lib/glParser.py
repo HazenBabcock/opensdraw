@@ -12,8 +12,6 @@ http://www.ldraw.org/article/218.html
 
 In particular it has at least the following issues:
 1. Optional lines are ignored.
-2. Culling is disabled as I could not figure out how to get it
-   to work properly.
 
 Also it is not that fast, but since it is mostly used for static
 images this is not too much of an issue.
@@ -117,7 +115,7 @@ void main(void)
     vec3 light_color = vec3(frag_color);
     vec3 specular_color = vec3(frag_color);
 
-    vec3 normal = normalize(mat3(mvp) * vec3(frag_normal));
+    vec3 normal = normalize(vec3(mvp * frag_normal));
     vec3 surface_pos = vec3(mvp * frag_vert);
     vec3 surface_to_light = normalize(light_position - surface_pos);
     vec3 surface_to_camera = normalize(camera_position - surface_pos);
@@ -132,7 +130,7 @@ void main(void)
 
     // specular
     float specular_coefficient = 0.0;
-    if (diffuse_coefficient > 0.0){
+    if (diffuse_coefficient > 2.0){
         specular_coefficient = pow(max(0.0, dot(surface_to_camera, reflect(-surface_to_light, normal))), 2);
     }
     vec3 specular = specular_coefficient * specular_color * light_color;
@@ -221,27 +219,49 @@ class GLParser(datFileParser.Parser):
     def __init__(self, face_color, edge_color, matrix = None, invert_winding = False, mm_range = None):
         datFileParser.Parser.__init__(self, None, None)
         
-        self.cw_winding = False
+        self.ccw_winding = True
         self.children = []
         self.depth = 0
         self.edge_color = edge_color
         self.face_color = face_color
+        self.invert = False
         self.invert_next = False
         self.invert_winding = invert_winding
         self.lines_only = False  # This is mostly for debugging.
         self.matrix = matrix
         self.vao_lines = GLVaoLine()
-        #self.vao_triangles = GLVaoTriangle()
-        self.vao_triangles = GLVaoTest()
-        
+        self.vao_triangles = GLVaoTriangle()
+        #self.vao_triangles = GLVaoTest()
+
         if self.matrix is None:
             self.matrix = numpy.identity(4)
+
+        if (numpy.linalg.det(self.matrix) < 0):
+            self.invert = True
+
+        self.setWinding(True)
 
         if mm_range is None:
             self.mm_range = [None, None, None, None, None, None]
         else:
             self.mm_range = mm_range
-            
+
+        # Add axes
+        self.vao_lines.addVertex([0,0,0,1])
+        self.vao_lines.addVertex([50,0,0,1])
+        self.vao_lines.addColor([1,0,0,1])
+        self.vao_lines.addColor([1,0,0,1])
+
+        self.vao_lines.addVertex([0,0,0,1])
+        self.vao_lines.addVertex([0,50,0,1])
+        self.vao_lines.addColor([0,1,0,1])
+        self.vao_lines.addColor([0,1,0,1])
+
+        self.vao_lines.addVertex([0,0,0,1])
+        self.vao_lines.addVertex([0,0,50,1])
+        self.vao_lines.addColor([0,0,1,1])
+        self.vao_lines.addColor([0,0,1,1])        
+                        
     def addLine(self, p1, p2, color_id):
         if (color_id != 24):
             color = all_colors[color_id]
@@ -264,9 +284,15 @@ class GLParser(datFileParser.Parser):
             else:
                 face_color = self.face_color
                 
-            normal = numpy.cross(numpy.array(p2[:-1]) - numpy.array(p1[:-1]),
-                                 numpy.array(p3[:-1]) - numpy.array(p1[:-1]))
-            normal = normal.tolist() + [1.0]
+            normal = numpy.cross(numpy.array(p3[:-1]) - numpy.array(p1[:-1]),
+                                 numpy.array(p2[:-1]) - numpy.array(p1[:-1]))
+            normal = normal.tolist() + [0.0]
+
+            if 0:
+                np = p1[:]
+                for i in range(3):
+                    np[i] += normal[i]
+                self.addLine(p1, np, color_id)
 
             self.vao_triangles.addVertex(p1)
             self.vao_triangles.addColor(face_color)
@@ -289,26 +315,18 @@ class GLParser(datFileParser.Parser):
     def command(self, parsed_line):
         if (len(parsed_line) > 1):
 
-            # FIXME:
-            #  This doesn't work properly in that if you enable face culling then
-            #  things will look a bit strange.
-            #
             # Handle winding commands.
             if (parsed_line[1] == "BFC"):
                 if (parsed_line[2] == "INVERTNEXT"):
                     self.invert_next = True
-                elif (parsed_line[2] == "CERTIFY"):
-                    if (len(parsed_line) == 3):
-                        self.cw_winding = False
-                    else:
-                        if (parsed_line[3] == "CCW"):
-                            self.cw_winding = False
-                        else:
-                            self.cw_winding = True
-                if self.invert_winding:
-                    self.cw_winding = not self.cw_winding
-
-                #print "  ", self.depth, parsed_line, self.cw_winding
+                elif (parsed_line[2] == "CCW"):
+                    self.setWinding(True)
+                elif (parsed_line[2] == "CW"):
+                    self.setWinding(False)
+                elif (parsed_line[3] == "CCW"):
+                    self.setWinding(True)
+                elif (parsed_line[3] == "CW"):
+                    self.setWinding(False)
 
     def endFile(self):
         self.vao_lines.finalize()
@@ -350,7 +368,7 @@ class GLParser(datFileParser.Parser):
                               [  g,   h,   i,   z], 
                               [0.0, 0.0, 0.0, 1.0]])
         matrix = numpy.dot(self.matrix, matrix)
-
+        
         # Figure out windings.
         if self.invert_next:
             invert_winding = not self.invert_winding
@@ -406,12 +424,13 @@ class GLParser(datFileParser.Parser):
 
         color_id = parsed_line[1]
         if not self.lines_only:
-            if self.cw_winding:
+            if self.ccw_winding:
                 self.addTriangle(p1, p2, p3, color_id)
                 self.addTriangle(p1, p3, p4, color_id)
+                #self.addTriangle(p1, p4, p3, color_id)
             else:
-                self.addTriangle(p1, p3, p2, color_id)
                 self.addTriangle(p1, p4, p3, color_id)
+                self.addTriangle(p1, p3, p2, color_id)
 
     def render(self, mvp):
 
@@ -421,7 +440,19 @@ class GLParser(datFileParser.Parser):
         # Draw children.
         for child in self.children:
             child.render(mvp)
-                        
+
+    def setWinding(self, value):
+
+        # Check if we need to invert due to INVERTNEXT in parent file.
+        if self.invert_winding:
+            self.ccw_winding = not value
+        else:
+            self.ccw_winding = value
+
+        # Check if we need to invert due to a negative matrix determinant.
+        if self.invert:
+            self.ccw_winding = not self.ccw_winding
+                
     def startFile(self, depth):
         self.depth = depth
 
@@ -437,7 +468,7 @@ class GLParser(datFileParser.Parser):
             self.addLine(p3, p1)
 
         color_id = parsed_line[1]
-        if self.cw_winding:
+        if self.ccw_winding:
             self.addTriangle(p1, p2, p3, color_id)
         else:
             self.addTriangle(p1, p3, p2, color_id)
@@ -676,10 +707,10 @@ class GLVaoTriangle(GLVaoLine):
         GL.glUniformMatrix4fv(mvp_id, 1, GL.GL_FALSE, mvp)
 
         camera_position_id = GLVaoTriangle.gl_shader.uniformLocation('camera_position')
-        GL.glUniform3fv(camera_position_id, 1, numpy.array([0.0, 0.0, 0.5], dtype = numpy.float32))
+        GL.glUniform3fv(camera_position_id, 1, numpy.array([0.0, 0.0, 1.0], dtype = numpy.float32))
         
         light_position_id = GLVaoTriangle.gl_shader.uniformLocation('light_position')
-        GL.glUniform3fv(light_position_id, 1, numpy.array([0.0, 4.0, 0.0], dtype = numpy.float32))
+        GL.glUniform3fv(light_position_id, 1, numpy.array([0.0, 0.0, 1.0], dtype = numpy.float32))
 
         GL.glBindVertexArray(self.gl_id)
         GL.glDrawArrays(self.gl_type, 0, self.v_size)
