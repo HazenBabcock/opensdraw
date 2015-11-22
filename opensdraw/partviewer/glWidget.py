@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-A PyQt OpenGL widget for rendering parts.
+A PyQt OpenGL widget for (off-screen) rendering of parts for the part-viewer.
 
 Hazen 11/15
 """
@@ -19,6 +19,13 @@ import opensdraw.lcad_lib.ldrawPath as ldrawPath
 
 
 all_colors = colorsParser.loadColors()
+
+
+def chainMatrices(matrices):
+    result = numpy.identity(4)
+    for m in reversed(matrices):
+        result = numpy.dot(m, result)
+    return result
 
 
 class GLWidget(QtOpenGL.QGLWidget):
@@ -46,7 +53,7 @@ class GLWidget(QtOpenGL.QGLWidget):
             print ' Opengl version: %s' % (GL.glGetString(GL.GL_VERSION))
             print ' GLSL Version: %s' % (GL.glGetString(GL.GL_SHADING_LANGUAGE_VERSION))
             print ' Renderer: %s' % (GL.glGetString(GL.GL_RENDERER))
-            
+        
     def renderPart(self, filename, color_id):
         self.freePartGL()
         color = all_colors[str(color_id)]
@@ -69,21 +76,24 @@ class GLWidget(QtOpenGL.QGLWidget):
         
         fbo = QtOpenGL.QGLFramebufferObject(400, 400, _format)
         fbo.bind()
-        
+
         GL.glClearColor(1.0, 1.0, 1.0, 1.0)
+        GL.glFrontFace(GL.GL_CW)
+        GL.glEnable(GL.GL_CULL_FACE)
         GL.glEnable(GL.GL_DEPTH_TEST)
-        GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+        GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)        
         GL.glLineWidth(2.0)
 
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        
+
         self.mvp_matrix = self.mvp_matrix.astype(numpy.float32)
         self.part.render(self.mvp_matrix)
         
         GL.glFlush()
         
         fbo.release()
-        image = fbo.toImage().mirrored(horizontal = True)
+        #image = fbo.toImage()
+        image = fbo.toImage().mirrored()
         image.save(picture_file)
 
     def updateView(self):
@@ -100,27 +110,42 @@ class GLWidget(QtOpenGL.QGLWidget):
         rr = math.sqrt(dx*dx + dy*dy + dz*dz)
         
         self.mvp_matrix = numpy.identity(4)
-        scale = 0.9/rr
-        self.mvp_matrix[0,0] = scale
-        self.mvp_matrix[1,1] = scale
-        self.mvp_matrix[2,2] = scale
 
-        # Center object
-        t_mat = numpy.identity(4)
-        t_mat[3,0] = -cx * scale
-        t_mat[3,1] = -cy * scale
-        t_mat[3,2] = -cz * scale
+        s_mat = numpy.identity(4)
+        scale = 0.85/rr
+        s_mat[0,0] = scale
+        s_mat[1,1] = scale
+        s_mat[2,2] = scale
 
-        # LDView matrix
-        r_mat = numpy.array([ 0.707107, 0,        0.707107, 0,
-                              0.353553, 0.866025,-0.353553, 0,
-                             -0.612373, 0.5,      0.612372, 0,
-                              0,        0,        0,        1.0]).reshape(4,4)
-
-        r_mat = numpy.transpose(r_mat)
+        # Perspective matrix.
+        p_mat = numpy.zeros((4,4))
+        mid = 0.0
+        near = mid - rr
+        far = mid + rr
+        p_mat[0,0] = near/rr
+        p_mat[1,1] = near/rr
+        p_mat[2,2] = -(far + near)/(far - near)
+        p_mat[2,3] = -2.0 * far * near/(far - near)
+        p_mat[3,2] = -1
         
+        # Translation matrix to center the model.
+        t_mat1 = numpy.identity(4)
+        t_mat1[3,0] = -cx
+        t_mat1[3,1] = -cy
+        t_mat1[3,2] = -cz
+
+        t_mat2 = numpy.identity(4)
+        t_mat2[3,1] = mid
+        
+        # LDView 2/3 matrix.
+        ldv_mat = numpy.array([ 0.707107, 0.353553,-0.612373, 0,
+                                0.0,      0.866025, 0.5,      0,
+                                0.707107,-0.353553, 0.612372, 0,
+                                0,        0,        0,        1.0]).reshape(4,4)
+
         # Rotate around x axis.
-        ax = math.radians(-45)
+        #ax = math.radians(-45)
+        ax = math.radians(0)
         rot_x = numpy.identity(4)
         rot_x[1,1] = math.cos(ax)
         rot_x[2,2] = rot_x[1,1]
@@ -128,7 +153,8 @@ class GLWidget(QtOpenGL.QGLWidget):
         rot_x[2,1] = -rot_x[1,2]
         
         # Rotate around y axis.
-        ay = math.radians(45)
+        #ay = math.radians(90)
+        ay = math.radians(0)
         rot_y = numpy.identity(4)
         rot_y[0,0] = math.cos(ay)
         rot_y[2,2] = rot_y[0,0]
@@ -136,6 +162,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         rot_y[2,0] = -rot_y[0,2]
 
         # Rotate around z axis.
+        #az = math.radians(180)
         az = math.radians(0)
         rot_z = numpy.identity(4)
         rot_z[0,0] = math.cos(az)
@@ -143,12 +170,12 @@ class GLWidget(QtOpenGL.QGLWidget):
         rot_z[0,1] = math.sin(az)
         rot_z[1,0] = -rot_z[0,1]
         
-#        self.mvp_matrix = numpy.dot(self.mvp_matrix,
-#                                    numpy.dot(rot_x,
-#                                              numpy.dot(rot_y,
-#                                                        numpy.dot(rot_z, t_mat))))
+        if False:
+            self.mvp_matrix = chainMatrices([rot_x, rot_y, rot_z, t_mat1, s_mat])
+        else:
+            self.mvp_matrix = chainMatrices([ldv_mat, t_mat1, s_mat])
+            #self.mvp_matrix = chainMatrices([p_mat, t_mat, rot_y, rot_z, ldv_mat])
 
-        self.mvp_matrix = numpy.dot(self.mvp_matrix, numpy.dot(r_mat, t_mat))
 
 ## GLWidgetTest
 #
@@ -165,9 +192,13 @@ class GLWidgetTest(QtGui.QMainWindow):
         #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/32523.dat", 2)
         self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/57519.dat", 1)
         #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/3622.dat", 1)
+        #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/3009.dat", 1)
         #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/42003.dat", 1)
         #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "parts/58119.dat", 3)
-        #self.gl_widget.renderPixmap(100,100)
+        #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "p/box4t.dat", 1)
+        #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "p/box5.dat", 1)
+        #self.gl_widget.renderPart(ldrawPath.getLDrawPath() + "p/stud.dat", 1)
+        self.gl_widget.renderPixmap(100,100)
         self.gl_widget.offscreen("test.png")
         self.close()
         
