@@ -79,7 +79,7 @@ def parsePartFileP (parser, filep, depth):
     parser.startFile(depth)
     for line in filep:
         
-        parsed_line = filter(None, line.strip().split(" "))
+        parsed_line = filter(None, line.strip().split())
         if (len(parsed_line) == 0):
             continue
             
