@@ -112,8 +112,8 @@ out vec4 final_color;
 
 void main(void)
 {
-    vec3 light_color = vec3(frag_color);
-    vec3 specular_color = vec3(frag_color);
+    vec3 light_color = vec3(1.0,1.0,1.0);
+    vec3 specular_color = vec3(1.0,1.0,1.0);
 
     vec3 normal = normalize(vec3(mvp * frag_normal));
     vec3 surface_pos = vec3(mvp * frag_vert);
@@ -121,26 +121,33 @@ void main(void)
     vec3 surface_to_camera = normalize(camera_position - surface_pos);
     
     // ambient
-    float ambient_coefficient = 0.2;
-    vec3 ambient = 0.05 * frag_color.rgb * light_color;
+    float ambient_coefficient = 0.5;
 
     // diffuse
-    float diffuse_coefficient = max(0.0, dot(normal, surface_to_light));
-    vec3 diffuse = diffuse_coefficient * frag_color.rgb * light_color;
+    float diffuse_coefficient = 0.5 * dot(normal, surface_to_light);
 
     // specular
     float specular_coefficient = 0.0;
-    if (diffuse_coefficient > 2.0){
-        specular_coefficient = pow(max(0.0, dot(surface_to_camera, reflect(-surface_to_light, normal))), 2);
+    if (diffuse_coefficient > 0.0){
+        specular_coefficient = 0.2 * pow(max(0.0, dot(surface_to_camera, reflect(-surface_to_light, normal))), 2);
     }
     vec3 specular = specular_coefficient * specular_color * light_color;
 
     // linear color
-    vec3 linear_color = min(ambient_coefficient + diffuse_coefficient + specular_coefficient, 1.0) * frag_color.rgb;
+    // vec3 linear_color = (ambient_coefficient + diffuse_coefficient) * frag_color.rgb + specular;
+    //vec3 linear_color = (ambient_coefficient + diffuse_coefficient) * frag_color.rgb;
     //linear_color = min(linear_color, vec3(1.0, 1.0, 1.0));
+    //final_color = vec4(linear_color.rgb, frag_color.a);
 
-    final_color = vec4(linear_color, frag_color.a);
-    //final_color = frag_color;
+    float tmp = ambient_coefficient + diffuse_coefficient;
+    float r = float(frag_color.r) + float(specular.r);
+    float g = float(frag_color.g) + float(specular.g);
+    float b = float(frag_color.b) + float(specular.b);
+
+    r = clamp(tmp * r, 0.0, 0.99);
+    g = clamp(tmp * g, 0.0, 0.99);
+    b = clamp(tmp * b, 0.0, 0.99);
+    final_color = vec4(r, g, b, frag_color.a);
 }
 """
 
@@ -235,8 +242,8 @@ class GLParser(datFileParser.Parser):
 
         if self.matrix is None:
             self.matrix = numpy.identity(4)
-
-        if (numpy.linalg.det(self.matrix) < 0):
+            
+        if (numpy.linalg.det(self.matrix) < 0.0):
             self.invert = True
 
         self.setWinding(True)
@@ -247,20 +254,21 @@ class GLParser(datFileParser.Parser):
             self.mm_range = mm_range
 
         # Add axes
-        self.vao_lines.addVertex([0,0,0,1])
-        self.vao_lines.addVertex([50,0,0,1])
-        self.vao_lines.addColor([1,0,0,1])
-        self.vao_lines.addColor([1,0,0,1])
-
-        self.vao_lines.addVertex([0,0,0,1])
-        self.vao_lines.addVertex([0,50,0,1])
-        self.vao_lines.addColor([0,1,0,1])
-        self.vao_lines.addColor([0,1,0,1])
-
-        self.vao_lines.addVertex([0,0,0,1])
-        self.vao_lines.addVertex([0,0,50,1])
-        self.vao_lines.addColor([0,0,1,1])
-        self.vao_lines.addColor([0,0,1,1])        
+        if False:
+            self.vao_lines.addVertex([0,0,0,1])
+            self.vao_lines.addVertex([50,0,0,1])
+            self.vao_lines.addColor([1,0,0,1])
+            self.vao_lines.addColor([1,0,0,1])
+            
+            self.vao_lines.addVertex([0,0,0,1])
+            self.vao_lines.addVertex([0,50,0,1])
+            self.vao_lines.addColor([0,1,0,1])
+            self.vao_lines.addColor([0,1,0,1])
+            
+            self.vao_lines.addVertex([0,0,0,1])
+            self.vao_lines.addVertex([0,0,50,1])
+            self.vao_lines.addColor([0,0,1,1])
+            self.vao_lines.addColor([0,0,1,1])        
                         
     def addLine(self, p1, p2, color_id):
         if (color_id != 24):
