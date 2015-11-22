@@ -78,15 +78,10 @@ class GLWidget(QtOpenGL.QGLWidget):
             print ' Renderer: %s' % (GL.glGetString(GL.GL_RENDERER))
 
         GL.glClearColor(1.0, 1.0, 1.0, 1.0)
-
         GL.glFrontFace(GL.GL_CCW)
         GL.glEnable(GL.GL_CULL_FACE)
-
         GL.glEnable(GL.GL_DEPTH_TEST)
         GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
-
-        #GL.glEnable(GL.GL_LINE_SMOOTH)
-        #GL.glHint(GL.GL_LINE_SMOOTH_HINT, GL.GL_NICEST)
 
     ## initializeMatrices
     #
