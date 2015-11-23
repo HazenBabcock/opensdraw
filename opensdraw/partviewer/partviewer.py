@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-#
-## @file
-#
-# Viewer for choosing LEGO parts.
-#
-# Hazen 11/15
-#
+"""
+Viewer for choosing LEGO parts.
+
+Hazen 11/15
+"""
 
 import os
 import requests
@@ -18,18 +16,17 @@ from xml.etree import ElementTree
 
 from PyQt4 import QtCore, QtGui
 
-import opensdraw.lcad_lib.ldrawPath as ldrawPath
+#import opensdraw.lcad_lib.ldrawPath as ldrawPath
 #import colorChooserWidget
 
 import partviewer_ui
 
 
-## getRBPartInfo
-#
-# Get part information from rebrickable.com.
-#
 cert_fails = False
 def getRBPartInfo(api_key, part_id):
+    """
+    Get part information from rebrickable.com.
+    """
     query = {"key" : api_key,
              "format" : "json",
              "part_id" : part_id,
@@ -61,29 +58,46 @@ def getRBPartInfo(api_key, part_id):
         return response.json()
     
 
-## PartViewer
-#
-# The PartViewer QMainWindow.
-#
-class PartViewer(QtGui.QMainWindow):
+class PartDisplay(QtGui.QWidget):
+    """
+    For displaying a picture of a part.
+    """
+    def __init__(self, parent):
+        QtGui.QWidget.__init__(self)
 
-    ## __init__
-    #
-    # @param xml_part_file The LDraw XML part descriptor file.
-    #
-    def __init__(self, xml_part_file):
+        self.part_image = None
+
+    def paintEvent(self, event):
+        painter = QtGui.QPainter(self)
+        if self.part_image is not None:
+            painter.drawImage(1, 1, self.part_image)
+        else:
+            painter.setPen(QtGui.QColor(255, 255, 255))
+            painter.setBrush(QtGui.QColor(255, 255, 255))
+            painter.drawRect(0, 0, self.width(), self.height())
+
+    def setPartImage(self, part_image):
+        self.part_image = part_image
+        self.update()
+        
+    
+class PartViewer(QtGui.QMainWindow):
+    """
+    The PartViewer QMainWindow.
+    """
+    def __init__(self):
         QtGui.QMainWindow.__init__(self)
 
-        self.xml_part_file = xml_part_file
-        
+        self.part_color = "71"
+        self.part_file = ""
+        self.part_id = ""
+        self.part_text = ""
+        self.rb_info = None
         self.settings = QtCore.QSettings("OpenLCAD", "PartViewer")
 
         # Setup UI.
         self.ui = partviewer_ui.Ui_MainWindow()
         self.ui.setupUi(self)
-
-        # Connect signals.
-        self.ui.actionQuit.triggered.connect(self.handleQuit)
 
         # Load parts.
         QtCore.QTimer.singleShot(100, self.handleLoadParts)
@@ -94,78 +108,75 @@ class PartViewer(QtGui.QMainWindow):
         #layout.addWidget(self.color_chooser)
         #self.ui.colorGroupBox.setLayout(layout)
 
+        # Part image display.
+        self.part_display = PartDisplay(self)
+        layout = QtGui.QGridLayout(self.ui.partImageFrame)
+        layout.setMargin(1)
+        layout.addWidget(self.part_display)
+        
         # Connect signals.
 #        self.ui.filterLineEdit.textChanged.connect(self.handleTextChange)
 #        self.color_chooser.colorPicked.connect(self.handleColorChange)
 #        self.load_part_timer.timeout.connect(self.handleLoadPart)
 
+        # Connect signals.
+        self.ui.actionQuit.triggered.connect(self.handleQuit)
+        self.ui.partsTreeView.selectedPartChanged.connect(self.handleSelectedPartChange)
+
         # Restore settings.
-#        self.resize(self.settings.value("MainWindow/Size", self.size()).toSize())
-#        self.move(self.settings.value("MainWindow/Position", self.pos()).toPoint())
-#        self.ui.apiLineEdit.setText(self.settings.value("apiText", "").toString())
-#        self.ui.rebrickCheckBox.setChecked(self.settings.value("rebrickCheckBox", False).toBool())
-#        self.ui.splitter.restoreState(self.settings.value("splitterSizes").toByteArray())
+        self.resize(self.settings.value("MainWindow/Size", self.size()).toSize())
+        self.move(self.settings.value("MainWindow/Position", self.pos()).toPoint())
+        self.ui.apiLineEdit.setText(self.settings.value("apiText", "").toString())
+        self.ui.rebrickCheckBox.setChecked(self.settings.value("rebrickCheckBox", False).toBool())
+        self.ui.splitter.restoreState(self.settings.value("splitterSizes").toByteArray())
 
-    ## closeEvent
-    #
-    # @param event A QEvent object.
-    #
     def closeEvent(self, event):
-        pass
-#        self.ui.openGLWidget.freePartGL()
-#        self.settings.setValue("MainWindow/Size", self.size())
-#        self.settings.setValue("MainWindow/Position", self.pos())
-#        self.settings.setValue("apiText", self.ui.apiLineEdit.text())
-#        self.settings.setValue("rebrickCheckBox", self.ui.rebrickCheckBox.isChecked())
-#        self.settings.setValue("splitterSizes", self.ui.splitter.saveState())
+        self.settings.setValue("MainWindow/Size", self.size())
+        self.settings.setValue("MainWindow/Position", self.pos())
+        self.settings.setValue("apiText", self.ui.apiLineEdit.text())
+        self.settings.setValue("rebrickCheckBox", self.ui.rebrickCheckBox.isChecked())
+        self.settings.setValue("splitterSizes", self.ui.splitter.saveState())
 
-    ## handleColorChange
-    #
-    # @param color A Color object (defined in colorChooserWidget.py)
-    #
 #    def handleColorChange(self, color):
 #        self.ui.openGLWidget.setColor(color.getFaceColor(), color.getEdgeColor())
 #        self.part_color = color.getDescription()
 #        self.updatePartLabel()
 
-    ## handleTextChange
-    #
-    # @param new_text The new text to use for filtering.
-    #
 #    def handleTextChange(self, new_text):
 #        self.proxy_model.setFilterRegExp(new_text)
 
-    ## handleQuit
-    #
-    # @param boolean This is ignored.
-    #
+    def handleSelectedPartChange(self, part):
+        self.part_file = part.part_file
+        self.part_text = part.text()
+        self.part_display.setPartImage(part.part_image)
+
+        self.part_id = self.part_file.split(".")[0]
+        if (len(self.ui.apiLineEdit.text()) > 0):
+            self.rb_info = getRBPartInfo(self.ui.apiLineEdit.text(), self.part_id)
+        
+        self.updatePartInfo()
+
     def handleQuit(self, boolean):
         self.close()
 
-    ## handleLoadPartTimeout
-    #
     def handleLoadParts(self):
-        self.ui.partsTreeView.loadParts(self.xml_part_file)
-        
+        self.ui.partsTreeView.loadParts()
 
-#        pass
-#        self.ui.openGLWidget.loadPart(self.part_path + self.part_file)
-#        if self.ui.rebrickCheckBox.isChecked():
-#            part_id = self.part_file.split(".")[0]
-#            info = getRBPartInfo(self.ui.apiLineEdit.text(), part_id)
-#            if ("error" in info):
-#                self.color_chooser.markAvailableColors(None)
-#                self.ui.rebrickLabel.setText(info["error"])
-#            else:
-#                colors = map(lambda(x): x.get("ldraw_color_id", ""), info.get("colors", []))
-#                self.color_chooser.markAvailableColors(colors)
-#                self.ui.rebrickLabel.setText(info.get("year1","?") + " - " + info.get("year2","?"))
-#        else:
-#            self.color_chooser.markAvailableColors(None)
+    def updatePartInfo(self):
+        
+        text = self.part_text
+        text += " (" + self.part_id + ")"
+        text += ", " + self.part_color
+
+        if self.rb_info is None:
+            text += ", no Rebrickable information."
+        elif "error" in self.rb_info:
+            text += ", " + self.rb_info["error"]
+        else:
+            text += ", years " + self.rb_info["year1"] + " - " + self.rb_info["year2"]
             
-    ## updatePartLabel
-    #
-    # Update the part label text based on the current part & color.
+        self.ui.partInfoLabel.setText(text)
+
 #    def updatePartLabel(self):
 #        self.ui.partFileLabel.setText(self.part_file + ", " + self.part_color)
 
@@ -174,14 +185,7 @@ class PartViewer(QtGui.QMainWindow):
 if (__name__ == '__main__'):
     app = QtGui.QApplication(sys.argv)
 
-    if (len(sys.argv) == 2):
-        window = PartViewer(sys.argv[1])
-    else:
-        directory = os.path.dirname(__file__)
-        if (len(directory) > 0):
-            window = PartViewer(directory + "/../xml/parts.xml")
-        else:
-            window = PartViewer("../xml/parts.xml")
+    window = PartViewer()            
     window.show()
     app.exec_()
 
@@ -189,7 +193,7 @@ if (__name__ == '__main__'):
 #
 # The MIT License
 #
-# Copyright (c) 2014 Hazen Babcock
+# Copyright (c) 2015 Hazen Babcock
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
