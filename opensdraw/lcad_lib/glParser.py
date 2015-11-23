@@ -19,11 +19,6 @@ images this is not too much of an issue.
 Hazen 11/15
 """
 
-# Notes
-#
-# 1. Sort out winding problems using colors
-#
-
 import numpy
 
 from OpenGL import arrays, GL
@@ -225,7 +220,8 @@ class GLParser(datFileParser.Parser):
 
     def __init__(self, face_color, edge_color, matrix = None, invert_winding = False, mm_range = None):
         datFileParser.Parser.__init__(self, None, None)
-        
+
+        self.bfc_certified = True
         self.ccw_winding = True
         self.children = []
         self.depth = 0
@@ -287,8 +283,12 @@ class GLParser(datFileParser.Parser):
         if not self.lines_only:
 
             if (color_id != "16"):
-                color = all_colors[color_id]
-                face_color = color.getFaceColor()
+                try:
+                    color = all_colors[color_id]
+                    face_color = color.getFaceColor()
+                except KeyError:
+                    print "Cannot find color", color_id
+                    face_color = self.face_color
             else:
                 face_color = self.face_color
                 
@@ -325,16 +325,28 @@ class GLParser(datFileParser.Parser):
 
             # Handle winding commands.
             if (parsed_line[1] == "BFC"):
-                if (parsed_line[2] == "INVERTNEXT"):
-                    self.invert_next = True
-                elif (parsed_line[2] == "CCW"):
-                    self.setWinding(True)
-                elif (parsed_line[2] == "CW"):
-                    self.setWinding(False)
-                elif (parsed_line[3] == "CCW"):
-                    self.setWinding(True)
-                elif (parsed_line[3] == "CW"):
-                    self.setWinding(False)
+                try:
+                    if (parsed_line[2] == "INVERTNEXT"):
+                        self.invert_next = True
+                    elif (parsed_line[2] == "CCW"):
+                        self.setWinding(True)
+                    elif (parsed_line[2] == "CW"):
+                        self.setWinding(False)
+                    elif (parsed_line[2] == "CERTIFY"):
+                        pass
+                    elif (parsed_line[2] == "NOCERTIFY"):
+                        self.bfc_certified = False
+                    elif (parsed_line[2] == "NOCLIP"):
+                        pass
+                    elif (parsed_line[2] == "CLIP"):
+                        pass
+                    elif (parsed_line[3] == "CCW"):
+                        self.setWinding(True)
+                    elif (parsed_line[3] == "CW"):
+                        self.setWinding(False)
+                except IndexError as e:
+                    print " ".join(parsed_line)
+                    raise e
 
     def endFile(self):
         self.vao_lines.finalize()
@@ -365,9 +377,14 @@ class GLParser(datFileParser.Parser):
             face_color = self.face_color
             edge_color = self.edge_color
         else:
-            color = all_colors[parsed_line[1]]
-            face_color = color.getFaceColor()
-            edge_color = color.getEdgeColor()
+            try:
+                color = all_colors[parsed_line[1]]
+                face_color = color.getFaceColor()
+                edge_color = color.getEdgeColor()
+            except KeyError:
+                print "Cannot find color", parsed_line[1]
+                face_color = self.face_color
+                edge_color = self.edge_color
             
         # Parse transformation matrix.
         [x, y, z, a, b, c, d, e, f, g, h, i] = map(float, parsed_line[2:14])
@@ -398,7 +415,12 @@ class GLParser(datFileParser.Parser):
 
     def parsePoint(self, point):
         point.append("1.0")
-        pi = numpy.array(map(float, point))
+        try:
+            pi = numpy.array(map(float, point))
+        except ValueError as e:
+            print "Can't parse", point
+            raise e
+        
         pf = numpy.dot(self.matrix, pi)
 
         for i in range(3):
