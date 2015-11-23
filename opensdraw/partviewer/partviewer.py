@@ -163,9 +163,9 @@ class PartViewer(QtGui.QMainWindow):
         self.ui.partsTreeView.loadParts()
 
     def updatePartInfo(self):
-        
-        text = self.part_text
-        text += " (" + self.part_id + ")"
+
+        text = "(" + self.part_id + ")"
+        text += " " + self.part_text
         text += ", " + self.part_color
 
         if self.rb_info is None:
@@ -173,7 +173,17 @@ class PartViewer(QtGui.QMainWindow):
         elif "error" in self.rb_info:
             text += ", " + self.rb_info["error"]
         else:
-            text += ", years " + self.rb_info["year1"] + " - " + self.rb_info["year2"]
+            if not "year1" in self.rb_info:
+                print "not"
+                self.rb_info["year1"] = "?"
+            if (str(self.rb_info["year1"]) == "0"):
+                print "zero"
+                self.rb_info["year1"] = "?"
+            if not u"year2" in self.rb_info:
+                self.rb_info["year2"] = "?"
+            if (str(self.rb_info["year2"]) == "0"):
+                self.rb_info["year2"] = "?"
+            text += ", years " + str(self.rb_info["year1"]) + " - " + str(self.rb_info["year2"])
             
         self.ui.partInfoLabel.setText(text)
 
