@@ -30,7 +30,7 @@ def chainMatrices(matrices):
 
 class GLWidget(QtOpenGL.QGLWidget):
 
-    def __init__(self, parent, width = 400, height = 400):
+    def __init__(self, parent, width = 200, height = 200):
         QtOpenGL.QGLWidget.__init__(self, parent)
 
         self.last_pos = QtCore.QPoint()
@@ -74,15 +74,18 @@ class GLWidget(QtOpenGL.QGLWidget):
         _format.setAttachment(QtOpenGL.QGLFramebufferObject.CombinedDepthStencil)
         _format.setSamples(16)
         
-        fbo = QtOpenGL.QGLFramebufferObject(400, 400, _format)
+        fbo = QtOpenGL.QGLFramebufferObject(self.width(), self.height(), _format)
         fbo.bind()
 
         GL.glClearColor(1.0, 1.0, 1.0, 1.0)
-        GL.glFrontFace(GL.GL_CW)
-        GL.glEnable(GL.GL_CULL_FACE)
+        
+        if self.part.bfc_certified:
+            GL.glFrontFace(GL.GL_CW)
+            GL.glEnable(GL.GL_CULL_FACE)
+            
         GL.glEnable(GL.GL_DEPTH_TEST)
         GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)        
-        GL.glLineWidth(2.0)
+        GL.glLineWidth(1.0)
 
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
