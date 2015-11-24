@@ -64,15 +64,35 @@ class Color(object):
 
 def loadColors(colors_file = None):
     """
-    Parse a colors.xml file and return a list of Color of objects
-    grouped by color group.
+    Parse a colors.xml file and return a dictionary of Color objects
+    keyed by the color id.
     """
+    color_xml = loadColorsFile()
+    all_colors = {}
+    for color_group in color_xml.find("colors"):
+        cur_group = []
+        for color_entry in color_group:
+            color_obj = Color(color_entry)
+            all_colors[color_obj.code] = color_obj
 
+    return all_colors    
+
+    
+def loadColorsFile(colors_file = None):
     if colors_file is None:
         # The colors.xml file is assumed to exist in the xml directory, one directory above this module.
         colors_file = os.path.split(os.path.split(os.path.abspath(__file__))[0])[0] + "/xml/colors.xml"
 
-    color_xml = ElementTree.parse(colors_file).getroot()
+    return ElementTree.parse(colors_file).getroot()
+
+
+def loadColorGroups(colors_file = None):
+    """
+    Parse a colors.xml file and return a list of Color of objects
+    grouped by color group.
+    """
+
+    color_xml = loadColorsFile()
     all_colors = []
     for color_group in color_xml.find("colors"):
         cur_group = []
@@ -84,7 +104,9 @@ def loadColors(colors_file = None):
 
 
 if (__name__ == '__main__'):
-    print loadColors()
+    all_colors = loadColors()
+    for key in sorted(all_colors.keys()):
+        print key, all_colors[key].name
 
 #
 # The MIT License

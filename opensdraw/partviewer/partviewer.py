@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-#
-## @file
-#
-# Viewer for choosing LEGO parts.
-#
-# Hazen 07/14
-#
+"""
+Viewer for choosing LEGO parts.
+
+Hazen 11/15
+"""
 
 import os
 import requests
@@ -18,18 +16,17 @@ from xml.etree import ElementTree
 
 from PyQt4 import QtCore, QtGui
 
-import opensdraw.lcad_lib.ldrawPath as ldrawPath
-import colorChooserWidget
+#import opensdraw.lcad_lib.ldrawPath as ldrawPath
+#import colorChooserWidget
 
 import partviewer_ui
 
 
-## getRBPartInfo
-#
-# Get part information from rebrickable.com.
-#
 cert_fails = False
 def getRBPartInfo(api_key, part_id):
+    """
+    Get part information from rebrickable.com.
+    """
     query = {"key" : api_key,
              "format" : "json",
              "part_id" : part_id,
@@ -61,112 +58,63 @@ def getRBPartInfo(api_key, part_id):
         return response.json()
     
 
-## PartProxyModel
-#
-# A PyQt QSortFilterProxyModel adapted for sorting and filtering parts.
-#
-class PartProxyModel(QtGui.QSortFilterProxyModel):
-
+class PartDisplay(QtGui.QWidget):
+    """
+    For displaying a picture of a part.
+    """
     def __init__(self, parent):
-        QtGui.QSortFilterProxyModel.__init__(self, parent)
+        QtGui.QWidget.__init__(self)
 
-    def filterAcceptsRow(self, source_row, source_parent):
-        model = self.sourceModel()
-        index0 = model.index(source_row, 0, source_parent)
-        index1 = model.index(source_row, 1, source_parent)
+        self.part_image = None
 
-        if (model.data(index0).toString().contains(self.filterRegExp()) or
-            model.data(index1).toString().contains(self.filterRegExp())):
-            return True
+    def paintEvent(self, event):
+        painter = QtGui.QPainter(self)
+        if self.part_image is not None:
+            painter.drawImage(1, 1, self.part_image)
         else:
-            return False
+            painter.setPen(QtGui.QColor(255, 255, 255))
+            painter.setBrush(QtGui.QColor(255, 255, 255))
+            painter.drawRect(0, 0, self.width(), self.height())
 
-
-## PartStandardItem
-#
-# A PyQt QStandardItem specialized to hold the information related to a part.
-#
-class PartStandardItem(QtGui.QStandardItem):
-
-    ## __init__
-    #
-    # @param text The item text.
-    #
-    def __init__(self, text, part_name):
-        QtGui.QStandardItem.__init__(self, text)
-        self.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-        self.setData(part_name)
-
-
-## PartViewer
-#
-# The PartViewer QMainWindow.
-#
+    def setPartImage(self, part_image):
+        self.part_image = part_image
+        self.update()
+        
+    
 class PartViewer(QtGui.QMainWindow):
-
-    ## __init__
-    #
-    # @param xml_part_file The LDraw XML part descriptor file.
-    #
-    def __init__(self, xml_part_file):
+    """
+    The PartViewer QMainWindow.
+    """
+    def __init__(self):
         QtGui.QMainWindow.__init__(self)
 
-        self.load_part_timer = QtCore.QTimer()
-        self.part_color = ""
+        self.part_color = "71"
         self.part_file = ""
+        self.part_id = ""
+        self.part_text = ""
+        self.rb_info = None
         self.settings = QtCore.QSettings("OpenLCAD", "PartViewer")
-
-        # Setup part loading timer.
-        self.load_part_timer.setSingleShot(True)
-        self.load_part_timer.setInterval(100)
-
-        # Setup models.
-        self.part_model = QtGui.QStandardItemModel(self)
-        self.proxy_model = PartProxyModel(self)
-        self.proxy_model.setSourceModel(self.part_model)
 
         # Setup UI.
         self.ui = partviewer_ui.Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.ui.actionQuit.triggered.connect(self.handleQuit)
-
-        # Parse part file.
-        xml = ElementTree.parse(xml_part_file).getroot()
-        self.part_path = ldrawPath.getLDrawPath() + "parts/"
-        for part_entry in xml.find("parts"):
-            if (part_entry.attrib["category"] != "Moved"):
-                part_name = part_entry.attrib["file"]
-                self.part_model.appendRow([PartStandardItem(part_entry.attrib["category"], part_name),
-                                           PartStandardItem(part_entry.attrib["description"], part_name)])
-
-        # Load colors.
-        self.color_chooser = colorChooserWidget.ColorChooserWidget("../colors.xml")
-        layout = QtGui.QGridLayout(self.ui.colorGroupBox)
-        layout.addWidget(self.color_chooser)
-        self.ui.colorGroupBox.setLayout(layout)
-
-        # Connect signals.
-        self.ui.filterLineEdit.textChanged.connect(self.handleTextChange)
-        self.color_chooser.colorPicked.connect(self.handleColorChange)
-        self.load_part_timer.timeout.connect(self.handleLoadPart)
+        # Load parts.
+        QtCore.QTimer.singleShot(100, self.handleLoadParts)
         
-        # Configure parts table view.
-        self.ui.partsTableView.setModel(self.proxy_model)
-        self.ui.partsTableView.verticalHeader().setDefaultSectionSize(18)
-        self.ui.partsTableView.verticalHeader().setVisible(False)
-        self.ui.partsTableView.resizeColumnsToContents()
-        self.ui.partsTableView.setSortingEnabled(True)
-        self.ui.partsTableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.ui.partsTableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.ui.partsTableView.sortByColumn(1, QtCore.Qt.AscendingOrder)
-        self.ui.partsTableView.sortByColumn(0, QtCore.Qt.AscendingOrder)
+        # Load colors.
+        self.ui.colorListView.loadColors()
 
-        self.selection_model = self.ui.partsTableView.selectionModel()
-        self.selection_model.currentRowChanged.connect(self.handleCurrentRowChange)
-
-        self.proxy_model.setHeaderData(0, QtCore.Qt.Horizontal, "Category")
-        self.proxy_model.setHeaderData(1, QtCore.Qt.Horizontal, "Description")
+        # Part image display.
+        self.part_display = PartDisplay(self)
+        layout = QtGui.QGridLayout(self.ui.partImageFrame)
+        layout.setMargin(1)
+        layout.addWidget(self.part_display)
+        
+        # Connect signals.
+        self.ui.actionQuit.triggered.connect(self.handleQuit)
+        self.ui.colorListView.selectedColorChanged.connect(self.handleColorChange)
+        self.ui.partsTreeView.selectedPartChanged.connect(self.handleSelectedPartChange)
 
         # Restore settings.
         self.resize(self.settings.value("MainWindow/Size", self.size()).toSize())
@@ -175,89 +123,70 @@ class PartViewer(QtGui.QMainWindow):
         self.ui.rebrickCheckBox.setChecked(self.settings.value("rebrickCheckBox", False).toBool())
         self.ui.splitter.restoreState(self.settings.value("splitterSizes").toByteArray())
 
-    ## closeEvent
-    #
-    # @param event A QEvent object.
-    #
     def closeEvent(self, event):
-        self.ui.openGLWidget.freePartGL()
         self.settings.setValue("MainWindow/Size", self.size())
         self.settings.setValue("MainWindow/Position", self.pos())
         self.settings.setValue("apiText", self.ui.apiLineEdit.text())
         self.settings.setValue("rebrickCheckBox", self.ui.rebrickCheckBox.isChecked())
         self.settings.setValue("splitterSizes", self.ui.splitter.saveState())
 
-    ## handleCurrentRowChange
-    #
-    # @param new_row QModelIndex
-    # @param old_row QModelIndex
-    #
-    def handleCurrentRowChange(self, new_row, old_row):
-        item = self.part_model.itemFromIndex(self.proxy_model.mapToSource(new_row))
-        if item is not None:
-            self.part_file = item.data().toString()
-            self.load_part_timer.start()
-            self.updatePartLabel()
-
-    ## handleColorChange
-    #
-    # @param color A Color object (defined in colorChooserWidget.py)
-    #
     def handleColorChange(self, color):
-        self.ui.openGLWidget.setColor(color.getFaceColor(), color.getEdgeColor())
-        self.part_color = color.getDescription()
-        self.updatePartLabel()
+        self.part_color = color
+        self.updatePartInfo()
 
-    ## handleTextChange
-    #
-    # @param new_text The new text to use for filtering.
-    #
-    def handleTextChange(self, new_text):
-        self.proxy_model.setFilterRegExp(new_text)
+    def handleSelectedPartChange(self, part):
+        self.part_file = part.part_file
+        self.part_text = part.text()
+        self.part_display.setPartImage(part.part_image)
 
-    ## handleQuit
-    #
-    # @param boolean This is ignored.
-    #
+        self.part_id = self.part_file.split(".")[0]
+        if self.ui.rebrickCheckBox.isChecked() and (len(self.ui.apiLineEdit.text()) > 0):
+            self.rb_info = getRBPartInfo(self.ui.apiLineEdit.text(), self.part_id)
+            self.ui.colorListView.filterColors(self.rb_info.get("colors", None))
+            
+        self.updatePartInfo()
+
     def handleQuit(self, boolean):
         self.close()
 
-    ## handleLoadPartTimeout
-    #
-    def handleLoadPart(self):
-        self.ui.openGLWidget.loadPart(self.part_path + self.part_file)
-        if self.ui.rebrickCheckBox.isChecked():
-            part_id = self.part_file.split(".")[0]
-            info = getRBPartInfo(self.ui.apiLineEdit.text(), part_id)
-            if ("error" in info):
-                self.color_chooser.markAvailableColors(None)
-                self.ui.rebrickLabel.setText(info["error"])
-            else:
-                colors = map(lambda(x): x.get("ldraw_color_id", ""), info.get("colors", []))
-                self.color_chooser.markAvailableColors(colors)
-                self.ui.rebrickLabel.setText(info.get("year1","?") + " - " + info.get("year2","?"))
+    def handleLoadParts(self):
+        self.ui.partsTreeView.loadParts()
+
+    def updatePartInfo(self):
+
+        text = "(" + self.part_id + ")"
+        text += " " + self.part_text
+        text += ", " + self.part_color
+
+        if self.rb_info is None:
+            text += ", no Rebrickable information."
+        elif "error" in self.rb_info:
+            text += ", " + self.rb_info["error"]
         else:
-            self.color_chooser.markAvailableColors(None)
+            if not "year1" in self.rb_info:
+                print "not"
+                self.rb_info["year1"] = "?"
+            if (str(self.rb_info["year1"]) == "0"):
+                print "zero"
+                self.rb_info["year1"] = "?"
+            if not u"year2" in self.rb_info:
+                self.rb_info["year2"] = "?"
+            if (str(self.rb_info["year2"]) == "0"):
+                self.rb_info["year2"] = "?"
+            text += ", years " + str(self.rb_info["year1"]) + " - " + str(self.rb_info["year2"])
             
-    ## updatePartLabel
-    #
-    # Update the part label text based on the current part & color.
-    def updatePartLabel(self):
-        self.ui.partFileLabel.setText(self.part_file + ", " + self.part_color)
+        self.ui.partInfoLabel.setText(text)
+
+        # Create file for LDView.
+        with open("ldview_part.mpd", "w") as fp:
+            fp.write("1 " + self.part_color + " 0 0 0 1 0 0 0 1 0 0 0 1 " + self.part_id + ".dat")
 
 
 # Main
 if (__name__ == '__main__'):
     app = QtGui.QApplication(sys.argv)
 
-    if (len(sys.argv) == 2):
-        window = PartViewer(sys.argv[1])
-    else:
-        directory = os.path.dirname(__file__)
-        if (len(directory) > 0):
-            window = PartViewer(directory + "/../xml/parts.xml")
-        else:
-            window = PartViewer("../xml/parts.xml")
+    window = PartViewer()            
     window.show()
     app.exec_()
 
@@ -265,7 +194,7 @@ if (__name__ == '__main__'):
 #
 # The MIT License
 #
-# Copyright (c) 2014 Hazen Babcock
+# Copyright (c) 2015 Hazen Babcock
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
