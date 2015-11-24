@@ -16,7 +16,6 @@ import ldrawPath
 
 #
 # Find all the possible part directories & cache this.
-# This uses the path specified in the parts.xml file.
 #
 directory = os.path.dirname(__file__)
 if (directory == ""):
