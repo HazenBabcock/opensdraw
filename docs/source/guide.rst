@@ -32,15 +32,6 @@ Edit the path in *opensdraw/xml/ldraw_path.xml* to point to your LDraw directory
     <path path="/home/username/Downloads/ldraw/"/>
    </ldraw-path>
 
-
-Parts
-~~~~~
-If you want the *opensdraw/xml/parts.xml* file to reflect the current content
-of your LDraw parts directory you need to do the following. ::
-
-   cd opensdraw/xml
-   python ../scripts/make_parts_xml.py /path/to/ldraw/parts/directory/
-
 Emacs
 ~~~~~
 Any text editor can be used to create .lcad files, however emacs
@@ -66,7 +57,20 @@ The basic work flow is:
 
 1. Use the partviewer to determine the LDraw part number and LDraw color of the part you wish to add to your MOC. ::
 
-     python /path/to/opensdraw/partviewer/partviewer.py
+     cd /path/to/opensdraw/opensdraw/partviewer
+     python partviewer.py
+
+   .. note::
+
+      The first time this is run it will take a while (15 - 30 minutes) to generate the thumbnails of all the parts.
+
+   .. note::
+
+      This program will create a file called "ldview_part.mpd" that you can view with LDView (or equivalent). This file is updated with the current selected part and color.
+
+   .. note::
+
+      This program can query `Rebrickable <https://www.rebrickable.com/>`_ to provide more detailed part information such as what years it was available and in what colors. You will need an account at Rebrickable and an `API <https://rebrickable.com/api/>`_ key for this to work.
 
 2. Edit your MOC .lcad file to include this part in the desired location.
 3. Convert the MOC .lcad file to a .mpd file using *lcad_to_ldraw.py*. ::
