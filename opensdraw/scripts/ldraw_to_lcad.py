@@ -11,9 +11,6 @@ primitives are broken out into separate files.
 In "standard" mode it will use the sbs() function for brick placement,
 and in "technic" mode it use the tbs() function.
 
-This assumes that the path to the ldraw parts directory in the 
-parts.xml file is correct.
-
 Refs:
   1. http://nghiaho.com/?page_id=846     (matrix to rotation angles).
 
