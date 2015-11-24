@@ -2,7 +2,7 @@
 """
 Handles the parts treeview.
 
-Hazen 07/15
+Hazen 11/15
 """
 
 import os
@@ -38,7 +38,7 @@ class PartItemDelegate(QtGui.QStyledItemDelegate):
             top = option.rect.top()
 
             # Draw background rectangle.
-            painter.drawRect(left, top, option.rect.width(), option.rect.height())
+            #painter.drawRect(left, top, option.rect.width(), option.rect.height())
 
             # Draw image.
             painter.drawImage(left + 1, top + 1, part.part_image_scaled)
@@ -65,18 +65,7 @@ class PartProxyModel(QtGui.QSortFilterProxyModel):
 
     def __init__(self, parent):
         QtGui.QSortFilterProxyModel.__init__(self, parent)
-        
-#    def filterAcceptsRow(self, source_row, source_parent):
-#        model = self.sourceModel()
-#        index0 = model.index(source_row, 0, source_parent)
-#        index1 = model.index(source_row, 1, source_parent)
-#
-#        if (model.data(index0).toString().contains(self.filterRegExp()) or
-#            model.data(index1).toString().contains(self.filterRegExp())):
-#            return True
-#        else:
-#            return False
-        
+
 
 class PartStandardItem(QtGui.QStandardItem):
 
@@ -160,11 +149,10 @@ class PartTreeView(QtGui.QTreeView):
                 # Pause to process other events as the loading can be very slow.
                 QtGui.qApp.processEvents()
 
-                if (counts == 100):
-                    break
+                #if (counts == 100):
+                #    break
 
         print "Loaded", counts, "parts."
-        #self.part_proxy_model.sort(0)
 
     def handleSelectionChange(self, new_item_selection, old_item_selection):
         if (len(self.selectedIndexes()) > 0):

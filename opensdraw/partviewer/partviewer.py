@@ -103,10 +103,7 @@ class PartViewer(QtGui.QMainWindow):
         QtCore.QTimer.singleShot(100, self.handleLoadParts)
         
         # Load colors.
-        #self.color_chooser = colorChooserWidget.ColorChooserWidget("../colors.xml")
-        #layout = QtGui.QGridLayout(self.ui.colorGroupBox)
-        #layout.addWidget(self.color_chooser)
-        #self.ui.colorGroupBox.setLayout(layout)
+        self.ui.colorListView.loadColors()
 
         # Part image display.
         self.part_display = PartDisplay(self)
@@ -115,12 +112,8 @@ class PartViewer(QtGui.QMainWindow):
         layout.addWidget(self.part_display)
         
         # Connect signals.
-#        self.ui.filterLineEdit.textChanged.connect(self.handleTextChange)
-#        self.color_chooser.colorPicked.connect(self.handleColorChange)
-#        self.load_part_timer.timeout.connect(self.handleLoadPart)
-
-        # Connect signals.
         self.ui.actionQuit.triggered.connect(self.handleQuit)
+        self.ui.colorListView.selectedColorChanged.connect(self.handleColorChange)
         self.ui.partsTreeView.selectedPartChanged.connect(self.handleSelectedPartChange)
 
         # Restore settings.
@@ -137,13 +130,9 @@ class PartViewer(QtGui.QMainWindow):
         self.settings.setValue("rebrickCheckBox", self.ui.rebrickCheckBox.isChecked())
         self.settings.setValue("splitterSizes", self.ui.splitter.saveState())
 
-#    def handleColorChange(self, color):
-#        self.ui.openGLWidget.setColor(color.getFaceColor(), color.getEdgeColor())
-#        self.part_color = color.getDescription()
-#        self.updatePartLabel()
-
-#    def handleTextChange(self, new_text):
-#        self.proxy_model.setFilterRegExp(new_text)
+    def handleColorChange(self, color):
+        self.part_color = color
+        self.updatePartInfo()
 
     def handleSelectedPartChange(self, part):
         self.part_file = part.part_file
@@ -151,9 +140,10 @@ class PartViewer(QtGui.QMainWindow):
         self.part_display.setPartImage(part.part_image)
 
         self.part_id = self.part_file.split(".")[0]
-        if (len(self.ui.apiLineEdit.text()) > 0):
+        if self.ui.rebrickCheckBox.isChecked() and (len(self.ui.apiLineEdit.text()) > 0):
             self.rb_info = getRBPartInfo(self.ui.apiLineEdit.text(), self.part_id)
-        
+            self.ui.colorListView.filterColors(self.rb_info.get("colors", None))
+            
         self.updatePartInfo()
 
     def handleQuit(self, boolean):
@@ -187,8 +177,9 @@ class PartViewer(QtGui.QMainWindow):
             
         self.ui.partInfoLabel.setText(text)
 
-#    def updatePartLabel(self):
-#        self.ui.partFileLabel.setText(self.part_file + ", " + self.part_color)
+        # Create file for LDView.
+        with open("ldview_part.mpd", "w") as fp:
+            fp.write("1 " + self.part_color + " 0 0 0 1 0 0 0 1 0 0 0 1 " + self.part_id + ".dat")
 
 
 # Main

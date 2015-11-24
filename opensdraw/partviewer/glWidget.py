@@ -53,6 +53,8 @@ class GLWidget(QtOpenGL.QGLWidget):
             print ' Opengl version: %s' % (GL.glGetString(GL.GL_VERSION))
             print ' GLSL Version: %s' % (GL.glGetString(GL.GL_SHADING_LANGUAGE_VERSION))
             print ' Renderer: %s' % (GL.glGetString(GL.GL_RENDERER))
+
+        GL.glClearColor(1.0, 1.0, 1.0, 1.0)
         
     def renderPart(self, filename, color_id):
         self.freePartGL()
@@ -66,7 +68,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         GL.glViewport(0, 0, w, h)
         
     def paintGL(self):
-        pass
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)        
 
     def offscreen(self, picture_file):
         

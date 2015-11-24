@@ -152,7 +152,7 @@
         <item>
          <widget class="QGroupBox" name="partInfoGroupBox">
           <property name="title">
-           <string>Part and Color Information</string>
+           <string>Part Information</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
@@ -222,8 +222,17 @@
              </layout>
             </widget>
            </item>
-           <item>
-            <widget class="QListView" name="colorListView"/>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="title">
+           <string>Colors</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="0">
+            <widget class="ColorListView" name="colorListView"/>
            </item>
           </layout>
          </widget>
@@ -263,6 +272,11 @@
    <class>PartTreeView</class>
    <extends>QTreeView</extends>
    <header>partTreeView</header>
+  </customwidget>
+  <customwidget>
+   <class>ColorListView</class>
+   <extends>QListView</extends>
+   <header>colorListView</header>
   </customwidget>
  </customwidgets>
  <resources/>

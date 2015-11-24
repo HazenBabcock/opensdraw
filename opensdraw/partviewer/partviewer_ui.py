@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'partviewer.ui'
 #
-# Created: Sun Nov 22 20:46:23 2015
+# Created: Mon Nov 23 21:31:08 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -120,10 +120,15 @@ class Ui_MainWindow(object):
         spacerItem2 = QtGui.QSpacerItem(160, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_3.addItem(spacerItem2)
         self.verticalLayout_5.addWidget(self.widget)
-        self.colorListView = QtGui.QListView(self.partInfoGroupBox)
-        self.colorListView.setObjectName(_fromUtf8("colorListView"))
-        self.verticalLayout_5.addWidget(self.colorListView)
         self.verticalLayout_3.addWidget(self.partInfoGroupBox)
+        self.groupBox = QtGui.QGroupBox(self.layoutWidget1)
+        self.groupBox.setObjectName(_fromUtf8("groupBox"))
+        self.gridLayout_2 = QtGui.QGridLayout(self.groupBox)
+        self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
+        self.colorListView = ColorListView(self.groupBox)
+        self.colorListView.setObjectName(_fromUtf8("colorListView"))
+        self.gridLayout_2.addWidget(self.colorListView, 0, 0, 1, 1)
+        self.verticalLayout_3.addWidget(self.groupBox)
         self.gridLayout.addWidget(self.splitter, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
@@ -151,9 +156,11 @@ class Ui_MainWindow(object):
         self.rebrickableGroupBox.setTitle(_translate("MainWindow", "Rebrickable", None))
         self.rebrickCheckBox.setText(_translate("MainWindow", "query rebrickable", None))
         self.apiLabel.setText(_translate("MainWindow", "API key", None))
-        self.partInfoGroupBox.setTitle(_translate("MainWindow", "Part and Color Information", None))
+        self.partInfoGroupBox.setTitle(_translate("MainWindow", "Part Information", None))
         self.partInfoLabel.setText(_translate("MainWindow", "No part selected", None))
+        self.groupBox.setTitle(_translate("MainWindow", "Colors", None))
         self.menuFile.setTitle(_translate("MainWindow", "File", None))
         self.actionQuit.setText(_translate("MainWindow", "Quit", None))
 
+from colorListView import ColorListView
 from partTreeView import PartTreeView
