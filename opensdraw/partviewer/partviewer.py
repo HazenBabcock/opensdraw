@@ -99,6 +99,9 @@ class PartViewer(QtGui.QMainWindow):
         self.ui = partviewer_ui.Ui_MainWindow()
         self.ui.setupUi(self)
 
+        # Hide the filters since we are not using them.
+        self.ui.filterGroupBox.hide()
+        
         # Load parts.
         QtCore.QTimer.singleShot(100, self.handleLoadParts)
         
