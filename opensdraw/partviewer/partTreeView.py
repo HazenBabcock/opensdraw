@@ -111,8 +111,14 @@ class PartTreeView(QtGui.QTreeView):
         self.gl_widget = glWidget.GLWidget(self)
 
         # Create working directory for part renders.
-        if not os.path.exists("part_pics"):
-            os.makedirs("part_pics")
+        self.part_dir = os.path.dirname(__file__)
+        if (self.part_dir == ""):
+            self.part_dir = "./part_pics"
+        else:
+            self.part_dir += "/part_pics"
+
+        if not os.path.exists(self.part_dir):
+            os.makedirs(self.part_dir)
 
     def loadParts(self):
         self.part_path = ldrawPath.getLDrawPath() + "parts/"
@@ -164,7 +170,7 @@ class PartTreeView(QtGui.QTreeView):
     
     def renderPart(self, file_name, color_id):
         color_id = str(color_id)
-        pic_name = "part_pics/" + file_name[:-4] + "_" + color_id + ".png"
+        pic_name = self.part_dir + "/" + file_name[:-4] + "_" + color_id + ".png"
         if not os.path.exists(pic_name):
             print "Rendering", pic_name
             self.gl_widget.renderPart(file_name, color_id)
