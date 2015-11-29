@@ -9,7 +9,18 @@ import os
 from PyQt4 import QtCore, QtGui
 
 import opensdraw.lcad_lib.ldrawPath as ldrawPath
-import glWidget
+
+
+#
+# Change this to False is you have issues with LDView working from the command line
+# and you want to use the built in (and much less capable) part renderer.
+#
+use_ldview = True
+
+if use_ldview:
+    import subprocess
+else:    
+    import glWidget
 
 
 class PartItemDelegate(QtGui.QStyledItemDelegate):
@@ -108,7 +119,8 @@ class PartTreeView(QtGui.QTreeView):
         self.selectionModel().selectionChanged.connect(self.handleSelectionChange)
         
         # GLWidget for part rendering.
-        self.gl_widget = glWidget.GLWidget(self)
+        if not use_ldview:
+            self.gl_widget = glWidget.GLWidget(self)
 
         # Create working directory for part renders.
         self.part_dir = os.path.dirname(__file__)
@@ -124,7 +136,7 @@ class PartTreeView(QtGui.QTreeView):
         self.part_path = ldrawPath.getLDrawPath() + "parts/"
 
         categories = {}
-        counts = 0
+        count = 0
         with open(self.part_path + "../parts.lst") as part_list:
             for part in part_list:
                 text = ' '.join(part.split())
@@ -146,19 +158,19 @@ class PartTreeView(QtGui.QTreeView):
                 else:
                     qs_item = categories[category]
 
-                counts += 1
+                count += 1
                 qs_item.appendRow(PartStandardItem(category,
                                                    file_name,
-                                                   self.renderPart(file_name, 71),
+                                                   self.renderPart(file_name, 71, count),
                                                    description))
 
                 # Pause to process other events as the loading can be very slow.
                 QtGui.qApp.processEvents()
 
-                #if (counts == 100):
+                #if (count == 10):
                 #    break
 
-        print "Loaded", counts, "parts."
+        print "Loaded", count, "parts."
 
     def handleSelectionChange(self, new_item_selection, old_item_selection):
         if (len(self.selectedIndexes()) > 0):
@@ -168,14 +180,32 @@ class PartTreeView(QtGui.QTreeView):
         source_index = self.part_proxy_model.mapToSource(proxy_index)
         return self.part_model.itemFromIndex(source_index)
     
-    def renderPart(self, file_name, color_id):
+    def renderPart(self, file_name, color_id, count):
         color_id = str(color_id)
-        pic_name = self.part_dir + "/" + file_name[:-4] + "_" + color_id + ".png"
+        pic_name = self.part_dir + os.path.sep + file_name[:-4] + "_" + color_id + ".png"
         if not os.path.exists(pic_name):
-            print "Rendering", pic_name
-            self.gl_widget.renderPart(file_name, color_id)
-            self.gl_widget.offscreen(pic_name)
-        self.gl_widget.hide()
+            print "Rendering", count, pic_name
+            if use_ldview:
+
+                # Create 400 x 400 image.
+                subprocess.call(['LDView',
+                                 ldrawPath.getLDrawPath() + "parts" + os.path.sep + file_name,
+                                 "-SaveSnapshot=" + pic_name,
+                                 "-SaveActualSize=0",
+                                 "-SaveWidth=400",
+                                 "-SaveHeight=400",
+                                 "-DefaultZoom=0.95"])
+                
+                # Load, downsample to 200 x 200 and save so that the part looks nicer.
+                part_image = QtGui.QImage(pic_name)
+                part_image = part_image.scaled(200, 200, transformMode = QtCore.Qt.SmoothTransformation)
+                part_image.save(pic_name)
+
+            else:
+                self.gl_widget.renderPart(file_name, color_id)
+                self.gl_widget.offscreen(pic_name)
+        if not use_ldview:
+            self.gl_widget.hide()
         return pic_name
 
 
