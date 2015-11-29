@@ -1,6 +1,12 @@
 
 Current:
 
+2015-11-28: Change the partviewer to provide a thumbnail of each part.
+            Change the partviewer to use LDView to create the thumbnails.
+	    Add the ability to query Rebrickable for part information
+	    so that it easier to determine which parts and colors are
+	    actually available.
+
 2015-06-28: Add overlay() module for easier MOC scaling.
 
 2015-05-19: Rename the LCadObject type to LCadBoolean.
