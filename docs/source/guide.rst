@@ -5,9 +5,11 @@ Dependencies
 ------------
 
 * `LDraw <http://www.ldraw.org>`_
+* `LDView <http://ldview.sourceforge.net>`_ (For the partviewer).
 * `numpy <http://www.numpy.org>`_
 * `Python 2.7 <https://www.python.org>`_
 * `PyQt4 <http://www.riverbankcomputing.com/software/pyqt/intro>`_ (For the partviewer).
+* `requests <http://docs.python-requests.org/en/latest/>`_ (For the partviewer).
 * `rply <https://github.com/alex/rply>`_
 * `scipy <http://www.scipy.org>`_
 
@@ -62,15 +64,21 @@ The basic work flow is:
 
    .. note::
 
-      The first time this is run it will take a while (15 - 30 minutes) to generate the thumbnails of all the parts.
+      The first time this is run it will take a while (15 - 30 minutes) to generate the thumbnails of all the parts. By default
+      it will use LDView with your current preferences to do this. This means that LDView must be in your path. Also if you
+      have "Show Axes" checked for example then all your parts will be rendered with the X,Y and Z axises. It may also be a
+      good idea to temporarily disable your screen-saver.
 
    .. note::
 
-      This program will create a file called "ldview_part.mpd" that you can view with LDView (or equivalent). This file is updated with the current selected part and color.
+      This program will create a file called "ldview_part.mpd" that you can view with LDView (or equivalent). This file is
+      updated with the current selected part and color.
 
    .. note::
 
-      This program can query `Rebrickable <https://www.rebrickable.com/>`_ to provide more detailed part information such as what years it was available and in what colors. You will need an account at Rebrickable and an `API <https://rebrickable.com/api/>`_ key for this to work.
+      This program can query `Rebrickable <https://www.rebrickable.com/>`_ to provide more detailed part information such as
+      what years it was available and in what colors. You will need an account at Rebrickable and
+      an `API <https://rebrickable.com/api/>`_ key for this to work.
 
 2. Edit your MOC .lcad file to include this part in the desired location.
 3. Convert the MOC .lcad file to a .mpd file using *lcad_to_ldraw.py*. ::
