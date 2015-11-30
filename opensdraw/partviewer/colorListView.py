@@ -96,7 +96,11 @@ class ColorListView(QtGui.QListView):
             for color in self.color_items.values():
                 color.show = False
             for rb_color in rb_color_list:
-                color = self.color_items[rb_color['ldraw_color_id']]
+                try:
+                    color = self.color_items[rb_color['ldraw_color_id']]
+                except KeyError:
+                    print "Unknown LDraw color", rb_color['ldraw_color_id']
+                    continue
                 color.setText(color.color_name + " (" + rb_color['num_sets'] + " sets)")
                 color.show = True
 
