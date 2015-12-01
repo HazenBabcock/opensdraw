@@ -168,10 +168,8 @@ class PartViewer(QtGui.QMainWindow):
             text += ", " + self.rb_info["error"]
         else:
             if not "year1" in self.rb_info:
-                print "not"
                 self.rb_info["year1"] = "?"
             if (str(self.rb_info["year1"]) == "0"):
-                print "zero"
                 self.rb_info["year1"] = "?"
             if not u"year2" in self.rb_info:
                 self.rb_info["year2"] = "?"
