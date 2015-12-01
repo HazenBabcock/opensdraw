@@ -127,6 +127,7 @@ class PartViewer(QtGui.QMainWindow):
         self.ui.splitter.restoreState(self.settings.value("splitterSizes").toByteArray())
 
     def closeEvent(self, event):
+        self.ui.partsTreeView.stop_loading = True
         self.settings.setValue("MainWindow/Size", self.size())
         self.settings.setValue("MainWindow/Position", self.pos())
         self.settings.setValue("apiText", self.ui.apiLineEdit.text())

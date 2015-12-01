@@ -100,6 +100,7 @@ class PartTreeView(QtGui.QTreeView):
         QtGui.QTreeView.__init__(self, parent)
 
         self.part_path = None
+        self.stop_loading = False
 
         # Configure.
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
@@ -167,10 +168,15 @@ class PartTreeView(QtGui.QTreeView):
                 # Pause to process other events as the loading can be very slow.
                 QtGui.qApp.processEvents()
 
+                # Check if the user aborted.
+                if self.stop_loading:
+                    break
+                
                 #if (count == 10):
                 #    break
 
-        print "Loaded", count, "parts."
+        if not self.stop_loading:
+            print "Loaded", count, "parts."
 
     def handleSelectionChange(self, new_item_selection, old_item_selection):
         if (len(self.selectedIndexes()) > 0):
