@@ -283,6 +283,10 @@ def test_import_2():
 @nose.tools.raises(lcadExceptions.NumberArgumentsException)
 def test_import_3():
     exe("(import)")
+
+# is-main
+def test_is_main_1():
+    assert exe("(if (is-main) 1 2)") == 1
     
 # lambda
 def test_lambda_1():

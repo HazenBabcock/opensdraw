@@ -117,7 +117,8 @@ class Model(object):
     This keeps track of the current "model", i.e. the 
     current transformation matrix and groups of parts.
     """
-    def __init__(self):
+    def __init__(self, is_main = True):
+        self.is_main = is_main
         self.m_cur_group = []
         self.m_groups = []
         self.used_names = {}

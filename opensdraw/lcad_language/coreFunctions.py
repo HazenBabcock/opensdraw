@@ -461,8 +461,10 @@ class Import(functions.SpecialFunction):
         if local:
             args = args[:-1]
         for arg in args:
+
+            # Load module with it's own lexical environment and model.
             module_lenv = interp.LEnv(add_built_ins = True)
-            module_model = interp.Model()
+            module_model = interp.Model(False)
             for path in self.paths:
                 filename = path + arg.value + ".lcad"
                 if os.path.exists(filename):
@@ -474,6 +476,8 @@ class Import(functions.SpecialFunction):
             else:
                 raise lce.FileNotFoundException(arg.value + ".lcad")
 
+            # Add symbols from the modules lexical environment
+            # to the main lexical environment.
             lenv = tree.lenv.parent
             for sym_name in module_lenv.symbols:
                 if (not sym_name in interp.builtin_symbols) and (not sym_name in functions.builtin_functions):
@@ -488,15 +492,37 @@ class Import(functions.SpecialFunction):
 lcad_functions["import"] = Import()
 
 
+class IsMain(CoreFunction):
+    """
+    **is-main** - Return t / nil if the module is the main module.
+
+    Usage::
+   
+     (if (is-main)                    ; Only do lengthy calculation if the module
+       (do-some-lengthy-calculation)) ; was loaded directly by the interpreter.
+    """
+    def __init__(self):
+        CoreFunction.__init__(self, "is-main")
+        self.setSignature([])
+
+    def call(self, model):
+        if (model.is_main):
+            return interp.lcad_t
+        else:
+            return interp.lcad_nil
+
+lcad_functions["is-main"] = IsMain()
+
+            
 class Lambda(functions.SpecialFunction):
     """
     **lambda** - Create an anonymous function.
 
     Usage::
 
-    (def fn (lambda (x) (+ x 1)))           ; Create a function and assign to symbol fn.
-    (fn 1)                                  ; -> 2
-    (def myp (lambda () (part "32524" 15))) ; Create function that creates a particular part.
+     (def fn (lambda (x) (+ x 1)))           ; Create a function and assign to symbol fn.
+     (fn 1)                                  ; -> 2
+     (def myp (lambda () (part "32524" 15))) ; Create function that creates a particular part.
     """
     def __init__(self):
         functions.SpecialFunction.__init__(self, "lambda")
