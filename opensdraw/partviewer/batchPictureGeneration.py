@@ -14,7 +14,7 @@ import sys
 import thread
 
 
-def batchLDView(file_pairs, width = 400, height = 400, default_zoom = 0.95, max_processes = 6):
+def batchLDView(file_pairs, width = 200, height = 200, default_zoom = 0.95, max_processes = 6, rerender = True):
     """
     file_pairs is an array of [[input_file1, output_file1], [input_file2, output_file2], ..]
     """
@@ -28,6 +28,10 @@ def batchLDView(file_pairs, width = 400, height = 400, default_zoom = 0.95, max_
     procs = []
     for i, file_pair in enumerate(file_pairs):
 
+        # Don't redraw the picture if we already have a picture.
+        if os.path.exists(file_pair[1]) and not rerender:
+            continue
+        
         try:
             # Wait for a process to stop before starting
             # the next one if we are at the limit.
@@ -99,8 +103,8 @@ if (__name__ == '__main__'):
 
     # Render.
     print "Rendering."
-    batchLDView(all_parts)
-            
+    batchLDView(all_parts, rerender = False)
+
 #
 # The MIT License
 #
