@@ -10,12 +10,12 @@ import math
 import numbers
 import numpy
 
-import curveFunctions
-import functions
-import geometry
-import interpreter as interp
-import lcadExceptions
-import lcadTypes
+import opensdraw.lcad_language.curveFunctions as curveFunctions
+import opensdraw.lcad_language.functions as functions
+import opensdraw.lcad_language.geometry as geometry
+import opensdraw.lcad_language.interpreter as interp
+import opensdraw.lcad_language.lcadExceptions as lcadExceptions
+import opensdraw.lcad_language.lcadTypes as lcadTypes
 
 lcad_functions = {}
 

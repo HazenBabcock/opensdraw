@@ -15,10 +15,10 @@ import numpy
 import os
 import xml.etree.ElementTree as ElementTree
 
-import lcadExceptions as lce
-import functions
-import lexerParser
-import lcadTypes
+import opensdraw.lcad_language.lcadExceptions as lce
+import opensdraw.lcad_language.functions as functions
+import opensdraw.lcad_language.lexerParser as lexerParser
+import opensdraw.lcad_language.lcadTypes as lcadTypes
 
 # Keeps track of all the built in symbols.
 builtin_symbols = {}
@@ -220,7 +220,7 @@ def checkOverride(lenv, symbol_name, external_filename = False):
     except lce.SymbolNotDefined:
         return
 
-    print "Warning", symbol_name, "shadows existing symbol with the same name!!"
+    print("Warning", symbol_name, "shadows existing symbol with the same name!!")
 
 
 def createLexicalEnv(lenv, tree):
@@ -270,7 +270,7 @@ def createLexicalEnv(lenv, tree):
                     createLexicalEnv(tree.lenv, node)
 
         except Exception:
-            print "!Error in expression '" + tree.value[0].value + "' at line " + str(tree.start_line) + ":"
+            print("!Error in expression '" + tree.value[0].value + "' at line " + str(tree.start_line) + ":")
             raise
 
     elif isinstance(tree, lexerParser.LCadSymbol):
@@ -323,7 +323,7 @@ def execute(lcad_code, filename = "NA", time_index = 0):
         interpret(model, ast)
     except Exception as e:
         if hasattr(e, "lcad_err"):
-            print e.lcad_err
+            print(e.lcad_err)
         raise
     return model
 

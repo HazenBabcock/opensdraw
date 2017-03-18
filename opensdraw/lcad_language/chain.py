@@ -9,12 +9,12 @@
 
 import numbers
 
-import belt
-import curveFunctions
-import functions
-import interpreter as interp
-import lcadExceptions
-import lcadTypes
+import opensdraw.lcad_language.belt as belt
+import opensdraw.lcad_language.curveFunctions as curveFunctions
+import opensdraw.lcad_language.functions as functions
+import opensdraw.lcad_language.interpreter as interp
+import opensdraw.lcad_language.lcadExceptions as lcadExceptions
+import opensdraw.lcad_language.lcadTypes as lcadTypes
 
 lcad_functions = {}
 

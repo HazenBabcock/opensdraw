@@ -10,11 +10,11 @@
 import numbers
 import numpy
 
-import functions
-import geometry
+import opensdraw.lcad_language.functions as functions
+import opensdraw.lcad_language.geometry as geometry
 import interpreter as interp
 import lcadExceptions as lce
-import parts
+import opensdraw.lcad_language.parts as parts
 
 lcad_functions = {}
 

@@ -12,12 +12,12 @@ import numbers
 import numpy
 from scipy.optimize import minimize
 
-import curveFunctions
-import functions
-import geometry
-import interpreter as interp
-import lcadExceptions
-import lcadTypes
+import opensdraw.lcad_language.curveFunctions as curveFunctions
+import opensdraw.lcad_language.functions as functions
+import opensdraw.lcad_language.geometry as geometry
+import opensdraw.lcad_language.interpreter as interp
+import opensdraw.lcad_language.lcadExceptions as lcadExceptions
+import opensdraw.lcad_language.lcadTypes as lcadTypes
 
 lcad_functions = {}
 
@@ -274,8 +274,8 @@ class Curve(object):
                                options={'xtol': 1e-3, 'disp': False})
 
                 if not res.success:
-                    print "Curve auto-scaling failed!"
-                    print res
+                    print("Curve auto-scaling failed!")
+                    print(res)
 
                 # Create segment with optimal values.
                 cp1.raw_z_vec = cp1.z_vec * res.x[0]

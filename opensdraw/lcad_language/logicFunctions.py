@@ -7,11 +7,11 @@
 
 """
 
-import functions
-import interpreter as interp
-import lcadExceptions as lce
-import lcadTypes
-
+import opensdraw.lcad_language.functions as functions
+import opensdraw.lcad_language.interpreter as interp
+import opensdraw.lcad_language.lcadExceptions as lce
+import opensdraw.lcad_language.lcadTypes as lcadTypes
+ 
 lcad_functions = {}
 
 

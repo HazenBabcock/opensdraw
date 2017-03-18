@@ -7,8 +7,8 @@
 
 """
 
-from functools import wraps
-from itertools import izip
+#from functools import wraps
+#from itertools import izip
 import math
 import numbers
 import numpy
@@ -16,10 +16,10 @@ import operator
 import os
 import random
 
-import interpreter as interp
-import lcadExceptions as lce
-import lexerParser
-import parts
+import opensdraw.lcad_language.interpreter as interp
+import opensdraw.lcad_language.lcadExceptions as lce
+import opensdraw.lcad_language.lexerParser as lexerParser
+import opensdraw.lcad_language.parts as parts
 
 # Keep track of built-in functions.
 builtin_functions = {}

@@ -14,11 +14,11 @@ import numbers
 import numpy
 import os
 
-import functions
-import interpreter as interp
-import lcadExceptions as lce
-import lcadTypes
-import lexerParser
+import opensdraw.lcad_language.functions as functions
+import opensdraw.lcad_language.interpreter as interp
+import opensdraw.lcad_language.lcadExceptions as lce
+import opensdraw.lcad_language.lcadTypes as lcadTypes
+import opensdraw.lcad_language.lexerParser as lexerParser
 
 lcad_functions = {}
 
@@ -26,9 +26,9 @@ lcad_functions = {}
 # This was useful for testing the import function.
 def printSymbolTableIds(lenv):
     while lenv is not None:
-        print id(lenv)
+        print(id(lenv))
         lenv = lenv.parent
-    print "-"
+    print("-")
 
 
 class ArefSymbol(interp.Symbol):
@@ -374,7 +374,7 @@ class For(functions.SpecialFunction):
                     ret = interp.interpret(model, node)
                 cur += inc
             return ret
-        print "end"
+        print("end")
 
 lcad_functions["for"] = For()
 
@@ -590,7 +590,7 @@ class Print(CoreFunction):
 
     def call(self, model, *vals):
         p_string = "".join(map(str, vals))
-        print p_string
+        print(p_string)
         return p_string
 
 lcad_functions["print"] = Print()
@@ -628,9 +628,9 @@ class PyImport(functions.SpecialFunction):
                         lenv.symbols[fn_name] = interp.Symbol(fn_name, "pyimport")
                         lenv.symbols[fn_name].setv(fn)
                     else:
-                        print "Warning! Did not load", fn_name, "because it is not of type LCadFunction"
+                        print("Warning! Did not load", fn_name, "because it is not of type LCadFunction")
             else:
-                print "Warning! module", arg.value, "has no LCadFunctions."
+                print("Warning! module", arg.value, "has no LCadFunctions.")
 
 lcad_functions["pyimport"] = PyImport()
 
@@ -664,7 +664,7 @@ class Set(functions.SpecialFunction):
             if not isinstance(sym, interp.Symbol):
                 raise lce.CannotSetException(type(sym))
             if (sym.name in functions.builtin_functions):
-                print "Warning, overwriting builtin function:", sym.name, "!!"
+                print("Warning, overwriting builtin function:", sym.name, "!!")
             if (sym.name in interp.builtin_symbols):
                 if not (sym.name in interp.mutable_symbols):
                     raise lce.CannotOverrideBuiltIn()

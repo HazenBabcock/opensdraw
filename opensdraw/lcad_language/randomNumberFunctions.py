@@ -10,7 +10,7 @@
 import numbers
 import random
 
-import functions
+import opensdraw.lcad_language.functions as functions
 import interpreter as interp
 import lcadExceptions as lce
 

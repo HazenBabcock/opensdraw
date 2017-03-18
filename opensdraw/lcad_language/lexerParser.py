@@ -163,11 +163,11 @@ if (__name__ == '__main__'):
     import sys
 
     if (len(sys.argv) != 2):
-        print "usage: <file to parse>"
+        print("usage: <file to parse>")
         exit()
 
     with open(sys.argv[1]) as fp:
-        print parse(fp.read(), sys.argv[1])
+        print(parse(fp.read(), sys.argv[1]))
 
 
 #
