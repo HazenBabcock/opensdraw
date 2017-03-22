@@ -12,7 +12,7 @@ import os
 import sys
 from xml.etree import ElementTree
 
-import ldrawPath
+import opensdraw.lcad_lib.ldrawPath as ldrawPath
 
 #
 # Find all the possible part directories & cache this.
@@ -205,8 +205,8 @@ if (__name__ == "__main__"):
     
     if 1:
         dirs = list(getPartDirectories())
-        for dir in dirs:
-            print dir
+        for a_dir in dirs:
+            print(a_dir)
 
     if 0:
         parsePartFile(Parser(True, True), "c:/Program Files (x86)/LDraw/parts/15.dat")

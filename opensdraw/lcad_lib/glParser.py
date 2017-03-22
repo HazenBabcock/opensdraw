@@ -23,8 +23,8 @@ import numpy
 
 from OpenGL import arrays, GL
 
-import colorsParser
-import datFileParser
+import opensdraw.lcad_lib.colorsParser as colorsParser
+import opensdraw.lcad_lib.datFileParser as datFileParser
 
 
 #
@@ -287,7 +287,7 @@ class GLParser(datFileParser.Parser):
                     color = all_colors[color_id]
                     face_color = color.getFaceColor()
                 except KeyError:
-                    print "Cannot find color", color_id
+                    print("Cannot find color", color_id)
                     face_color = self.face_color
             else:
                 face_color = self.face_color
@@ -318,7 +318,7 @@ class GLParser(datFileParser.Parser):
         pass
 #        color = parsed_line[1]
 #        if (color != "16") and (color != "24"):
-#            print "Unexpected color", color, " ".join(parsed_line)
+#            print("Unexpected color", color, " ".join(parsed_line))
 
     def command(self, parsed_line):
         if (len(parsed_line) > 1):
@@ -345,7 +345,7 @@ class GLParser(datFileParser.Parser):
                     elif (parsed_line[3] == "CW"):
                         self.setWinding(False)
                 except IndexError as e:
-                    print " ".join(parsed_line)
+                    print(" ".join(parsed_line))
                     raise e
 
     def endFile(self):
@@ -382,7 +382,7 @@ class GLParser(datFileParser.Parser):
                 face_color = color.getFaceColor()
                 edge_color = color.getEdgeColor()
             except KeyError:
-                print "Cannot find color", parsed_line[1]
+                print("Cannot find color", parsed_line[1])
                 face_color = self.face_color
                 edge_color = self.edge_color
             
@@ -418,7 +418,7 @@ class GLParser(datFileParser.Parser):
         try:
             pi = numpy.array(map(float, point))
         except ValueError as e:
-            print "Can't parse", point
+            print("Can't parse", point)
             raise e
         
         pf = numpy.dot(self.matrix, pi)
@@ -576,7 +576,7 @@ class GLVaoLine(object):
 
     def fillBuffer(self, shader, buffer_id, buffer_data, buffer_name):
         if (shader.attributeLocation(buffer_name) < 0):
-            print buffer_name, "has does not exist?"
+            print(buffer_name, "has does not exist?")
             return
         
         np_buffer_data = numpy.array(buffer_data, dtype = numpy.float32)

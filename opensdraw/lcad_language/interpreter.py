@@ -20,11 +20,17 @@ import opensdraw.lcad_language.lcadExceptions as lce
 import opensdraw.lcad_language.lexerParser as lexerParser
 import opensdraw.lcad_language.lcadTypes as lcadTypes
 
+# Define the basestring type for Python 3.
+try:
+    basestring
+except NameError:
+    basestring = str
+    
+
 # Keeps track of all the built in symbols.
 builtin_functions = {}
 builtin_symbols = {}
 mutable_symbols = []
-
 
 #
 # Classes

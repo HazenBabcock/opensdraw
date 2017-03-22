@@ -9,15 +9,29 @@
 
 import copy
 import importlib
-from itertools import izip
 import numbers
 import numpy
 import os
+
+try:
+    # Python 2
+    from itertools import izip
+except ImportError:
+    # Python 3
+    izip = zip
 
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lce
 import opensdraw.lcad_language.lcadTypes as lcadTypes
 import opensdraw.lcad_language.lexerParser as lexerParser
+
+
+# Define the basestring type for Python 3.
+try:
+    basestring
+except NameError:
+    basestring = str
+
 
 lcad_functions = {}
 

@@ -57,7 +57,7 @@ class Color(object):
         :returns: tuple -- [r, g, b, a]
         """
         if (scale == "1"):
-            return map(lambda(x): float(x)/256.0, color_string.split(","))
+            return map(lambda x: float(x)/256.0, color_string.split(","))
         else:
             return map(int, color_string.split(","))
 
@@ -106,7 +106,7 @@ def loadColorGroups(colors_file = None):
 if (__name__ == '__main__'):
     all_colors = loadColors()
     for key in sorted(all_colors.keys()):
-        print key, all_colors[key].name
+        print(key, all_colors[key].name)
 
 #
 # The MIT License

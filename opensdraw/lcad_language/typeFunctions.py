@@ -11,7 +11,15 @@ import numbers
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadTypes as lcadTypes
 
+# Define the basestring type for Python 3.
+try:
+    basestring
+except NameError:
+    basestring = str
+
+
 lcad_functions = {}
+
 
 def isBoolean(obj):
     return isinstance(obj, lcadTypes.LCadBoolean)

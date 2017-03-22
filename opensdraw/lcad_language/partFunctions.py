@@ -15,7 +15,15 @@ import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lce
 import opensdraw.lcad_language.parts as parts
 
+# Define the basestring type for Python 3.
+try:
+    basestring
+except NameError:
+    basestring = str
+
+
 lcad_functions = {}
+
 
 class PartFunction(interp.LCadFunction):
     pass

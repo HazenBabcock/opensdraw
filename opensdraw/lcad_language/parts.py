@@ -109,7 +109,7 @@ class LDraw(object):
 
         # Transform coordinates using transformation matrix.
         if matrix is not None:
-            for i in range(len(coords)/3):
+            for i in range(int(len(coords)/3)):
                 vec = numpy.array([self.coords[3*i],
                                    self.coords[3*i+1],
                                    self.coords[3*i+2],
@@ -121,7 +121,7 @@ class LDraw(object):
 
     def toLDraw(self):
         ld_str = self.prefix + self.color + " "
-        ld_str += " ".join(map(lambda(x): formatNumber(x, 3), self.coords))
+        ld_str += " ".join(map(lambda x: formatNumber(x, 3), self.coords))
         return ld_str
 
 class Line(LDraw):

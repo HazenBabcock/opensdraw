@@ -18,6 +18,13 @@ import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lcadExceptions
 import opensdraw.lcad_language.lcadTypes as lcadTypes
 
+# Define the basestring type for Python 3.
+try:
+    basestring
+except NameError:
+    basestring = str
+
+
 lcad_functions = {}
 
 
