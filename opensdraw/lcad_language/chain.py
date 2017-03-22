@@ -73,7 +73,7 @@ class LCadChain(interp.LCadFunction):
     def call(self, model, sprocket_list, continuous = interp.lcad_t):
 
         # Keywords
-        continuous = True if functions.isTrue(continuous) else False
+        continuous = True if interp.isTrue(continuous) else False
 
         # Get list of sprockets.
         if (len(sprocket_list) < 2):

@@ -112,7 +112,7 @@ class LEnv(object):
 
         for module in fn_modules:
             for fn_name in module.lcad_functions.keys():
-                functions.builtin_functions[fn_name] = True
+                builtin_functions[fn_name] = True
                 self.symbols[fn_name] = Symbol(fn_name, "builtin")
                 self.symbols[fn_name].setv(module.lcad_functions[fn_name])
 
@@ -490,7 +490,7 @@ def createLexicalEnv(lenv, tree):
                         start = len(flist) - 1
                         checkOverride(lenv, flist[1].value)
                         lenv.symbols[flist[1].value] = Symbol(flist[1].value, tree.filename)
-                        lenv.symbols[flist[1].value].setv(functions.UserFunction(tree, flist[1].value))
+                        lenv.symbols[flist[1].value].setv(UserFunction(tree, flist[1].value))
 
             if (start != len(flist)):
                 for node in flist[start:]:
@@ -512,12 +512,12 @@ def dispatch(func, model, tree):
     """
     This handles function calls to both user-defined and built-in functions.
     """
-    if not isinstance(func, functions.LCadFunction):
+    if not isinstance(func, LCadFunction):
         raise lce.NotAFunctionException(func)
     if not tree.initialized:
         func.argCheck(tree)
 
-    if isinstance(func, functions.SpecialFunction):
+    if isinstance(func, SpecialFunction):
         return func.call(model, tree)
     else:
         if func.has_keyword_args:

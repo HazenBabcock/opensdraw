@@ -121,7 +121,7 @@ class Aref(CoreFunction):
 lcad_functions["aref"] = Aref()
 
 
-class Block(functions.SpecialFunction):
+class Block(interp.SpecialFunction):
     """
     **block** - A block of code, similar to *progn* in Lisp.
 
@@ -167,7 +167,7 @@ class Concatenate(CoreFunction):
 lcad_functions["concatenate"] = Concatenate()
 
 
-class Cond(functions.SpecialFunction):
+class Cond(interp.SpecialFunction):
     """
     **cond** - Switch statement.
 
@@ -622,7 +622,7 @@ class PyImport(interp.SpecialFunction):
             if hasattr(module, "lcad_functions"):
                 for fn_name in module.lcad_functions.keys():
                     fn = module.lcad_functions[fn_name]
-                    if isinstance(fn, functions.LCadFunction):
+                    if isinstance(fn, interp.LCadFunction):
                         interp.checkOverride(lenv, fn_name)
                         lenv.symbols[fn_name] = interp.Symbol(fn_name, "pyimport")
                         lenv.symbols[fn_name].setv(fn)

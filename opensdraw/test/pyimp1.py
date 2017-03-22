@@ -2,14 +2,14 @@
 
 import numbers
 
-import opensdraw.lcad_language.functions as functions
+import opensdraw.lcad_language.interpreter as interp
 
 lcad_functions = {}
 
-class Plus(functions.LCadFunction):
+class Plus(interp.LCadFunction):
 
     def __init__(self):
-        functions.LCadFunction.__init__(self, "plus")
+        interp.LCadFunction.__init__(self, "plus")
         self.setSignature([[numbers.Number], [numbers.Number]])
 
     def call(self, model, v1, v2):
