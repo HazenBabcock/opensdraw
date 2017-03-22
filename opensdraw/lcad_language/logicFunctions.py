@@ -7,7 +7,6 @@
 
 """
 
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lce
 import opensdraw.lcad_language.lcadTypes as lcadTypes
@@ -17,13 +16,13 @@ lcad_functions = {}
 
 # Logic functions.
 
-class LogicFunction(functions.LCadFunction):
+class LogicFunction(interp.LCadFunction):
     """
     Logic functions, and, or, not
     """
     pass
 
-class And(functions.SpecialFunction):
+class And(interp.SpecialFunction):
     """
     **and** - And statement.
 
@@ -33,19 +32,19 @@ class And(functions.SpecialFunction):
      (and (fn x) nil)      ; nil
     """
     def __init__(self, name):
-        functions.SpecialFunction.__init__(self, name)
+        interp.SpecialFunction.__init__(self, name)
         self.setSignature([[lcadTypes.LCadBoolean], [lcadTypes.LCadBoolean], ["optional", [lcadTypes.LCadBoolean]]])
 
     def call(self, model, tree):
         for i in range(self.numberArgs(tree)):
-            if not (functions.isTrue(self.getArg(model, tree, i))):
+            if not (interp.isTrue(self.getArg(model, tree, i))):
                 return interp.lcad_nil
         return interp.lcad_t
 
 lcad_functions["and"] = And("and")
 
 
-class Or(functions.SpecialFunction):
+class Or(interp.SpecialFunction):
     """
     **or** - Or statement.
 
@@ -56,12 +55,12 @@ class Or(functions.SpecialFunction):
      (or nil nil)          ; nil
     """
     def __init__(self, name):
-        functions.SpecialFunction.__init__(self, name)
+        interp.SpecialFunction.__init__(self, name)
         self.setSignature([[lcadTypes.LCadBoolean], [lcadTypes.LCadBoolean], ["optional", [lcadTypes.LCadBoolean]]])
 
     def call(self, model, tree):
         for i in range(self.numberArgs(tree)):
-            if functions.isTrue(self.getArg(model, tree, i)):
+            if interp.isTrue(self.getArg(model, tree, i)):
                 return interp.lcad_t
         return interp.lcad_nil
 
@@ -82,7 +81,7 @@ class Not(LogicFunction):
         self.setSignature([[lcadTypes.LCadBoolean]])
 
     def call(self, model, val):
-        if functions.isTrue(val):
+        if interp.isTrue(val):
             return interp.lcad_nil
         else:
             return interp.lcad_t

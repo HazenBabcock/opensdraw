@@ -10,7 +10,6 @@
 import numbers
 import operator
 
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lce
 
@@ -19,12 +18,12 @@ lcad_functions = {}
 
 # Comparison functions.
 
-class ComparisonFunction(functions.LCadFunction):
+class ComparisonFunction(interp.LCadFunction):
     """
     Comparison functions, =, >, <, >=, <=, !=.
     """
     def __init__(self, name):
-        functions.LCadFunction.__init__(self, name)
+        interp.LCadFunction.__init__(self, name)
         self.setSignature([[basestring, numbers.Number], 
                            ["optional", [basestring, numbers.Number]]])
 

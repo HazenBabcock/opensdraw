@@ -11,7 +11,6 @@ import numbers
 import numpy
 
 import opensdraw.lcad_language.curveFunctions as curveFunctions
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.geometry as geometry
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lcadExceptions
@@ -23,7 +22,7 @@ lcad_functions = {}
 #
 # These classes create a spring function that can be used in opensdraw.
 #
-class LCadSpring(functions.LCadFunction):
+class LCadSpring(interp.LCadFunction):
     """
     **spring** - Creates a spring function.
 
@@ -48,7 +47,7 @@ class LCadSpring(functions.LCadFunction):
     """
 
     def __init__(self):
-        functions.LCadFunction.__init__(self, "spring")
+        interp.LCadFunction.__init__(self, "spring")
         self.setSignature([[numbers.Number], [numbers.Number], [numbers.Number], [numbers.Number],
                            ["optional", [numbers.Number]]])
 

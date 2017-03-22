@@ -13,7 +13,6 @@ import numpy
 from scipy.optimize import minimize
 
 import opensdraw.lcad_language.curveFunctions as curveFunctions
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.geometry as geometry
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lcadExceptions
@@ -22,7 +21,7 @@ import opensdraw.lcad_language.lcadTypes as lcadTypes
 lcad_functions = {}
 
 
-class LCadCurve(functions.LCadFunction):
+class LCadCurve(interp.LCadFunction):
     """
     **curve** - Creates a curve function.
     
@@ -80,7 +79,7 @@ class LCadCurve(functions.LCadFunction):
 
     """
     def __init__(self):
-        functions.LCadFunction.__init__(self, "curve")
+        interp.LCadFunction.__init__(self, "curve")
         self.setSignature([[list],
                            ["keyword", {"auto-scale" : [[lcadTypes.LCadBoolean], interp.lcad_t],
                                         "extrapolate" : [[lcadTypes.LCadBoolean], interp.lcad_t],
@@ -90,8 +89,8 @@ class LCadCurve(functions.LCadFunction):
     def call(self, model, controlp_list, **kwargs):
 
         # Keyword defaults.
-        auto_scale = True if functions.isTrue(kwargs["auto-scale"]) else False
-        extrapolate = True if functions.isTrue(kwargs["extrapolate"]) else False
+        auto_scale = True if interp.isTrue(kwargs["auto-scale"]) else False
+        extrapolate = True if interp.isTrue(kwargs["extrapolate"]) else False
         scale = kwargs["scale"]
         twist = kwargs["twist"]
 

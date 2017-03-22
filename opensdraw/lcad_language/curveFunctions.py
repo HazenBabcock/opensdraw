@@ -8,18 +8,17 @@
 
 import numbers
 
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadTypes as lcadTypes
 
 
-class CurveFunction(functions.LCadFunction):
+class CurveFunction(interp.LCadFunction):
     """
     The functions chain(), curve() and spring() all return this function
     so that they can be used interchangeably.
     """
     def __init__(self, curve, name):
-        functions.LCadFunction.__init__(self, name)
+        interp.LCadFunction.__init__(self, name)
         self.setSignature([[lcadTypes.LCadBoolean, numbers.Number]])
         self.curve = curve
 
@@ -27,7 +26,7 @@ class CurveFunction(functions.LCadFunction):
 
         # If arg is t return the curve length.
         if not isinstance(arg, numbers.Number):
-            if functions.isTrue(arg):
+            if interp.isTrue(arg):
                 return self.curve.getLength()
             else:
                 return interp.lcad_nil

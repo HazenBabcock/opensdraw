@@ -14,7 +14,6 @@ import numbers
 import numpy
 import os
 
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lce
 import opensdraw.lcad_language.lcadTypes as lcadTypes
@@ -51,7 +50,7 @@ class ArefSymbol(interp.Symbol):
         self.tlist[self.index] = value
 
 
-class CoreFunction(functions.LCadFunction):
+class CoreFunction(interp.LCadFunction):
     pass
 
 
@@ -136,7 +135,7 @@ class Block(functions.SpecialFunction):
 
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "block")
+        interp.SpecialFunction.__init__(self, "block")
         self.setSignature([["optional", [object]]])
 
     def call(self, model, tree):
@@ -181,7 +180,7 @@ class Cond(functions.SpecialFunction):
        (t ..))      ; otherwise do this
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "cond")
+        interp.SpecialFunction.__init__(self, "cond")
         self.setSignature([[object], ["optional", [object]]])
 
     def call(self, model, tree):
@@ -189,7 +188,7 @@ class Cond(functions.SpecialFunction):
         ret = interp.lcad_nil
         for arg in args:
             nodes = arg.value
-            if functions.isTrue(interp.getv(interp.interpret(model, nodes[0]))):
+            if interp.isTrue(interp.getv(interp.interpret(model, nodes[0]))):
                 for node in nodes[1:]:
                     ret = interp.interpret(model, node)
                 return ret
@@ -217,7 +216,7 @@ class Copy(CoreFunction):
 lcad_functions["copy"] = Copy()
 
     
-class Def(functions.SpecialFunction):
+class Def(interp.SpecialFunction):
     """
     **def** - Create a variable or function.
 
@@ -241,7 +240,7 @@ class Def(functions.SpecialFunction):
 
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "def")
+        interp.SpecialFunction.__init__(self, "def")
 
     def argCheck(self, tree):
         # def needs at least 3 arguments.
@@ -294,7 +293,7 @@ class Def(functions.SpecialFunction):
 lcad_functions["def"] = Def()
 
 
-class For(functions.SpecialFunction):
+class For(interp.SpecialFunction):
     """
     **for** - For statement.
 
@@ -306,7 +305,7 @@ class For(functions.SpecialFunction):
      (for (i (list 1 3 4)) ..) ; increment i over the values in the list.
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "for")
+        interp.SpecialFunction.__init__(self, "for")
 
     def argCheck(self, tree):
         flist = tree.value
@@ -379,7 +378,7 @@ class For(functions.SpecialFunction):
 lcad_functions["for"] = For()
 
 
-class If(functions.SpecialFunction):
+class If(interp.SpecialFunction):
     """
     **if** - If statement. 
 
@@ -399,7 +398,7 @@ class If(functions.SpecialFunction):
        (fn3 1 2))
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "if")
+        interp.SpecialFunction.__init__(self, "if")
 
     def argCheck(self, tree):
         if (len(tree.value) != 3) and (len(tree.value) != 4):
@@ -408,7 +407,7 @@ class If(functions.SpecialFunction):
 
     def call(self, model, tree):
         args = tree.value[1:]
-        if functions.isTrue(interp.getv(interp.interpret(model, args[0]))):
+        if interp.isTrue(interp.getv(interp.interpret(model, args[0]))):
             return interp.interpret(model, args[1])
         else:
             if (len(args)==3):
@@ -419,7 +418,7 @@ class If(functions.SpecialFunction):
 lcad_functions["if"] = If()
 
 
-class Import(functions.SpecialFunction):
+class Import(interp.SpecialFunction):
     """
     **import** - Import a module.
 
@@ -440,7 +439,7 @@ class Import(functions.SpecialFunction):
      (import mod1 mod2 :local) ; import mod1.lcad and mod2.lcad into the name space of current module.
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "import")
+        interp.SpecialFunction.__init__(self, "import")
         self.paths = ["./", os.path.dirname(__file__) + "/../library/"]
 
     def argCheck(self, tree):
@@ -480,7 +479,7 @@ class Import(functions.SpecialFunction):
             # to the main lexical environment.
             lenv = tree.lenv.parent
             for sym_name in module_lenv.symbols:
-                if (not sym_name in interp.builtin_symbols) and (not sym_name in functions.builtin_functions):
+                if (not sym_name in interp.builtin_symbols) and (not sym_name in interp.builtin_functions):
                     if local:
                         interp.checkOverride(lenv, sym_name, module_lenv.symbols[sym_name].filename)
                         lenv.symbols[sym_name] = module_lenv.symbols[sym_name]
@@ -514,7 +513,7 @@ class IsMain(CoreFunction):
 lcad_functions["is-main"] = IsMain()
 
             
-class Lambda(functions.SpecialFunction):
+class Lambda(interp.SpecialFunction):
     """
     **lambda** - Create an anonymous function.
 
@@ -525,7 +524,7 @@ class Lambda(functions.SpecialFunction):
      (def myp (lambda () (part "32524" 15))) ; Create function that creates a particular part.
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "lambda")
+        interp.SpecialFunction.__init__(self, "lambda")
 
     def argCheck(self, tree):
         if (len(tree.value) != 3):
@@ -533,7 +532,7 @@ class Lambda(functions.SpecialFunction):
         tree.initialized = True
 
     def call(self, model, tree):
-        return functions.UserFunction(tree, "anonymous")
+        return interp.UserFunction(tree, "anonymous")
 
 lcad_functions["lambda"] = Lambda()
 
@@ -596,7 +595,7 @@ class Print(CoreFunction):
 lcad_functions["print"] = Print()
 
     
-class PyImport(functions.SpecialFunction):
+class PyImport(interp.SpecialFunction):
     """
     **pyimport** - Import a Python module and add any functions in the
     modules lcad_functions{} dictionary (that are instances of LCadFunction)
@@ -608,7 +607,7 @@ class PyImport(functions.SpecialFunction):
      (pyimport mymodule)  ; Import the Python module mymodule.py.
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "pyimport")
+        interp.SpecialFunction.__init__(self, "pyimport")
 
     def argCheck(self, tree):
         if (len(tree.value) < 2):
@@ -635,7 +634,7 @@ class PyImport(functions.SpecialFunction):
 lcad_functions["pyimport"] = PyImport()
 
 
-class Set(functions.SpecialFunction):
+class Set(interp.SpecialFunction):
     """
     **set** - Set the value of an existing symbol.
 
@@ -646,7 +645,7 @@ class Set(functions.SpecialFunction):
      (set x fn) - Set x to be the function fn.
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "set")
+        interp.SpecialFunction.__init__(self, "set")
 
     def argCheck(self, tree):
         flist = tree.value
@@ -663,7 +662,7 @@ class Set(functions.SpecialFunction):
             sym = interp.interpret(model, sym_node)
             if not isinstance(sym, interp.Symbol):
                 raise lce.CannotSetException(type(sym))
-            if (sym.name in functions.builtin_functions):
+            if (sym.name in interp.builtin_functions):
                 print("Warning, overwriting builtin function:", sym.name, "!!")
             if (sym.name in interp.builtin_symbols):
                 if not (sym.name in interp.mutable_symbols):
@@ -677,7 +676,7 @@ class Set(functions.SpecialFunction):
 lcad_functions["set"] = Set()
 
 
-class While(functions.SpecialFunction):
+class While(interp.SpecialFunction):
     """
     **while** - While loop.
 
@@ -687,7 +686,7 @@ class While(functions.SpecialFunction):
      (while (< x 10) .. )
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "while")
+        interp.SpecialFunction.__init__(self, "while")
 
     def argCheck(self, tree):
         if (len(tree.value)<3):
@@ -697,7 +696,7 @@ class While(functions.SpecialFunction):
     def call(self, model, tree):
         args = tree.value[1:]
         ret = None
-        while functions.isTrue(interp.getv(interp.interpret(model, args[0]))):
+        while interp.isTrue(interp.getv(interp.interpret(model, args[0]))):
             for arg in args[1:]:
                 ret = interp.interpret(model, arg)
         return ret

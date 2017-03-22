@@ -11,7 +11,6 @@ import numbers
 import numpy
 
 import opensdraw.lcad_language.curveFunctions as curveFunctions
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.geometry as geometry
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lcadExceptions
@@ -49,7 +48,7 @@ def parsePulley(pulley):
 #
 # These classes create a belt function that can be used in opensdraw.
 #
-class LCadBelt(functions.LCadFunction):
+class LCadBelt(interp.LCadFunction):
     """
     **belt** - Creates a belt function.
 
@@ -102,14 +101,14 @@ class LCadBelt(functions.LCadFunction):
     """
 
     def __init__(self):
-        functions.LCadFunction.__init__(self, "belt")
+        interp.LCadFunction.__init__(self, "belt")
         self.setSignature([[list], 
                            ["keyword", {"continuous" : [[lcadTypes.LCadBoolean], interp.lcad_t]}]])
 
     def call(self, model, pulley_list, continuous = interp.lcad_t):
 
         # Keywords
-        continuous = True if functions.isTrue(continuous) else False
+        continuous = True if interp.isTrue(continuous) else False
 
         # Get list of pulleys.
         if (len(pulley_list) < 2):

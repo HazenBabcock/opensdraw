@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
 .. module:: interpreter
-   :synopsis: The interpreter for the lcad language.
+   :synopsis: The interpreter for the lcad language as well as the
+              LCadFunction class and the UserFunction class.
 
 .. moduleauthor:: Hazen Babcock
 
@@ -16,14 +17,18 @@ import os
 import xml.etree.ElementTree as ElementTree
 
 import opensdraw.lcad_language.lcadExceptions as lce
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.lexerParser as lexerParser
 import opensdraw.lcad_language.lcadTypes as lcadTypes
 
 # Keeps track of all the built in symbols.
+builtin_functions = {}
 builtin_symbols = {}
 mutable_symbols = []
 
+
+#
+# Classes
+#
 
 class EmptyTree(object):
     """
@@ -112,6 +117,148 @@ class LEnv(object):
                 self.symbols[fn_name].setv(module.lcad_functions[fn_name])
 
 
+class LCadFunction(object):
+    """
+    The base class for all functions.
+    """
+    def __init__(self, name):
+        self.has_keyword_args = False
+        self.has_optional_args = False
+        self.minimum_args = None
+        self.name = name
+        self.signature = None
+        
+    def argCheck(self, tree):
+        args = tree.value[1:]
+        if self.has_keyword_args or self.has_optional_args:
+            if (len(args) < self.minimum_args):
+                raise lce.NumberArgumentsException("at least " + str(self.minimum_args), len(args))
+        else:
+            if (len(args) != self.minimum_args):
+                raise lce.NumberArgumentsException("exactly " + str(self.minimum_args), len(args))
+        tree.initialized = True
+
+    def getArg(self, model, tree, index):
+        """
+        This will get the arguments one at time. It only works with 
+        standard and optional arguments.
+        """
+        val = getv(interpret(model, tree.value[index+1]))
+
+        # Standard arguments.
+        if (index < self.minimum_args):
+            if not isType(val, self.signature[index]):
+                raise lce.WrongTypeException(", ".join(map(typeToString, self.signature[index])), typeToString(type(val)))
+            return val
+        
+        # All arguments that are beyond the length of the signature are
+        # have to have the type specified by the last argument of the signature.
+        if (index >= len(self.signature)):
+            index = len(self.signature) - 1
+        if not isType(val, self.signature[index][1]):
+            raise lce.WrongTypeException(", ".join(map(typeToString, self.signature[index][1])), type(val))
+        return val
+
+    def getArgs(self, model, tree):
+        """
+        This is what you want to use most of the time. It will return either (1) A list
+        containing the standard arguments, followed by the optional arguments or (2) a 
+        list containing a list of the standard arguments followed by the keyword dictionary.
+
+        (1) [standard / optional arguments]
+        (2) [[standard arguments], keyword dictionary]
+
+        The defaults for the keywords are filled in with the defaults if they are 
+        not found.
+        """
+        args = tree.value[1:]
+        index = 0
+
+        # Standard arguments.
+        standard_args = []
+        while (index < self.minimum_args):
+            val = getv(interpret(model, args[index]))
+            if not isType(val, self.signature[index]):
+                raise lce.WrongTypeException(", ".join(map(typeToString, self.signature[index])), type(val))
+            standard_args.append(val)
+            index += 1
+
+        # Optional arguments.
+        if self.has_optional_args:
+            sig_index = index
+            while (index < len(args)):
+                val = getv(interpret(model, args[index]))
+                if not isType(val, self.signature[sig_index][1]):
+                    raise lce.WrongTypeException(", ".join(map(typeToString, self.signature[sig_index][1])), type(val))
+                standard_args.append(val)
+                index += 1
+                if (sig_index < (len(self.signature) - 2)):
+                    sig_index += 1
+            return standard_args
+
+        # Keyword arguments.
+        if self.has_keyword_args:
+            sig_dict = self.signature[index][1]
+
+            # Fill in keyword dictionary.
+            keyword_dict = {}
+            if isinstance(self, UserFunction):
+                for key in sig_dict.keys():
+                    keyword_dict[key] = getv(interpret(model, sig_dict[key][1]))
+            else:
+                for key in sig_dict.keys():
+                    keyword_dict[key] = sig_dict[key][1]
+
+            # Parse keywords.
+            while (index < len(args)):
+                key = args[index].value
+                if (key[0] != ":"):
+                    raise lce.KeywordException(args[index].value)
+                key = key[1:]
+                if not key in sig_dict.keys():
+                    raise lce.UnknownKeywordException(key)
+                val = getv(interpret(model, args[index+1]))
+                if not isType(val, sig_dict[key][0]):
+                    raise lce.WrongTypeException(", ".join(map(typeToString, self.signature[sig_index][1])), type(val))
+                keyword_dict[key] = val
+                index += 2
+            return [standard_args, keyword_dict]
+
+        return standard_args
+
+    def numberArgs(self, tree):
+        return len(tree.value) - 1
+                                
+    def setSignature(self, signature):
+        """
+        Signature is a list containing the following:
+
+        (1) Standard arguments:
+            [[ type ], [ type ], ..,
+        (2) Optional arguments:
+            [ "optional", [ type ]]]
+            If the list or arguments is longer than standard + optional the remaining
+            arguments must have the same type as the last optional argument.
+        (3) Keyword arguments:
+            [ "keyword", {'keyword1': [[ type ], default value], 'keyword2': ..}]]
+
+        Note you should either have (2) or (3) but not both. All the functions that
+        are not internal only take keywords.
+
+        """
+        self.minimum_args = 0
+        self.signature = signature
+        for arg in self.signature:
+            if (len(arg) > 0):
+                if not isinstance(arg[0], basestring):
+                    self.minimum_args += 1
+                else:
+                    if (arg[0] == "optional"):
+                        self.has_optional_args = True
+                    elif (arg[0] == "keyword"):
+                        self.has_keyword_args = True
+
+
 class Model(object):
     """
     This keeps track of the current "model", i.e. the 
@@ -143,6 +290,13 @@ class Model(object):
         self.used_names[name] = 1
 
 
+class SpecialFunction(LCadFunction):
+    """
+    Functions that operate on the AST.
+    """
+    pass
+
+
 class Symbol(object):
     """
     Symbol class.
@@ -163,7 +317,80 @@ class Symbol(object):
     def setv(self, value):
         self.is_set = True
         self.value = value
-        
+
+
+class UserFunction(LCadFunction):
+    """
+    'Normal' user defined functions.
+    """
+    def __init__(self, tree, name):
+        LCadFunction.__init__(self, name)
+        flist = tree.value[1:]
+
+        # Named function.
+        if (len(flist) == 3):
+            self.name = flist[0].value
+            self.arg_list = flist[1].value
+            self.body = flist[2]
+
+        # Anonymous (lambda) function.
+        elif (len(flist) == 2):
+            self.name = "anonymous"
+            self.arg_list = flist[0].value
+            self.body = flist[1]
+
+        self.arg_names = []
+        self.lenv = tree.lenv
+
+        i = 0
+        standard_args = []
+        keyword_dict = {}
+        while (i < len(self.arg_list)):
+            arg = self.arg_list[i]
+            if not isinstance(arg, lexerParser.LCadSymbol):
+                raise lce.IllegalArgumentTypeException()
+
+            arg_name = arg.value
+            # Keyword arguments.
+            if (arg_name[0] == ":"):
+                self.have_keyword_args = True
+                arg_name = arg_name[1:]
+                arg_value = self.arg_list[i+1]
+                if isinstance(arg_value, lexerParser.LCadSymbol):
+                    if (arg_value.value[0] == ":"):
+                        raise Exception("Keyword arguments must have a default value.")
+                createLexicalEnv(self.lenv, arg_value)
+                keyword_dict[arg_name] = [[object], arg_value]
+                i += 2
+            else:
+                self.arg_names.append(arg_name)
+                standard_args.append([object])
+                i += 1
+
+            checkOverride(self.lenv, arg_name)
+            self.lenv.symbols[arg_name] = Symbol(arg_name, tree.filename)
+
+        if (len(keyword_dict.keys()) > 0):
+            standard_args.append(["keyword", keyword_dict])
+        self.setSignature(standard_args)
+
+    def call(self, model, *args, **kwargs):
+
+        # Check argument count.
+        if (len(args) != self.minimum_args):
+            raise lce.NumberArgumentsException(self.minimum_args, len(args))
+            
+        # Fill in arguments.
+        for i in range(len(args)):
+            self.lenv.symbols[self.arg_names[i]].setv(args[i])
+
+        if self.has_keyword_args:
+            for key in kwargs.keys():
+                self.lenv.symbols[key].setv(kwargs[key])
+
+        # Evaluate function.
+        return interpret(model, self.body)        
+
 
 # t and nil are objects so that we can do comparisons using 'is' and
 # be gauranteed that there is only one truth and one false.
@@ -429,6 +656,51 @@ def interpret(model, tree):
         for node in tree:
             ret = interpret(model, node)
         return ret
+
+
+def isTrue(val):
+    """
+    Returns True/False if val is lcad_t or lcad_nil.
+    """
+    if (val is lcad_t):
+        return True
+    if (val is lcad_nil):
+        return False
+    raise lce.BooleanException()
+
+
+def isType(val, types):
+    """
+    Check if val is of a type in types.
+    """
+    for a_type in types:
+        if isinstance(val, a_type):
+            return True
+    return False
+
+
+def typeToString(a_type):
+    """
+    Convert a type name to the corresponding lcad string.
+    """
+    a_string = a_type.__name__
+    if (a_string == "basestring"):
+        return "string"
+    if (a_string == "CurveFunction"):
+        return "curve function"
+    if (a_string == "LCadBoolean"):
+        return "t, nil"
+    if (a_string == "Symbol"):
+        return "symbol"
+    if (a_string == "LCadVector"):
+        return "vector"
+    if (a_string == "LCadMatrix"):
+        return "matrix"
+    if (a_string == "numpy.ndarray"):
+        return "vector, matrix"
+    if (a_string == "numbers.Number"):
+        return "number"
+    return a_string
 
 
 def walk(tree, func, indent = ""):

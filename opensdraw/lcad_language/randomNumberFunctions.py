@@ -10,13 +10,12 @@
 import numbers
 import random
 
-import opensdraw.lcad_language.functions as functions
-import interpreter as interp
-import lcadExceptions as lce
+import opensdraw.lcad_language.interpreter as interp
+import opensdraw.lcad_language.lcadExceptions as lce
 
 lcad_functions = {}
 
-class RandomNumberFunction(functions.LCadFunction):
+class RandomNumberFunction(interp.LCadFunction):
     pass
 
 

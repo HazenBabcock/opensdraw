@@ -13,16 +13,15 @@ import numpy
 
 import opensdraw.lcad_language.belt as belt
 import opensdraw.lcad_language.curveFunctions as curveFunctions
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.geometry as geometry
-import interpreter as interp
+import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lcadExceptions
 import opensdraw.lcad_language.lcadTypes as lcadTypes
 
 lcad_functions = {}
 
 
-class LCadPulleySystem(functions.LCadFunction):
+class LCadPulleySystem(interp.LCadFunction):
     """
     **pulley-system** - Creates a pulley-system function.
     
@@ -97,7 +96,7 @@ class LCadPulleySystem(functions.LCadFunction):
 
     """
     def __init__(self):
-        functions.LCadFunction.__init__(self, "pulley-system")
+        interp.LCadFunction.__init__(self, "pulley-system")
         self.setSignature([[list]])
 
     def call(self, model, pulley_list):

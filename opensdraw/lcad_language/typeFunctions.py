@@ -8,7 +8,6 @@
 
 import numbers
 
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadTypes as lcadTypes
 
@@ -30,9 +29,9 @@ def isVector(obj):
     return isinstance(obj, lcadTypes.LCadVector)
 
 
-class TypeFunction(functions.LCadFunction):
+class TypeFunction(interp.LCadFunction):
     def __init__(self, name):
-        functions.LCadFunction.__init__(self, name)
+        interp.LCadFunction.__init__(self, name)
         self.setSignature([[object]])
 
         

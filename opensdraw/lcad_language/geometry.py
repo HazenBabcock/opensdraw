@@ -11,7 +11,6 @@ import math
 import numbers
 import numpy
 
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lce
 import opensdraw.lcad_language.lcadTypes as lcadTypes
@@ -59,7 +58,7 @@ def listToMatrix(a_list):
                 vecs.append(numpy.array(elt[:3]))
                 continue
 
-            raise lce.WrongTypeException("list, vector", functions.typeToString(type(elt)))
+            raise lce.WrongTypeException("list, vector", interp.typeToString(type(elt)))
 
         for i in range(3):
             vecs[i+1] = vecs[i+1]/numpy.linalg.norm(vecs[i+1])

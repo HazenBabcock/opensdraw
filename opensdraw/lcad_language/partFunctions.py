@@ -10,15 +10,14 @@
 import numbers
 import numpy
 
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.geometry as geometry
-import interpreter as interp
-import lcadExceptions as lce
+import opensdraw.lcad_language.interpreter as interp
+import opensdraw.lcad_language.lcadExceptions as lce
 import opensdraw.lcad_language.parts as parts
 
 lcad_functions = {}
 
-class PartFunction(functions.LCadFunction):
+class PartFunction(interp.LCadFunction):
     pass
 
 
@@ -79,7 +78,7 @@ class Comment(PartFunction):
 lcad_functions["comment"] = Comment()
 
 
-class Group(functions.SpecialFunction):
+class Group(interp.SpecialFunction):
     """
     **group** - Creates a group (or sub-file) in the model.
 
@@ -106,7 +105,7 @@ class Group(functions.SpecialFunction):
 
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "group")
+        interp.SpecialFunction.__init__(self, "group")
         self.setSignature([[basestring], ["optional", [object]]])
 
     def call(self, model, tree):

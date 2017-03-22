@@ -11,7 +11,6 @@ import math
 import numbers
 import numpy
 
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lce
 import opensdraw.lcad_language.lcadTypes as lcadTypes
@@ -20,7 +19,7 @@ import opensdraw.lcad_language.lcadTypes as lcadTypes
 lcad_functions = {}
 
 
-class MathFunction(functions.LCadFunction):
+class MathFunction(interp.LCadFunction):
     """
     Math functions.
     """

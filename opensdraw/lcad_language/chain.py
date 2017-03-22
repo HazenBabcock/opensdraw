@@ -11,7 +11,6 @@ import numbers
 
 import opensdraw.lcad_language.belt as belt
 import opensdraw.lcad_language.curveFunctions as curveFunctions
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lcadExceptions
 import opensdraw.lcad_language.lcadTypes as lcadTypes
@@ -19,7 +18,7 @@ import opensdraw.lcad_language.lcadTypes as lcadTypes
 lcad_functions = {}
 
 
-class LCadChain(functions.LCadFunction):
+class LCadChain(interp.LCadFunction):
     """
     **chain** - Creates a chain function.
     
@@ -67,7 +66,7 @@ class LCadChain(functions.LCadFunction):
 
     """
     def __init__(self):
-        functions.LCadFunction.__init__(self, "chain")
+        interp.LCadFunction.__init__(self, "chain")
         self.setSignature([[list], 
                            ["keyword", {"continuous" : [[lcadTypes.LCadBoolean], interp.lcad_t]}]])
 

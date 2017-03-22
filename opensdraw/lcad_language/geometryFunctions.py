@@ -11,7 +11,6 @@ import math
 import numbers
 import numpy
 
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.geometry as geometry
 import opensdraw.lcad_language.interpreter as interp
 import opensdraw.lcad_language.lcadExceptions as lce
@@ -20,7 +19,7 @@ import opensdraw.lcad_language.lcadTypes as lcadTypes
 lcad_functions = {}
 
 
-class GeometryFunction(functions.LCadFunction):
+class GeometryFunction(interp.LCadFunction):
     pass
 
 
@@ -45,7 +44,7 @@ class CrossProduct(GeometryFunction):
     def call(self, model, v1, v2, normalize = interp.lcad_t):
         cp = numpy.cross(v1[0:3], v2[0:3])
         
-        if functions.isTrue(normalize):
+        if interp.isTrue(normalize):
             cp = cp/numpy.linalg.norm(cp)
 
         cp = numpy.append(cp, 1.0)
@@ -78,7 +77,7 @@ class DotProduct(GeometryFunction):
         # Ignore 4th element.
         v1 = v1[0:3]
         v2 = v2[0:3]
-        if functions.isTrue(normalize):
+        if interp.isTrue(normalize):
             return numpy.dot(v1, v2) / (numpy.linalg.norm(v1) * numpy.linalg.norm(v2))
         else:
             return numpy.dot(v1, v2)
@@ -157,7 +156,7 @@ class Matrix(GeometryFunction):
 lcad_functions["matrix"] = Matrix()
 
 
-class Mirror(functions.SpecialFunction):
+class Mirror(interp.SpecialFunction):
     """
     **mirror** - Mirror child elements on a plane through the origin.
 
@@ -173,7 +172,7 @@ class Mirror(functions.SpecialFunction):
 
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "mirror")
+        interp.SpecialFunction.__init__(self, "mirror")
         self.setSignature([[list, lcadTypes.LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
@@ -199,7 +198,7 @@ class Mirror(functions.SpecialFunction):
 lcad_functions["mirror"] = Mirror()
 
 
-class Rotate(functions.SpecialFunction):
+class Rotate(interp.SpecialFunction):
     """
     **rotate** - Rotate child elements.
 
@@ -220,7 +219,7 @@ class Rotate(functions.SpecialFunction):
 
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "rotate")
+        interp.SpecialFunction.__init__(self, "rotate")
         self.setSignature([[list, lcadTypes.LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
@@ -237,7 +236,7 @@ class Rotate(functions.SpecialFunction):
 lcad_functions["rotate"] = Rotate()
 
 
-class Scale(functions.SpecialFunction):
+class Scale(interp.SpecialFunction):
     """
     **scale** - Scale child elements.
 
@@ -257,7 +256,7 @@ class Scale(functions.SpecialFunction):
 
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "scale")
+        interp.SpecialFunction.__init__(self, "scale")
         self.setSignature([[list, lcadTypes.LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
@@ -280,7 +279,7 @@ class Scale(functions.SpecialFunction):
 lcad_functions["scale"] = Scale()
 
 
-class Transform(functions.SpecialFunction):
+class Transform(interp.SpecialFunction):
     """
     **transform** - Transform child elements.
 
@@ -297,7 +296,7 @@ class Transform(functions.SpecialFunction):
       ..)
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "transform")
+        interp.SpecialFunction.__init__(self, "transform")
         self.setSignature([[list, lcadTypes.LCadMatrix], ["optional", [object]]])
 
     def call(self, model, tree):
@@ -323,7 +322,7 @@ class Transform(functions.SpecialFunction):
 lcad_functions["transform"] = Transform()
 
 
-class Translate(functions.SpecialFunction):
+class Translate(interp.SpecialFunction):
     """
     **translate** - Translate child elements.
 
@@ -342,7 +341,7 @@ class Translate(functions.SpecialFunction):
 
     """
     def __init__(self):
-        functions.SpecialFunction.__init__(self, "translate")
+        interp.SpecialFunction.__init__(self, "translate")
         self.setSignature([[list, lcadTypes.LCadVector], ["optional", [object]]])
 
     def call(self, model, tree):
