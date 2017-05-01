@@ -67,7 +67,7 @@ def addParts(model, parts_string):
             else:
                 # Warning for non blank lines.
                 if (len(data) > 1):
-                    print line, "has an unexpected number of elements", len(data)
+                    print(line, "has an unexpected number of elements", len(data))
 
 
 class PartsFile(functions.LCadFunction):

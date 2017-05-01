@@ -11,7 +11,6 @@ import os
 from PIL import Image
 
 # These OpenSDraw modules have some classes that we will use.
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.interpreter as interpreter
 import opensdraw.lcad_language.typeFunctions as typeFunctions
 
@@ -26,17 +25,17 @@ lcad_functions = {}
 
 #
 # Your function(s) (like all functions in OpenSDraw) should be a sub-class of 
-# the functions.LCadFunction class.
+# the interpreter.LCadFunction class.
 #
 # This class will open a user requested picture and return another class that
 # the user can use to access various properties of the picture.
 #
-class OpenPicture(functions.LCadFunction):
+class OpenPicture(interpreter.LCadFunction):
 
     def __init__(self):
 
-        # functions.LCadFunction.__init__ takes one argument, the name of the function.
-        functions.LCadFunction.__init__(self, "picture")
+        # interpreter.LCadFunction.__init__ takes one argument, the name of the function.
+        interpreter.LCadFunction.__init__(self, "picture")
 
         # Set the function signature so that the interpreter will type check for a single 
         # argument of type string (the name of the picture file). Use basestring since
@@ -73,10 +72,10 @@ lcad_functions["open-picture"] = OpenPicture()
 # This class will return either the picture size, or the color at a particular
 # pixel depending on the arguments that the user supplies
 #
-class Picture(functions.LCadFunction):
+class Picture(interpreter.LCadFunction):
 
     def __init__(self, im):
-        functions.LCadFunction.__init__(self, "user created picture function")
+        interpreter.LCadFunction.__init__(self, "user created picture function")
 
         # Store the PIL Image object.
         self.im = im
@@ -98,5 +97,5 @@ class Picture(functions.LCadFunction):
         [r, g, b] = self.im.getpixel((x, y))
 
         # Convert colors (0-255) to upper case hex & concatenate.
-        return "0x2" + "".join(map(lambda(x): "{0:#0{1}x}".format(x,4).upper()[2:], [r, g, b]))
+        return "0x2" + "".join(map(lambda x: "{0:#0{1}x}".format(x,4).upper()[2:], [r, g, b]))
 

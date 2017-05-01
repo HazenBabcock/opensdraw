@@ -11,13 +11,13 @@ import numpy
 import os
 from PIL import Image
 
-import opensdraw.lcad_language.functions as functions
+import opensdraw.lcad_language.interpreter as interpreter
 import opensdraw.lcad_language.lcadExceptions as lcadExceptions
 import opensdraw.lcad_language.partFunctions as partFunctions
 
 lcad_functions = {}
 
-class Overlay(functions.LCadFunction):
+class Overlay(interpreter.LCadFunction):
     """
     **overlay** - Create a semi-transparent LDraw compatible image from a normal image.
 
@@ -38,7 +38,7 @@ class Overlay(functions.LCadFunction):
     """
 
     def __init__(self):
-        functions.LCadFunction.__init__(self, "overlay")
+        interpreter.LCadFunction.__init__(self, "overlay")
         self.header_fn = partFunctions.lcad_functions["header"]
         self.quad_fn = partFunctions.lcad_functions["quadrilateral"]
         self.setSignature([[basestring],
@@ -72,7 +72,7 @@ class Overlay(functions.LCadFunction):
                     
                     [r, g, b] = pic.getpixel((i, j))
                     
-                    color = "#" + "".join(map(lambda(x): "{0:#0{1}x}".format(x,4).upper()[2:], [r, g, b]))
+                    color = "#" + "".join(map(lambda x: "{0:#0{1}x}".format(x,4).upper()[2:], [r, g, b]))
                     if (color == "#FFFFFF"):
                         continue
 

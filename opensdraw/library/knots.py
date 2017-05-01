@@ -13,14 +13,13 @@ import os
 
 import opensdraw.lcad_language.curve as curve
 import opensdraw.lcad_language.curveFunctions as curveFunctions
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.geometry as geometry
 import opensdraw.lcad_language.interpreter as interpreter
 
 lcad_functions = {}
 
 
-class SheetBendKnot(functions.LCadFunction):
+class SheetBendKnot(interpreter.LCadFunction):
     """
     **sheet-bend-knot** - Creates a sheet bend knot function.
 
@@ -45,7 +44,7 @@ class SheetBendKnot(functions.LCadFunction):
 
     """
     def __init__(self):
-        functions.LCadFunction.__init__(self, "sheet-bend-knot")
+        interpreter.LCadFunction.__init__(self, "sheet-bend-knot")
         
         self.setSignature([[numbers.Number], [numbers.Number]])
 

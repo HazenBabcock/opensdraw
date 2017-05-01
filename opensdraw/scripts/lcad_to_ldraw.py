@@ -12,8 +12,8 @@ import sys
 import opensdraw.lcad_language.interpreter as interpreter
 
 if (len(sys.argv) < 2):
-    print "usage: <lcad file> <ldraw file (optional)> <time points (optional)>"
-    print "       If you want to specify time points you also have to specify the ldraw file."
+    print("usage: <lcad file> <ldraw file (optional)> <time points (optional)>")
+    print("       If you want to specify time points you also have to specify the ldraw file.")
     exit()
 
 # Parse arguments.
@@ -26,7 +26,7 @@ elif (len(sys.argv) == 4):
     try:
         time_points = int(sys.argv[3])
     except ValueError as e:
-        print "Third argument (time points) is not an integer."
+        print("Third argument (time points) is not an integer.")
         raise
 
 # Read input file.
@@ -51,7 +51,7 @@ while (index < time_points):
 
     # Generate model.
     if (index == 0):
-        print "Building model."
+        print("Building model.")
     model = interpreter.execute(ldraw_file_contents, filename = sys.argv[1], time_index = index)
 
     # Check for single or multi-part model.
@@ -65,20 +65,20 @@ while (index < time_points):
             for group in model.groups():
                 if (group.getNParts() > 0):
                     n_parts += group.getNParts()
-                    print "Group:", group.name, "has", group.getNParts(), "parts."
+                    print("Group:", group.name, "has", group.getNParts(), "parts.")
                 if (group.getNPrimitives() > 0):
                     n_parts += group.getNPrimitives()
-                    print "Group:", group.name, "has", group.getNPrimitives(), "primitives."
+                    print("Group:", group.name, "has", group.getNPrimitives(), "primitives.")
         else:
             group = model.groups()[0]
             if (group.getNParts() > 0):
                 n_parts += group.getNParts()
-                print "Model has", group.getNParts(), "parts."
+                print("Model has", group.getNParts(), "parts.")
             if (group.getNPrimitives() > 0):
                 n_parts += group.getNPrimitives()
-                print "Model has", group.getNPrimitives(), "primitives."
+                print("Model has", group.getNPrimitives(), "primitives.")
     elif ((index % 10) == 0):
-        print " time step", index
+        print(" time step", index)
 
     # Go to next iteration if there are no parts.
     if (n_parts == 0):
@@ -145,4 +145,4 @@ while (index < time_points):
 
     index += 1
 
-print "Done."
+print("Done.")

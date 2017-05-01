@@ -438,7 +438,7 @@ class Segment(object):
             # points in the distance look up table.
             start = 0
             end = len(self.dist_lut) - 1
-            mid = (end - start)/2
+            mid = int((end - start)/2)
             while ((end - start) > 1):
                 if (distance > self.dist_lut[mid, 1]):
                     start = mid
@@ -447,7 +447,7 @@ class Segment(object):
                     end = start + 1
                 else:
                     end = mid
-                mid = (end - start)/2 + start
+                mid = int((end - start)/2 + start)
 
             # Interpolate between bracketing points.
             ratio = (distance - self.dist_lut[start, 1])/(self.dist_lut[end, 1] - self.dist_lut[start, 1])

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-#
-# Use LDView to convert all the .dat files in a directory into .png files.
-# This is probably most useful for animations.
-#
-# Hazen 12/14
-#
+"""
+Use LDView to convert all the .dat files in a directory into .png files.
+This is probably most useful for animations.
+
+Hazen 12/14
+"""
 
 import glob
 import os
@@ -12,7 +12,7 @@ import subprocess
 import sys
 
 if (len(sys.argv) != 2):
-    print "usage <directory>"
+    print("usage <directory>")
     exit()
 
 # Adjust accordingly based on your desired results.
@@ -41,7 +41,7 @@ if 1:
     options[1] = "-DefaultZoom=1"
 
 for dat_file in sorted(glob.glob(sys.argv[1] + "*.mpd")):
-    print "Processing:", dat_file
+    print("Processing:", dat_file)
     proc_params = ["LDView", 
                    dat_file,
                    "-SaveSnapshot=" + os.path.splitext(dat_file)[0] + ".png"]

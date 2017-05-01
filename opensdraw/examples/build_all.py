@@ -35,7 +35,7 @@ for example in examples:
     proc_params = ["python",
                    builder,
                    example]
-    print "Building:", example
+    print("Building:", example)
     subprocess.call(proc_params)
-    print ""
+    print("")
 

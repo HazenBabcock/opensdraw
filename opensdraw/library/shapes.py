@@ -11,8 +11,8 @@ import numbers
 import numpy
 
 import opensdraw.lcad_language.curveFunctions as curveFunctions
-import opensdraw.lcad_language.functions as functions
 import opensdraw.lcad_language.geometry as geometry
+import opensdraw.lcad_language.interpreter as interpreter
 import opensdraw.lcad_language.parts as parts
 import opensdraw.lcad_language.lcadTypes as lcadTypes
 
@@ -126,7 +126,7 @@ class Stepper(object):
 # Opensdraw functions.
 #
 
-class Axle(functions.LCadFunction):
+class Axle(interpreter.LCadFunction):
     """
     **axle** - Draw an axle using LDraw primitives.
     
@@ -143,7 +143,7 @@ class Axle(functions.LCadFunction):
 
     """
     def __init__(self):
-        functions.LCadFunction.__init__(self, "axle")
+        interpreter.LCadFunction.__init__(self, "axle")
 
         self.vectors = [numpy.array([6, 0, 0, 1]),
                         numpy.array([5.602, 2, 0, 1]),
@@ -163,7 +163,7 @@ class Axle(functions.LCadFunction):
                         numpy.array([5.602, -2, 0, 1]),
                         numpy.array([6, 0, 0, 1])]
 
-        self.setSignature([[functions.LCadFunction],
+        self.setSignature([[interpreter.LCadFunction],
                            [numbers.Number],
                            [numbers.Number],
                            ["optional", [numbers.Number]]])
@@ -206,7 +206,7 @@ class Axle(functions.LCadFunction):
 lcad_functions["axle"] = Axle()
 
 
-class FlatCable(functions.LCadFunction):
+class FlatCable(interpreter.LCadFunction):
     """
     **flat-cable** - Draw a flat cable (i.e. EV3 or NXT style) using LDraw primitives.
 
@@ -226,9 +226,9 @@ class FlatCable(functions.LCadFunction):
     """
 
     def __init__(self):
-        functions.LCadFunction.__init__(self, "flat-cable")
+        interpreter.LCadFunction.__init__(self, "flat-cable")
         
-        self.setSignature([[functions.LCadFunction],
+        self.setSignature([[interpreter.LCadFunction],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number],
@@ -276,7 +276,7 @@ class FlatCable(functions.LCadFunction):
 lcad_functions["flat-cable"] = FlatCable()
 
     
-class RibbonCable(functions.LCadFunction):
+class RibbonCable(interpreter.LCadFunction):
     """
     **ribbon-cable** - Draw a ribbon cable using LDraw primitives.
 
@@ -297,9 +297,9 @@ class RibbonCable(functions.LCadFunction):
     """
 
     def __init__(self):
-        functions.LCadFunction.__init__(self, "ribbon-cable")
+        interpreter.LCadFunction.__init__(self, "ribbon-cable")
         
-        self.setSignature([[functions.LCadFunction],
+        self.setSignature([[interpreter.LCadFunction],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number],
@@ -397,7 +397,7 @@ class RibbonCable(functions.LCadFunction):
 lcad_functions["ribbon-cable"] = RibbonCable()
 
         
-class Ring(functions.LCadFunction):
+class Ring(interpreter.LCadFunction):
     """
     **ring** - Draw a ring using LDraw primitives.
 
@@ -416,7 +416,7 @@ class Ring(functions.LCadFunction):
 
     """
     def __init__(self):
-        functions.LCadFunction.__init__(self, "ring")
+        interpreter.LCadFunction.__init__(self, "ring")
 
         self.matrices = rotationMatrices()
         self.setSignature([[lcadTypes.LCadMatrix],
@@ -434,7 +434,7 @@ class Ring(functions.LCadFunction):
 
         p1 = numpy.dot(m1, v1)
         p2 = numpy.dot(m2, v2)
-        if functions.isTrue(ccw):
+        if interpreter.isTrue(ccw):
             for mz in self.matrices:            
                 p3 = numpy.dot(m1, numpy.dot(mz, v1))
                 p4 = numpy.dot(m2, numpy.dot(mz, v2))
@@ -454,7 +454,7 @@ class Ring(functions.LCadFunction):
 lcad_functions["ring"] = Ring()
 
 
-class Rod(functions.LCadFunction):
+class Rod(interpreter.LCadFunction):
     """
     **rod** - Draw a rod using LDraw primitives.
 
@@ -471,10 +471,10 @@ class Rod(functions.LCadFunction):
 
     """
     def __init__(self):
-        functions.LCadFunction.__init__(self, "rod")
+        interpreter.LCadFunction.__init__(self, "rod")
 
         self.matrices = rotationMatrices()
-        self.setSignature([[functions.LCadFunction],
+        self.setSignature([[interpreter.LCadFunction],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number]])
@@ -493,7 +493,7 @@ class Rod(functions.LCadFunction):
 lcad_functions["rod"] = Rod()
 
 
-class Tube(functions.LCadFunction):
+class Tube(interpreter.LCadFunction):
     """
     **tube** - Draw a tube using LDraw primitives.
 
@@ -512,10 +512,10 @@ class Tube(functions.LCadFunction):
 
     """
     def __init__(self):
-        functions.LCadFunction.__init__(self, "tube")
+        interpreter.LCadFunction.__init__(self, "tube")
 
         self.matrices = rotationMatrices()
-        self.setSignature([[functions.LCadFunction],
+        self.setSignature([[interpreter.LCadFunction],
                            [numbers.Number],
                            [numbers.Number],
                            [numbers.Number],

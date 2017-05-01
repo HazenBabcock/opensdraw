@@ -14,7 +14,7 @@ import sys
 import opensdraw.lcad_lib.datFileParser as datFileParser
 
 if (len(sys.argv) != 2):
-    print "usage: <ldraw file (input)>"
+    print("usage: <ldraw file (input)>")
     exit()
 
 parts = {}
@@ -92,17 +92,17 @@ class PartsFinder(datFileParser.Parser):
 partsFinder = PartsFinder()
 datFileParser.parsePartFile(partsFinder, sys.argv[1])
 
-print "Parts:"
+print("Parts:")
 for key in sorted(partsFinder.parts, key = partsFinder.parts.get):
     [part_id, part_color] = key.split("_")
-    print part_id[:-4] + ", " + part_color + ", " + partsFinder.parts[key]
-print "\n"
+    print(part_id[:-4] + ", " + part_color + ", " + partsFinder.parts[key])
+print("\n")
 
-print "Sub Parts:"
+print("Sub Parts:")
 for key in sorted(partsFinder.sub_parts, key = partsFinder.sub_parts.get):
     [part_id, part_color] = key.split("_")
-    print part_id[:-4] + ", " + part_color + ", " + partsFinder.sub_parts[key]
-print "\n"
+    print(part_id[:-4] + ", " + part_color + ", " + partsFinder.sub_parts[key])
+print("\n")
 
 #
 # The MIT License
