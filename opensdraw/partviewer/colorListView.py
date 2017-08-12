@@ -7,17 +7,17 @@ Hazen 11/15
 
 import sys
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 import opensdraw.lcad_lib.colorsParser as colorsParser
 
 
-class ColorItemDelegate(QtGui.QStyledItemDelegate):
+class ColorItemDelegate(QtWidgets.QStyledItemDelegate):
     """
     Custom item including a square displaying the color.
     """
-    def __init__(self, model, proxy_model):
-        QtGui.QStyledItemDelegate.__init__(self)
+    def __init__(self, model = None, proxy_model = None, **kwds):
+        super().__init__(**kwds)
         self.model = model
         self.proxy_model = proxy_model
 
@@ -30,7 +30,7 @@ class ColorItemDelegate(QtGui.QStyledItemDelegate):
 
         # Draw correct background.
         style = option.widget.style()
-        style.drawControl(QtGui.QStyle.CE_ItemViewItem, option, painter, option.widget)
+        style.drawControl(QtWidgets.QStyle.CE_ItemViewItem, option, painter, option.widget)
 
         # Draw color swatch.
         painter.setPen(color.face_color)
@@ -50,24 +50,25 @@ class ColorItemDelegate(QtGui.QStyledItemDelegate):
         painter.drawText(text_rect, QtCore.Qt.AlignLeft, color.text())
     
 
-class ColorListView(QtGui.QListView):
+class ColorListView(QtWidgets.QListView):
     """
     Encapsulates a list view specialized for displaying LDraw colors.
     """
 
     selectedColorChanged = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent = None):
-        QtGui.QListView.__init__(self, parent)
+    def __init__(self, parent):
+        super().__init__(parent)
 
         self.color_items = {}
         self.color_model = QtGui.QStandardItemModel(self)
-        self.color_proxy_model = ColorProxyModel(self)
+        self.color_proxy_model = ColorProxyModel(parent = self)
         self.color_proxy_model.setSourceModel(self.color_model)
         self.setModel(self.color_proxy_model)
                          
         # Rendering
-        self.setItemDelegate(ColorItemDelegate(self.color_model, self.color_proxy_model))
+        self.setItemDelegate(ColorItemDelegate(model = self.color_model,
+                                               proxy_model = self.color_proxy_model))
 
         # Get selection changes
         self.selectionModel().selectionChanged.connect(self.handleSelectionChange)
@@ -79,7 +80,7 @@ class ColorListView(QtGui.QListView):
                          
     def loadColors(self):
         colors = colorsParser.loadColors()
-        for c_id in sorted(colors, key = lambda(x): int(x)):
+        for c_id in sorted(colors, key = lambda x: int(x)):
             c_item = ColorStandardItem(c_id,
                                        "(" + c_id + ") " + colors[c_id].name,
                                        colors[c_id].getFaceColor("256"),
@@ -99,7 +100,7 @@ class ColorListView(QtGui.QListView):
                 try:
                     color = self.color_items[rb_color['ldraw_color_id']]
                 except KeyError:
-                    print "Unknown LDraw color", rb_color['ldraw_color_id']
+                    print("Unknown LDraw color", rb_color['ldraw_color_id'])
                     continue
                 color.setText(color.color_name + " (" + rb_color['num_sets'] + " sets)")
                 color.show = True
@@ -107,10 +108,10 @@ class ColorListView(QtGui.QListView):
         self.color_proxy_model.invalidateFilter()
         
 
-class ColorProxyModel(QtGui.QSortFilterProxyModel):
+class ColorProxyModel(QtCore.QSortFilterProxyModel):
 
-    def __init__(self, parent):
-        QtGui.QSortFilterProxyModel.__init__(self, parent)
+    def __init__(self, **kwds):        
+        super().__init__(**kwds)
 
     def filterAcceptsRow(self, source_row, source_parent):
         index = self.sourceModel().index(source_row, 0, source_parent)
@@ -121,7 +122,7 @@ class ColorProxyModel(QtGui.QSortFilterProxyModel):
 class ColorStandardItem(QtGui.QStandardItem):
 
     def __init__(self, color_id, color_name, face_color, edge_color):
-        QtGui.QStandardItem.__init__(self, color_name)
+        super().__init__(color_name)
         self.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
         self.color_id = color_id

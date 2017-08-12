@@ -9,12 +9,11 @@ import os
 import requests
 import sys
 import urllib
-import urllib2
 import warnings
 
 from xml.etree import ElementTree
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 #import opensdraw.lcad_lib.ldrawPath as ldrawPath
 #import colorChooserWidget
@@ -41,8 +40,8 @@ def getRBPartInfo(api_key, part_id):
             response = requests.get(url, allow_redirects=False)
     
         except requests.exceptions.SSLError as e:
-            print "Got SSL Error:", e
-            print "Trying again without SSL certificate verification."
+            print("Got SSL Error:", e)
+            print("Trying again without SSL certificate verification.")
             cert_fails = True
 
     if cert_fails:
@@ -58,12 +57,12 @@ def getRBPartInfo(api_key, part_id):
         return response.json()
     
 
-class PartDisplay(QtGui.QWidget):
+class PartDisplay(QtWidgets.QWidget):
     """
     For displaying a picture of a part.
     """
-    def __init__(self, parent):
-        QtGui.QWidget.__init__(self)
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
 
         self.part_image = None
 
@@ -81,12 +80,12 @@ class PartDisplay(QtGui.QWidget):
         self.update()
         
     
-class PartViewer(QtGui.QMainWindow):
+class PartViewer(QtWidgets.QMainWindow):
     """
     The PartViewer QMainWindow.
     """
-    def __init__(self):
-        QtGui.QMainWindow.__init__(self)
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
 
         self.part_color = "71"
         self.part_file = ""
@@ -109,9 +108,9 @@ class PartViewer(QtGui.QMainWindow):
         self.ui.colorListView.loadColors()
 
         # Part image display.
-        self.part_display = PartDisplay(self)
-        layout = QtGui.QGridLayout(self.ui.partImageFrame)
-        layout.setMargin(1)
+        self.part_display = PartDisplay(parent = self)
+        layout = QtWidgets.QGridLayout(self.ui.partImageFrame)
+        layout.setContentsMargins(1,1,1,1)
         layout.addWidget(self.part_display)
         
         # Connect signals.
@@ -120,11 +119,11 @@ class PartViewer(QtGui.QMainWindow):
         self.ui.partsTreeView.selectedPartChanged.connect(self.handleSelectedPartChange)
 
         # Restore settings.
-        self.resize(self.settings.value("MainWindow/Size", self.size()).toSize())
-        self.move(self.settings.value("MainWindow/Position", self.pos()).toPoint())
-        self.ui.apiLineEdit.setText(self.settings.value("apiText", "").toString())
-        self.ui.rebrickCheckBox.setChecked(self.settings.value("rebrickCheckBox", False).toBool())
-        self.ui.splitter.restoreState(self.settings.value("splitterSizes").toByteArray())
+        self.resize(self.settings.value("MainWindow/Size", self.size()))
+        self.move(self.settings.value("MainWindow/Position", self.pos()))
+        self.ui.apiLineEdit.setText(self.settings.value("apiText", ""))
+        self.ui.rebrickCheckBox.setChecked(self.settings.value("rebrickCheckBox", False, bool))
+        self.ui.splitter.restoreState(self.settings.value("splitterSizes", QtCore.QByteArray()))
 
     def closeEvent(self, event):
         self.ui.partsTreeView.stop_loading = True
@@ -186,7 +185,7 @@ class PartViewer(QtGui.QMainWindow):
 
 # Main
 if (__name__ == '__main__'):
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     window = PartViewer()            
     window.show()

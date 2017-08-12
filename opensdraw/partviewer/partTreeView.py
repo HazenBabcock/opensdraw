@@ -6,7 +6,7 @@ Hazen 11/15
 """
 
 import os
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 import opensdraw.lcad_lib.ldrawPath as ldrawPath
 
@@ -23,12 +23,12 @@ else:
     import glWidget
 
 
-class PartItemDelegate(QtGui.QStyledItemDelegate):
+class PartItemDelegate(QtWidgets.QStyledItemDelegate):
     """
     Custom item including a rendering of the part.
     """
-    def __init__(self, model, proxy_model):
-        QtGui.QStyledItemDelegate.__init__(self)
+    def __init__(self, model = None, proxy_model = None, **kwds):
+        super().__init__(**kwds)
         self.model = model
         self.proxy_model = proxy_model
 
@@ -43,7 +43,7 @@ class PartItemDelegate(QtGui.QStyledItemDelegate):
 
             # Draw correct background.
             style = option.widget.style()
-            style.drawControl(QtGui.QStyle.CE_ItemViewItem, option, painter, option.widget)
+            style.drawControl(QtWidgets.QStyle.CE_ItemViewItem, option, painter, option.widget)
 
             left = option.rect.left()
             top = option.rect.top()
@@ -62,26 +62,26 @@ class PartItemDelegate(QtGui.QStyledItemDelegate):
                              top + 0.66 * part.part_image_scaled.height(),
                              part.part_file)
         else:
-            QtGui.QStyledItemDelegate.paint(self, painter, option, index)
+            QtWidgets.QStyledItemDelegate.paint(self, painter, option, index)
 
     def sizeHint(self, option, index):
         part = self.itemFromProxyIndex(index)
-        result = QtGui.QStyledItemDelegate.sizeHint(self, option, index)
+        result = QtWidgets.QStyledItemDelegate.sizeHint(self, option, index)
         if isinstance(part, PartStandardItem):
             result.setHeight(part.part_image_scaled.height() + 2)
         return result
 
     
-class PartProxyModel(QtGui.QSortFilterProxyModel):
+class PartProxyModel(QtCore.QSortFilterProxyModel):
 
-    def __init__(self, parent):
-        QtGui.QSortFilterProxyModel.__init__(self, parent)
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
 
 
 class PartStandardItem(QtGui.QStandardItem):
 
     def __init__(self, category, part_file, part_picture, part_description):        
-        QtGui.QStandardItem.__init__(self, part_description)
+        super().__init__(part_description)
         self.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
         self.category = category
@@ -90,26 +90,26 @@ class PartStandardItem(QtGui.QStandardItem):
         self.part_image_scaled = self.part_image.scaled(70, 70, transformMode = QtCore.Qt.SmoothTransformation)
 
         
-class PartTreeView(QtGui.QTreeView):
+class PartTreeView(QtWidgets.QTreeView):
     """
     Encapsulates a tree view specialized for displaying parts.
     """
     selectedPartChanged = QtCore.pyqtSignal(object)
 
-    def __init__(self, parent = None):
-        QtGui.QTreeView.__init__(self, parent)
+    def __init__(self, parent):
+        super().__init__(parent)
 
         self.part_path = None
         self.stop_loading = False
 
         # Configure.
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         #self.setUniformRowHeights(True)
         self.setHeaderHidden(True)
 
         # Set model.
         self.part_model = QtGui.QStandardItemModel(self)
-        self.part_proxy_model = PartProxyModel(self)
+        self.part_proxy_model = PartProxyModel(parent = self)
         self.part_proxy_model.setSourceModel(self.part_model)
         self.setModel(self.part_proxy_model)
 
@@ -166,7 +166,7 @@ class PartTreeView(QtGui.QTreeView):
                                                    description))
 
                 # Pause to process other events as the loading can be very slow.
-                QtGui.qApp.processEvents()
+                QtWidgets.qApp.processEvents()
 
                 # Check if the user aborted.
                 if self.stop_loading:
@@ -176,7 +176,7 @@ class PartTreeView(QtGui.QTreeView):
                 #    break
 
         if not self.stop_loading:
-            print "Loaded", count, "parts."
+            print("Loaded", count, "parts.")
 
     def handleSelectionChange(self, new_item_selection, old_item_selection):
         if (len(self.selectedIndexes()) > 0):
@@ -190,7 +190,7 @@ class PartTreeView(QtGui.QTreeView):
         color_id = str(color_id)
         pic_name = self.part_dir + os.path.sep + file_name[:-4] + "_" + color_id + ".png"
         if not os.path.exists(pic_name):
-            print "Rendering", count, pic_name
+            print("Rendering", count, pic_name)
             if use_ldview:
 
                 # Create 400 x 400 image.
