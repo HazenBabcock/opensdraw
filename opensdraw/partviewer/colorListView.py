@@ -89,20 +89,41 @@ class ColorListView(QtWidgets.QListView):
             self.color_model.appendRow(c_item)
 
     def filterColors(self, rb_color_list):
+
+        # Show all colors if we didn't get a list.
         if rb_color_list is None:
             for color in self.color_items.values():
                 color.setText(color.color_name)
                 color.show = True
+
+        # Otherwise only show the colors in the list.
         else:
+
+            # Hide all the colors.
             for color in self.color_items.values():
                 color.show = False
+
+            # Show the colors in the list.
             for rb_color in rb_color_list:
+
+                # Try and find the color in our list of colors.
                 try:
-                    color = self.color_items[rb_color['ldraw_color_id']]
+                    color = self.color_items[str(rb_color['color_id'])]
+
+                # Just continue if we can't find it.
                 except KeyError:
-                    print("Unknown LDraw color", rb_color['ldraw_color_id'])
+                    print("Unknown LDraw color", rb_color['color_id'])
                     continue
-                color.setText(color.color_name + " (" + rb_color['num_sets'] + " sets)")
+
+                # Check that it exists in at least 1 set. Not sure why we
+                # get back colors that don't exist in any sets..
+                if (rb_color['num_sets'] == 0):
+                    continue
+
+                # Set text to indicate how many sets have this color.
+                color.setText(color.color_name + " (" + str(rb_color['num_sets']) + " sets)")
+
+                # Show the color.
                 color.show = True
 
         self.color_proxy_model.invalidateFilter()

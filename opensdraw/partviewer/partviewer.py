@@ -26,12 +26,7 @@ def getRBPartInfo(api_key, part_id):
     """
     Get part information from rebrickable.com.
     """
-    query = {"key" : api_key,
-             "format" : "json",
-             "part_id" : part_id,
-             "inc_colors" : "1"}
-
-    url = "https://rebrickable.com/api/get_part?" + urllib.urlencode(query)
+    url = "https://rebrickable.com/api/v3/lego/parts/" + str(part_id) + "/colors/?key=" + str(api_key)
 
     global cert_fails
     if not cert_fails:
@@ -48,10 +43,10 @@ def getRBPartInfo(api_key, part_id):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             response = requests.get(url, allow_redirects=False, verify=False)
-
-    if (response.text == "INVALIDKEY"):
+    
+    if (response.status_code == 401):
         return {"error" : "Invalid API key."}
-    elif (response.text == "NOPART"):
+    elif (response.status_code == 404):
         return {"error" : "This part is not known to Rebrickable."}
     else:
         return response.json()
@@ -145,7 +140,7 @@ class PartViewer(QtWidgets.QMainWindow):
         self.part_id = self.part_file.split(".")[0]
         if self.ui.rebrickCheckBox.isChecked() and (len(self.ui.apiLineEdit.text()) > 0):
             self.rb_info = getRBPartInfo(self.ui.apiLineEdit.text(), self.part_id)
-            self.ui.colorListView.filterColors(self.rb_info.get("colors", None))
+            self.ui.colorListView.filterColors(self.rb_info.get("results", None))
             
         self.updatePartInfo()
 
