@@ -8,6 +8,7 @@ Hazen 11/15
 import os
 import requests
 import sys
+import time
 import urllib
 import warnings
 
@@ -25,15 +26,22 @@ cert_fails = False
 def getRBPartInfo(api_key, part_id):
     """
     Get part information from rebrickable.com.
-    """
-    url = "https://rebrickable.com/api/v3/lego/parts/" + str(part_id) + "/colors/?key=" + str(api_key)
 
+    FIXME: Could be issues with too many requests per second? We are
+           sending two requests per part.
+    """
+    urls = ["https://rebrickable.com/api/v3/lego/parts/" + str(part_id) + "/?key=" + str(api_key),
+            "https://rebrickable.com/api/v3/lego/parts/" + str(part_id) + "/colors/?key=" + str(api_key)]
+
+    responses = []
     global cert_fails
     if not cert_fails:
         try:
             # Try with verification first.
-            response = requests.get(url, allow_redirects=False)
-    
+            for url in urls:
+                responses.append(requests.get(url, allow_redirects=False))
+                time.sleep(0.1)
+
         except requests.exceptions.SSLError as e:
             print("Got SSL Error:", e)
             print("Trying again without SSL certificate verification.")
@@ -42,14 +50,28 @@ def getRBPartInfo(api_key, part_id):
     if cert_fails:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            response = requests.get(url, allow_redirects=False, verify=False)
-    
-    if (response.status_code == 401):
+            for url in urls:
+                responses.append(requests.get(url, allow_redirects=False, verify=False))
+
+    # Check that the response is good.
+    is_good = True
+    for response in responses:
+        if (response.status_code != 200):
+            is_good = False
+
+    if is_good:
+        resp_json = {}
+        for response in responses:
+            resp_json.update(response.json())
+        return resp_json
+
+    # Some error feedback.
+    if (responses[0].status_code == 401):
         return {"error" : "Invalid API key."}
-    elif (response.status_code == 404):
+    elif (responses[0].status_code == 404):
         return {"error" : "This part is not known to Rebrickable."}
     else:
-        return response.json()
+        return {"error" : "Response was " + str(responses[0].status_code)}
     
 
 class PartDisplay(QtWidgets.QWidget):
@@ -161,15 +183,15 @@ class PartViewer(QtWidgets.QMainWindow):
         elif "error" in self.rb_info:
             text += ", " + self.rb_info["error"]
         else:
-            if not "year1" in self.rb_info:
-                self.rb_info["year1"] = "?"
-            if (str(self.rb_info["year1"]) == "0"):
-                self.rb_info["year1"] = "?"
-            if not u"year2" in self.rb_info:
-                self.rb_info["year2"] = "?"
-            if (str(self.rb_info["year2"]) == "0"):
-                self.rb_info["year2"] = "?"
-            text += ", years " + str(self.rb_info["year1"]) + " - " + str(self.rb_info["year2"])
+            if not "year_from" in self.rb_info:
+                self.rb_info["year_from"] = "?"
+            if (str(self.rb_info["year_from"]) == "0"):
+                self.rb_info["year_from"] = "?"
+            if not u"year_to" in self.rb_info:
+                self.rb_info["year_to"] = "?"
+            if (str(self.rb_info["year_to"]) == "0"):
+                self.rb_info["year_to"] = "?"
+            text += ", years " + str(self.rb_info["year_from"]) + " - " + str(self.rb_info["year_to"])
             
         self.ui.partInfoLabel.setText(text)
 
