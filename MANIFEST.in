@@ -1,0 +1,6 @@
+include LICENSE
+recursive-include opensdraw *.lcad
+recursive-include opensdraw *.png
+recursive-include opensdraw *.py
+recursive-include opensdraw *.xml
+

@@ -1,25 +1,21 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(name='OpenSDraw',
       version='0.0.2',
       description='A CAD program similar to OpenSCAD but for LEGO(R).',
       author='Hazen Babcock',
       author_email='hbabcock@mac.com',
-      packages=['opensdraw',
-                'opensdraw.lcad_language',
-                'opensdraw.lcad_lib',
-                'opensdraw.library'],
-      package_data={'opensdraw':['library/*.lcad',
-                                 'examples/*.lcad',
-                                 'examples/*.png',
-                                 'examples/*.py',
-                                 'partviewer/*.py',
-                                 'partviewer/*.ui',
-                                 'scripts/*.py',
-                                 'test/*.lcad',
-                                 'test/*.py',
-                                 'xml/*.xml']},
-      install_requires=['numpy', 'rply', 'scipy']
-     )
+
+      packages = find_packages(),
+
+      package_data={},
+      exclude_package_data={},
+      include_package_data=True,
+      
+      requires=[],
+      
+      setup_requires=['pytest-runner'],
+      tests_require=['pytest']
+)
