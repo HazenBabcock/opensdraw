@@ -10,6 +10,12 @@ import numbers
 import os
 from PIL import Image
 
+# Define the basestring type for Python 3.
+try:
+    basestring
+except NameError:
+    basestring = str
+
 # These OpenSDraw modules have some classes that we will use.
 import opensdraw.lcad_language.interpreter as interpreter
 import opensdraw.lcad_language.typeFunctions as typeFunctions

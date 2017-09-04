@@ -11,6 +11,12 @@ import numpy
 import os
 from PIL import Image
 
+# Define the basestring type for Python 3.
+try:
+    basestring
+except NameError:
+    basestring = str
+    
 import opensdraw.lcad_language.interpreter as interpreter
 import opensdraw.lcad_language.lcadExceptions as lcadExceptions
 import opensdraw.lcad_language.partFunctions as partFunctions

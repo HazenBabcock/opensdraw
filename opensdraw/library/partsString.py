@@ -8,7 +8,12 @@
 
 import numpy
 
-import opensdraw.lcad_language.functions as functions
+# Define the basestring type for Python 3.
+try:
+    basestring
+except NameError:
+    basestring = str
+
 import opensdraw.lcad_language.geometry as geometry
 import opensdraw.lcad_language.interpreter as interpreter
 import opensdraw.lcad_language.parts as parts
@@ -44,7 +49,7 @@ def addParts(model, parts_string):
             if ((len(data) == 8) or (len(data) == 9)):
 
                 # Get position and orientation and adjust for brick spacing.
-                pos_ori = map(float, data[0:6])
+                pos_ori = list(map(float, data[0:6]))
                 pos_ori[0] = bw * pos_ori[0]
                 pos_ori[1] = bw * pos_ori[1]
                 pos_ori[2] = bh * pos_ori[2]
@@ -70,7 +75,7 @@ def addParts(model, parts_string):
                     print(line, "has an unexpected number of elements", len(data))
 
 
-class PartsFile(functions.LCadFunction):
+class PartsFile(interpreter.LCadFunction):
     """
     **parts-file** - Specify parts in a text file.
 
@@ -85,7 +90,7 @@ class PartsFile(functions.LCadFunction):
 
     """
     def __init__(self):
-        functions.LCadFunction.__init__(self, "parts-file")
+        interpreter.LCadFunction.__init__(self, "parts-file")
         self.setSignature([[basestring]])
         
     def call(self, model, filename):
@@ -95,7 +100,7 @@ class PartsFile(functions.LCadFunction):
 lcad_functions["parts-file"] = PartsFile()
 
 
-class PartsString(functions.LCadFunction):
+class PartsString(interpreter.LCadFunction):
     """
     **parts-string** - Specify parts using a return delimited string.
     
@@ -126,7 +131,7 @@ class PartsString(functions.LCadFunction):
 
     """
     def __init__(self):
-        functions.LCadFunction.__init__(self, "parts-string")
+        interpreter.LCadFunction.__init__(self, "parts-string")
         self.setSignature([[basestring]])
 
     def call(self, model, string):
